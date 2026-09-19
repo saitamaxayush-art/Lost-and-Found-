@@ -248,21 +248,24 @@ export default function Scene({ subscribe }) {
 
         // Screen center target coordinates (converted into box group space)
         const targetCenterX = (600 - px) / ps + BOX_ANCHOR.x;
-        const targetCenterY = (390 - BOX_ANCHOR.y) / ps + BOX_ANCHOR.y;
+        const targetCenterY = (400 - BOX_ANCHOR.y) / ps + BOX_ANCHOR.y;
 
         const curX = lerp(spotX, targetCenterX, ws.centerT);
         const curY = lerp(spotY, targetCenterY, ws.centerT);
         const curRot = lerp(spotRot, 0, ws.centerT);
-        const curScale = lerp(spotScale, 1.4 / ps, ws.centerT);
+        // Target scale matches the grand large centered wallet size
+        const targetScale = Math.min(4.8, 4.4 / ps);
+        const curScale = lerp(spotScale, targetScale, ws.centerT);
 
         // Gentle floating when airborne
         const hoverPower = t * (1 - ws.centerT);
         const bob = hoverPower * Math.sin(p * 24) * 4.5;
         const swayAngle = hoverPower * Math.cos(p * 18) * 1.6;
 
-        // Fades out as the centered 3D HTML unfolding wallet takes over
-        const walletOpacity = Math.max(0, 1 - ws.openT * 1.4);
-        itemEls[0].style.opacity = walletOpacity.toFixed(3);
+        // Clean seamless handover: SVG wallet is visible throughout step 4 centering,
+        // and hands over smoothly to the 3D unfolding wallet at the center once opening begins
+        const walletOpacity = ws.openT > 0 ? Math.max(0, 1 - ws.openT * 4) : 1;
+        itemEls[0].style.opacity = walletOpacity.toString();
 
         itemEls[0].setAttribute(
           "transform",
@@ -272,8 +275,8 @@ export default function Scene({ subscribe }) {
         // Position the glowing matching aura right behind the wallet
         const auraEl = svg.querySelector("#walletAura");
         if (auraEl) {
-          auraEl.setAttribute("transform", `translate(${curX.toFixed(2)} ${(curY + bob).toFixed(2)})`);
-          const auraOpacity = (ws.glow * 0.95 * (1 - ws.centerT)).toFixed(3);
+          auraEl.setAttribute("transform", `translate(${curX.toFixed(2)} ${(curY + bob).toFixed(2)}) scale(${curScale.toFixed(3)})`);
+          const auraOpacity = (ws.glow * 0.95 * Math.max(0, 1 - ws.openT * 3)).toFixed(3);
           auraEl.setAttribute("opacity", auraOpacity);
         }
       });
