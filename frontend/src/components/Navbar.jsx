@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import HytLogo from "./HytLogo";
 
 export default function Navbar() {
   const { user, logout, notifications, dismissNotifications } = useApp();
@@ -14,22 +13,20 @@ export default function Navbar() {
 
   function handleLogout() {
     logout();
-    navigate("/browse");
+    navigate("/");
   }
 
   return (
     <nav className="navbar">
       <div className="navbar-inner">
-        <NavLink to="/" className="brand" title="HYT — Have Your Thing">
-          <HytLogo size={34} showTagline={true} />
+        <NavLink to="/" className="brand">
+          <span className="brand-mark">FB</span>
+          FindBack
         </NavLink>
 
         <div className="nav-links">
-          <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
-            Story
-          </NavLink>
-          <NavLink to="/browse" className={({ isActive }) => (isActive ? "active" : "")}>
-            Browse Board
+          <NavLink to="/browse" end className={({ isActive }) => (isActive ? "active" : "")}>
+            Browse
           </NavLink>
           <NavLink to="/report-lost" className={({ isActive }) => (isActive ? "active" : "")}>
             Report Lost

@@ -1,124 +1,100 @@
-# FindBack — Campus Lost & Found Portal
+# FindBack — Campus Lost & Found Portal (Frontend)
 
-FindBack is an interactive React application for the campus Lost & Found Portal. It features a cinematic, scroll-driven story landing page (`/`) explaining the journey of lost items through a photo-realistic cardboard box and floating items, plus a dedicated Lost & Found catalog (`/browse`).
+A sample React frontend for the S4i Hackathon "Lost & Found Portal" problem
+statement. Covers every core requirement plus all four bonus features, using
+mock/local data so it runs standalone with no backend.
 
-Built with **plain React + CSS + SVG only** (no external UI or animation libraries).
+## Landing page (scroll-through story)
 
----
+`/` is now a full-screen landing page: no header, a pinned library scene and a
+Lost & Found box that reacts to scroll (both directions).
 
-## Key Highlights & Features
+1. Hero: box centred, big.
+2. Box glides to the right, steps reveal on the left as you scroll.
+   (1) report lost and (2) report found -> items pop out of the box,
+   (3) matching and (4) notifications -> items hover,
+   (5) item found -> items drop back into the box along the same path.
+3. Finale: "Find what you've lost. Return what you've found." + login button.
+4. The button opens a sign-in pop-up (name, WhatsApp number, campus). On success the
+   user is signed in (mock, stored in `localStorage`) and sent to `/browse`.
 
-### 1. Scroll-Driven Story Landing Page (`/`)
-- **900vh scroll track with a sticky 100svh stage**.
-- **Imperative rAF + Lerp smoothing** (`useScrollProgress` hook): Updates SVG transforms and DOM cards without triggering per-frame React state re-renders.
-- **Pure mathematical timeline** (`src/scene/timeline.js`): Everything is a pure function of scroll progress $p \in [0, 1]$, providing completely symmetrical behavior scrolling up and down.
-- **Layered SVG scene** (`viewBox="0 0 1200 800"` with `xMidYMax slice`):
-  - Blurred library bookshelves and perspective wooden study table.
-  - Photo-realistic cardboard "LOST & FOUND" box (textured with procedural kraft cardboard, corrugated rim, packing tape, taped paper label, and contact shadows).
-  - Five floating items: **Glasses**, **Smartphone**, **Notebook with green bookmark**, **Blue Wallet**, and **Grey Knit Scarf**.
-  - Layer ordering: Shelves & table → box back & cavity → sunburst & glow → 5 floating items → sparkles → box front (so items realistically sit inside the box and pop out).
-  - Procedural textures generated into `public/scene/tex/` (cardboard, wood, paper, tape).
-  - Asset override hook (`src/scene/assets.js`) to allow real photographic PNG cutouts to override vector art.
+The old browse feed now lives at `/browse`.
 
-### 2. Five-Step Interactive Story (inspired by reunited.co.in)
-- **Step 1 (0.13 – 0.29)**: Report *lost* (cream mock-UI report card).
-- **Step 2 (0.29 – 0.44)**: Report *found* (cream mock-UI found logger with photo tag).
-- **Step 3 (0.44 – 0.57)**: We *match* them (automated cross-matching correlation chip).
-- **Step 4 (0.57 – 0.70)**: You get *notified* (notification bell alert).
-- **Step 5 (0.70 – 0.85)**: Item *reunited* (3-stage `Reported → Matched → Returned` lifecycle tracker).
-- **Items pop out** during steps 1-2 (`0.17 – 0.42`), hover during steps 3-4 (`0.42 – 0.70`), and return into the box during step 5 (`0.70 – 0.85`) along the exact same path.
-- **Finale (0.90 – 1.0)**: Box glides back to center with the closing headline and an accessible Login modal trigger.
+Files: `src/pages/Landing.jsx`, `src/components/landing/*` (Scene, Steps, LoginModal,
+`timeline.js` = all scroll timings), `src/hooks/useScrollProgress.js`,
+`src/components/LoginForm.jsx`, `src/styles/landing.css`.
 
-### 3. Accessible Login Pop-up & Form
-- Accessible modal dialog (`role="dialog"`, `aria-modal="true"`, focus trap, Esc / backdrop dismissal, background scroll lock, focus restore).
-- Form fields: Full name, WhatsApp number (10-14 digits, supports `+91`), and Campus name.
-- Inline validation with `aria-invalid` and `aria-describedby`.
-- Fake loading state with spinner → success confirmation → automatic redirect to `/browse`.
-- Shared `LoginForm` component reused on both the landing modal and the `/login` route.
+Tweak timings in `src/components/landing/timeline.js` (all values are scroll progress 0..1,
+page length is `TRACK_VH`).
 
-### 4. Dedicated Browse Board (`/browse`)
-- Comprehensive item search and category/status filtering.
-- Status progression: `Reported → Matched → Returned`.
-- Match notification system triggered by keyword and category overlap.
+### Using real photos instead of the vector scene
+The scene is drawn with shaded vector art plus procedural cardboard/wood textures
+(`tools/make-textures.py`). To use real photos, drop transparent PNG cut-outs in
+`public/scene/` and reference them in `src/scene/assets.js`.
 
----
+## Features
 
-## Routes
+**Core**
+- Report a lost item (description, category, date lost)
+- Report a found item (description, category, date found)
+- Search / browse / filter reported items (by keyword, category, type, status)
 
-| Route | Description | Navigation & Footer |
-|---|---|---|
-| `/` | Scroll-driven story landing page | **No Navbar & No Footer** |
-| `/browse` | Lost & found board and search feed | Standard Navbar & Footer |
-| `/report-lost` | Form to report a lost item (protected) | Standard Navbar & Footer |
-| `/report-found` | Form to report a found item (protected) | Standard Navbar & Footer |
-| `/item/:id` | Full item view & status advancement | Standard Navbar & Footer |
-| `/login` | Standalone login page | Standard Navbar & Footer |
+**Bonus**
+- Basic login/authentication (mock, stored in `localStorage`)
+- Image upload for reported items (stored as a base64 preview)
+- Status tracking: `Reported → Matched → Returned`
+- Notification system: when a new report shares a category and overlapping
+  keywords with an opposite-type report, both are flagged as a possible match
+  and a notification appears in the navbar bell
 
----
+## Tech stack
 
-## Project Structure
+- React 18 + Vite
+- React Router v6 for pages/routing
+- Plain CSS (no UI framework) — see `src/index.css`
+- State is kept in React Context and persisted to `localStorage`, so it's a
+  drop-in stand-in for a real backend. Swap `src/context/AppContext.jsx`'s
+  functions for real API calls (e.g. to your Node/Express + MongoDB backend)
+  when you build it.
 
-```text
+## Project structure
+
+```
 src/
-  App.jsx                  App shell & conditional navigation/footer routing
-  main.jsx                 React entry point
-  index.css                Design tokens, story stage, mockups, modal styles
-  context/
-    AppContext.jsx         Global state, item storage, auth profile, notifications
-  hooks/
-    useScrollProgress.js   rAF + lerp scroll progress hook with subscriber model
-  scene/
-    timeline.js            Pure timeline math and easing functions
-    assets.js              Texture registry and optional PNG cutout overrides
-    SceneSvg.jsx           Full-viewport SVG cardboard box, items, and lighting
-    StorySteps.jsx         5 sequential step cards with cream mock-UI
-    items/
-      ItemArtwork.jsx      Detailed vector artwork for glasses, phone, notebook, wallet, scarf
+  main.jsx                 entry point
+  App.jsx                  routes
+  index.css                global styles / design tokens
+  data/mockItems.js         seed data shown on first run
+  context/AppContext.jsx    app state: items, auth, notifications
   components/
-    Navbar.jsx             Top navigation (shown on non-landing routes)
-    LoginForm.jsx          Accessible form with inline validation and loading states
-    LoginModal.jsx         Accessible focus-trapped dialog
-    ItemCard.jsx           Item preview card
-    StatusBadge.jsx        Status pill (Reported, Matched, Returned)
-    FilterBar.jsx          Catalog search and filtering controls
-    ProtectedRoute.jsx     Route guard requiring student authentication
+    Navbar.jsx              top nav + notification bell
+    ItemCard.jsx            single item preview card
+    StatusBadge.jsx         colored status pill
+    FilterBar.jsx           search + filter controls
+    ProtectedRoute.jsx      route guard for pages that require login
   pages/
-    Landing.jsx            Scroll-driven story landing page (900vh track)
-    Browse.jsx             Lost & found board feed
-    ReportLost.jsx         Report lost item form
-    ReportFound.jsx        Report found item form
-    ItemDetail.jsx         Item detail view & lifecycle tracker
-    Login.jsx              Standalone login page
-    NotFound.jsx           404 page
-scripts/
-  generate_textures.py     Procedural texture generator (cardboard, wood, paper, tape)
-public/
-  scene/
-    tex/                   Generated textures (cardboard.png, wood.png, paper.png, tape.png)
+    Landing.jsx             scroll-through landing page (route /)
+    Home.jsx                browse/search feed (route /browse)
+    ReportLost.jsx          report-a-lost-item form
+    ReportFound.jsx         report-a-found-item form
+    ItemDetail.jsx          full item view + status tracker
+    Login.jsx               mock login page (same form as the landing pop-up)
+    NotFound.jsx            404 page
 ```
 
----
-
-## Getting Started
+## Getting started
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. (Optional) Re-generate procedural textures
-python3 scripts/generate_textures.py
-
-# 3. Start development server
 npm run dev
 ```
 
-Open [http://localhost:5173/](http://localhost:5173/) in your browser.
+Then open the printed local URL (usually `http://localhost:5173`).
 
----
+## Where to plug in a real backend
 
-## Production Build
-
-```bash
-npm run build
-```
-Builds cleanly with zero external UI dependencies.
+Everything that would normally hit an API lives in `AppContext.jsx`:
+`addItem`, `updateItemStatus`, `login`, `logout`. Replace the localStorage
+read/writes inside those functions with `fetch`/`axios` calls to your
+Node.js + Express + MongoDB backend, and the rest of the app (pages,
+components, routing) needs no changes.

@@ -2,7 +2,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Landing from "./pages/Landing";
-import Browse from "./pages/Browse";
+import Home from "./pages/Home";
 import ReportLost from "./pages/ReportLost";
 import ReportFound from "./pages/ReportFound";
 import ItemDetail from "./pages/ItemDetail";
@@ -10,17 +10,16 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
-  const location = useLocation();
-  const isLanding = location.pathname === "/";
+  // The landing page is a full-screen scroll experience: no header, no footer note.
+  const isLanding = useLocation().pathname === "/";
 
   return (
     <div className="app-shell">
-      {/* On "/" render NO Navbar */}
       {!isLanding && <Navbar />}
 
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/browse" element={<Browse />} />
+        <Route path="/browse" element={<Home />} />
         <Route path="/item/:id" element={<ItemDetail />} />
         <Route path="/login" element={<Login />} />
         <Route
@@ -42,29 +41,8 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {/* On "/" render NO footer */}
       {!isLanding && (
-        <footer className="site-footer">
-          <div className="footer-inner">
-            <div className="footer-brand">
-              <strong style={{ fontSize: "1.25rem", color: "#fff", display: "block", marginBottom: "0.4rem" }}>
-                HYT<span style={{ color: "#f59e0b" }}>.</span>
-              </strong>
-              <p style={{ margin: 0, fontSize: "0.88rem", color: "#94a3b8" }}>
-                <strong>Have Your Thing</strong> — Campus Lost &amp; Found Portal. Helping students and faculty recover what matters.
-              </p>
-            </div>
-            <div className="footer-links">
-              <a href="/">Story</a>
-              <a href="/browse">Browse Board</a>
-              <a href="/report-lost">Report Lost</a>
-              <a href="/report-found">Report Found</a>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            HYT (Have Your Thing) — Campus Lost &amp; Found Story &amp; Recovery Platform
-          </div>
-        </footer>
+        <div className="footer-note">FindBack — a sample frontend for the S4i Hackathon Lost &amp; Found Portal</div>
       )}
     </div>
   );

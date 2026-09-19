@@ -83,22 +83,14 @@ export function AppProvider({ children }) {
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status } : it)));
   }
 
-  function login(profileOrName, emailOrNone) {
-    if (typeof profileOrName === "object" && profileOrName !== null) {
-      setUser({
-        name: profileOrName.name || "Student",
-        whatsapp: profileOrName.whatsapp || "",
-        campus: profileOrName.campus || "",
-        email: profileOrName.email || profileOrName.whatsapp || "",
-      });
-    } else {
-      setUser({
-        name: profileOrName || "Student",
-        email: emailOrNone || "",
-        whatsapp: emailOrNone || "",
-        campus: "",
-      });
-    }
+  // login({ name, whatsapp, campus }) from the landing pop-up / login page.
+  // Legacy call login(name, email) still works.
+  function login(nameOrProfile, email) {
+    setUser(
+      typeof nameOrProfile === "object" && nameOrProfile !== null
+        ? nameOrProfile
+        : { name: nameOrProfile, email }
+    );
   }
 
   function logout() {
