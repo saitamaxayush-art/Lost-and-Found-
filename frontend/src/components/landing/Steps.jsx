@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { HERO_END, STEP_RANGES, FINALE_START, boxMove, clamp, windowVis } from "./timeline";
+import { HERO_END, STEP_RANGES, boxMove, clamp, windowVis } from "./timeline";
 
 /* ---------- small mock UIs (visual explanation of each step) ---------- */
 
@@ -145,10 +145,9 @@ function Title({ parts }) {
 
 /* ---------- component ---------- */
 
-export default function Steps({ subscribe, onCta, ctaLabel, finaleLive }) {
+export default function Steps({ subscribe }) {
   const scrim = useRef(null);
   const hero = useRef(null);
-  const finale = useRef(null);
   const panels = useRef([]);
   const pips = useRef([]);
 
@@ -172,9 +171,6 @@ export default function Steps({ subscribe, onCta, ctaLabel, finaleLive }) {
         pips.current[i]?.classList.toggle("on", active);
         pips.current[i]?.classList.toggle("past", p >= r[1]);
       });
-
-      const fv = clamp((p - FINALE_START) / 0.08);
-      setVis(finale.current, fv, 1, 20);
 
       // dark scrim behind text while the box is parked on the side
       const m = boxMove(p);
@@ -207,14 +203,6 @@ export default function Steps({ subscribe, onCta, ctaLabel, finaleLive }) {
         {STEPS.map((_, i) => (
           <span key={i} ref={(el) => (pips.current[i] = el)} />
         ))}
-      </div>
-
-      <div className="lp-finale" ref={finale}>
-        <h2 className="lp-tag">
-          Find what you've lost.
-          <br />
-          Return what you've found.
-        </h2>
       </div>
     </>
   );

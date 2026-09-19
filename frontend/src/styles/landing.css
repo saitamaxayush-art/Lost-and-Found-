@@ -222,20 +222,64 @@
 @keyframes lm-pop { from { opacity: 0; transform: translateY(14px) scale(.96); } }
 
 .lf-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-.lf-row label { font-size: 13px; font-weight: 600; color: #3b3a35; }
-.lf-row input { padding: 12px 14px; border: 1.5px solid #e0d5bc; border-radius: 12px; background: #fff; color: var(--ink); font-size: 16px; }
-.lf-row input:focus { outline: none; border-color: var(--navy-light); box-shadow: 0 0 0 4px rgba(23, 53, 122, .14); }
+.lf-row label { font-size: 13px; font-weight: 600; color: #3b352e; }
+.lf-row input {
+  padding: 12px 14px;
+  border: 1.5px solid #dfd4be;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 15px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.lf-row input:focus {
+  outline: none;
+  border-color: #d97706;
+  box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.16);
+}
 .lf-row input[aria-invalid="true"] { border-color: var(--danger); }
 .lf-err { font-size: 12.5px; color: var(--danger); }
-.lf-submit { width: 100%; margin-top: 6px; padding: 14px; border: 0; border-radius: 12px; background: var(--navy); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; transition: background .15s; }
-.lf-submit:hover:not(:disabled) { background: var(--navy-light); }
+.lf-submit {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  color: #fffaf0;
+  font-family: "Sora", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(180, 83, 9, 0.32);
+  transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+.lf-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(180, 83, 9, 0.4);
+}
 .lf-submit:disabled { opacity: .7; cursor: progress; }
 .lf-done { text-align: center; padding: 14px 4px 4px; }
-.lf-done h3 { font-size: 22px; margin: 14px 0 6px; }
-.lf-done p { margin: 0 0 18px; color: #6b6558; }
+.lf-done h3 { font-size: 22px; margin: 14px 0 6px; color: #2a1c12; }
+.lf-done p { margin: 0 0 18px; color: #6b6357; }
 .lf-check { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; background: var(--success-bg); color: var(--success); display: grid; place-items: center; animation: lm-pop .4s cubic-bezier(.2, .9, .3, 1.3); }
 .lf-check path { stroke-dasharray: 26; stroke-dashoffset: 26; animation: lf-draw .45s .15s ease-out forwards; }
 @keyframes lf-draw { to { stroke-dashoffset: 0; } }
+
+/* ===================== Background Blur Overlay ===================== */
+.lp-wallet-blur-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 65;
+  background: rgba(22, 14, 8, 0.65);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s linear;
+  will-change: opacity;
+}
 
 /* ===================== Unfolding Wallet Letter Login ===================== */
 .lp-wallet-letter-wrap {
@@ -244,7 +288,7 @@
   top: 50%;
   transform: translate(-50%, -50%) translateY(var(--ty, 0px)) scale(var(--scale, 1));
   z-index: 70;
-  width: min(92vw, 460px);
+  width: min(92vw, 440px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease-out;
@@ -260,7 +304,7 @@
   width: 100%;
 }
 
-/* Leather Top Flap (3D folds backwards/upwards) */
+/* Black Leather Top Flap (3D folds backwards/upwards) */
 .lp-wallet-flap {
   position: absolute;
   top: 10px;
@@ -280,12 +324,12 @@
   inset: 0;
   backface-visibility: hidden;
   border-radius: 18px 18px 26px 26px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
 }
 
 .lp-wallet-flap-front {
-  background: linear-gradient(170deg, #325796 0%, #1c325c 100%);
-  border: 1.5px solid #4a72b8;
+  background: linear-gradient(170deg, #25252a 0%, #101013 100%);
+  border: 1.5px solid #3d3d44;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -293,8 +337,8 @@
 }
 
 .lp-wallet-flap-back {
-  background: linear-gradient(170deg, #172744 0%, #0e1a30 100%);
-  border: 1.5px solid #294474;
+  background: linear-gradient(170deg, #18181c 0%, #0d0d10 100%);
+  border: 1.5px solid #28282e;
   transform: rotateY(180deg) rotateZ(180deg);
 }
 
@@ -302,7 +346,7 @@
   position: absolute;
   inset: 5px;
   border-radius: 14px 14px 22px 22px;
-  border: 1.5px dashed rgba(169, 189, 230, 0.45);
+  border: 1.5px dashed rgba(232, 216, 189, 0.45);
   pointer-events: none;
 }
 
@@ -311,7 +355,7 @@
   height: 24px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fde68a, #d97706);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 1px #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), inset 0 1px 1px #fff;
   display: grid;
   place-items: center;
 }
@@ -332,8 +376,8 @@
   background: #fdfaf4;
   color: var(--ink);
   border-radius: 20px;
-  padding: 24px 22px 20px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 0 rgba(255, 255, 255, 0.8) inset;
+  padding: 24px 22px 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255, 255, 255, 0.85) inset;
   border: 1px solid #e5dac6;
   margin-top: 36px;
   margin-bottom: 16px;
@@ -347,7 +391,7 @@
 
 /* Header & Match Badge on the Letter */
 .lp-sheet-header {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .lp-sheet-badge {
@@ -358,7 +402,7 @@
   border-radius: 999px;
   background: rgba(245, 158, 11, 0.15);
   border: 1px solid rgba(245, 158, 11, 0.35);
-  color: #b45309;
+  color: #92400e;
   font-size: 12px;
   font-weight: 700;
   margin-bottom: 8px;
@@ -372,34 +416,24 @@
   font-family: "Sora", sans-serif;
   font-size: 22px;
   font-weight: 700;
-  color: #17357a;
+  color: #2a1c12;
   margin: 0 0 4px;
 }
 
 .lp-sheet-sub {
   margin: 0;
   font-size: 13px;
-  color: #6b6558;
+  color: #6b6357;
   line-height: 1.4;
 }
 
 .lp-sheet-prompt {
   font-size: 12.5px;
   font-weight: 600;
-  color: #3b3a35;
-  margin-bottom: 10px;
-  border-top: 1px dashed #e8dfcc;
+  color: #4a4137;
+  margin-bottom: 12px;
+  border-top: 1px dashed #e8decb;
   padding-top: 12px;
-}
-
-.lp-sheet-footer {
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid #efe8da;
-  text-align: center;
-  font-size: 11px;
-  color: #9c9484;
-  font-weight: 500;
 }
 
 /* Logged-In State inside the letter */
@@ -413,7 +447,7 @@
   gap: 12px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: #f4efe4;
+  background: #f7f1e6;
   border: 1px solid #e5dcce;
   margin-bottom: 12px;
 }
@@ -422,8 +456,8 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--navy);
-  color: #fff;
+  background: #2a1c12;
+  color: #fbf3e4;
   display: grid;
   place-items: center;
   font-size: 18px;
@@ -433,12 +467,12 @@
 .lp-user-meta strong {
   display: block;
   font-size: 14px;
-  color: #17357a;
+  color: #2a1c12;
 }
 
 .lp-user-meta span {
   font-size: 12px;
-  color: #6b6558;
+  color: #6b6357;
 }
 
 .lp-claim-prompt {
@@ -454,7 +488,7 @@
   border: 0;
   border-radius: 12px;
   background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #172554;
+  color: #2a1c12;
   font-family: "Sora", sans-serif;
   font-size: 15px;
   font-weight: 700;
@@ -468,7 +502,7 @@
   background: linear-gradient(135deg, #fbbf24, #f59e0b);
 }
 
-/* Lower Leather Wallet Pocket */
+/* Lower Black Leather Wallet Pocket */
 .lp-wallet-pocket {
   position: absolute;
   bottom: 0;
@@ -476,11 +510,11 @@
   right: 6px;
   height: 90px;
   z-index: 12;
-  background: linear-gradient(180deg, #244275 0%, #162a4e 100%);
-  border: 1.5px solid #4369a8;
+  background: linear-gradient(180deg, #222226 0%, #0e0e11 100%);
+  border: 1.5px solid #3a3a42;
   border-top: none;
   border-radius: 0 0 24px 24px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), inset 0 2px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), inset 0 1.5px 0 rgba(255, 255, 255, 0.12);
   pointer-events: none;
   display: flex;
   align-items: flex-end;
@@ -494,15 +528,6 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #375b98, #608bd2, #375b98);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-}
-
-.lp-wallet-emboss {
-  font-family: "Sora", sans-serif;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: rgba(251, 243, 228, 0.45);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  background: linear-gradient(90deg, #2b2b30, #484852, #2b2b30);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }

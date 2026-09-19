@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { SCENE_ASSETS } from "../../scene/assets";
-import { clamp, ease, lerp, boxMove, walletState } from "./timeline";
+import { clamp, ease, lerp, boxMove, walletState, otherItemElevation } from "./timeline";
 
 /* ------------------------------------------------------------------ *
  *  Scene canvas is 1200 x 800. The SVG uses "xMidYMax slice", so the   *
@@ -131,8 +131,8 @@ function Wallet() {
   return (
     <>
       <rect x="-46" y="-32" width="92" height="64" rx="11" fill="url(#leather)" />
-      <rect x="-40" y="-26" width="80" height="52" rx="7" fill="none" stroke="#a9bde6" strokeOpacity=".55" strokeWidth="1.6" strokeDasharray="4 3" />
-      <path d="M-46 -6 q46 20 92 0" stroke="#1b2f57" strokeWidth="1.6" fill="none" />
+      <rect x="-40" y="-26" width="80" height="52" rx="7" fill="none" stroke="#e8d8bd" strokeOpacity=".7" strokeWidth="1.5" strokeDasharray="4 3" />
+      <path d="M-46 -6 q46 20 92 0" stroke="#08080a" strokeWidth="1.8" fill="none" />
       <circle cx="0" cy="8" r="6" fill="url(#brass)" />
       <rect x="-46" y="-32" width="92" height="64" rx="11" fill="url(#leatherGloss)" />
     </>
@@ -213,26 +213,40 @@ export default function Scene({ subscribe }) {
 
       ITEMS.forEach((it, i) => {
         if (i > 0) {
-          // Other items remain nestled inside the box behind the front rim
+          // Other items: pop out in Step 2, then return safely into the box in Step 3
+          const tOther = otherItemElevation(p, it.delay, it.fallDelay);
+          const dxK = Math.min(1, 0.55 + L.k * 0.5);
+          const dxT = it.dx > 0 ? Math.min(it.dx * dxK, L.rightRoom) : -Math.min(-it.dx * dxK, L.leftRoom);
+          const x = it.sx + dxT * tOther + it.sway * Math.sin(Math.PI * tOther);
+          const y = it.sy + it.dy * L.k * tOther;
+          const rot = it.tilt + it.rot * tOther;
+          const sc = 1 + it.sc * Math.sin(Math.PI * tOther * 0.5);
+          const fl = it.flutter ? ` skewX(${(Math.sin(tOther * 9) * 8 * Math.sin(Math.PI * tOther)).toFixed(2)})` : "";
+          const bobOther = tOther * Math.sin(p * 22 + i * 1.5) * 3;
+
           itemEls[i].setAttribute(
             "transform",
-            `translate(${it.sx} ${it.sy}) rotate(${it.tilt}) scale(0.95)`
+            `translate(${x.toFixed(2)} ${(y + bobOther).toFixed(2)}) rotate(${rot.toFixed(2)}) scale(${sc.toFixed(3)})${fl}`
           );
           return;
         }
 
-        // WALLET (i === 0): Spotlighted at Step 3, glows, and glides to center after Step 4
+        // WALLET (i === 0):
+        // 1. Pops out in Step 2 alongside other items
+        // 2. In Step 3: stays in the air, highlighted with glowing match aura
+        // 3. In Step 4: glides to center
+        // 4. After Step 4: opens wallet into login tooltip
         const t = ws.elevation;
         const dxK = Math.min(1, 0.55 + L.k * 0.5);
         const dxT = -Math.min(-it.dx * dxK, L.leftRoom);
 
-        // Position in spotlight above the box
+        // Spotlight position above the box
         const spotX = it.sx + dxT * t + it.sway * Math.sin(Math.PI * t);
         const spotY = it.sy + it.dy * L.k * t;
         const spotRot = it.tilt + it.rot * t;
         const spotScale = 1 + it.sc * Math.sin(Math.PI * t * 0.5);
 
-        // Target center screen coordinates (converted into box group space)
+        // Screen center target coordinates (converted into box group space)
         const targetCenterX = (600 - px) / ps + BOX_ANCHOR.x;
         const targetCenterY = (390 - BOX_ANCHOR.y) / ps + BOX_ANCHOR.y;
 
@@ -246,8 +260,8 @@ export default function Scene({ subscribe }) {
         const bob = hoverPower * Math.sin(p * 24) * 4.5;
         const swayAngle = hoverPower * Math.cos(p * 18) * 1.6;
 
-        // Fades out as the 3D HTML unfolding wallet letter takes over
-        const walletOpacity = Math.max(0, 1 - ws.openT * 1.5);
+        // Fades out as the centered 3D HTML unfolding wallet takes over
+        const walletOpacity = Math.max(0, 1 - ws.openT * 1.4);
         itemEls[0].style.opacity = walletOpacity.toFixed(3);
 
         itemEls[0].setAttribute(
@@ -259,7 +273,7 @@ export default function Scene({ subscribe }) {
         const auraEl = svg.querySelector("#walletAura");
         if (auraEl) {
           auraEl.setAttribute("transform", `translate(${curX.toFixed(2)} ${(curY + bob).toFixed(2)})`);
-          const auraOpacity = (ws.glow * 0.92 * (1 - ws.centerT)).toFixed(3);
+          const auraOpacity = (ws.glow * 0.95 * (1 - ws.centerT)).toFixed(3);
           auraEl.setAttribute("opacity", auraOpacity);
         }
       });
@@ -344,7 +358,7 @@ export default function Scene({ subscribe }) {
         <linearGradient id="spineShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#000" stopOpacity=".35" /><stop offset="1" stopColor="#000" stopOpacity="0" /></linearGradient>
         <linearGradient id="coverGloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".18" /><stop offset=".4" stopColor="#fff" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".15" /></linearGradient>
         <linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#6aa532" /><stop offset="1" stopColor="#8cc54a" /></linearGradient>
-        <linearGradient id="leather" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#3e64a6" /><stop offset="1" stopColor="#1f386d" /></linearGradient>
+        <linearGradient id="leather" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#2c2c31" /><stop offset="100%" stopColor="#101013" /></linearGradient>
         <linearGradient id="leatherGloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".2" /><stop offset=".5" stopColor="#fff" stopOpacity="0" /></linearGradient>
         <radialGradient id="brass" cx="35%" cy="35%"><stop offset="0" stopColor="#f3dc93" /><stop offset="1" stopColor="#a5822f" /></radialGradient>
         <linearGradient id="scarfBase" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#a4a8ad" /><stop offset="1" stopColor="#7c8085" /></linearGradient>
