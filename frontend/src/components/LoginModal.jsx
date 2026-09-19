@@ -98,9 +98,9 @@ export default function LoginModal({ isOpen, onClose }) {
 
         <div className="modal-header">
           <div className="modal-badge">Campus Sign-in</div>
-          <h2 id="login-modal-title">Welcome to FindBack<span className="logo-dot">.</span></h2>
+          <h2 id="login-modal-title">Welcome to HYT<span className="logo-dot">.</span></h2>
           <p className="modal-lede">
-            Sign in to track reported valuables, receive instant WhatsApp alerts, and claim items at the campus desk.
+            <strong>Have Your Thing</strong> — Sign in to track reported valuables, receive instant campus alerts, and claim items at the desk.
           </p>
         </div>
 

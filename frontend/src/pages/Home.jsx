@@ -32,7 +32,7 @@ export default function Home() {
     },
     {
       q: "How does the smart matching system work?",
-      a: "FindBack analyzes descriptions, categories, and keywords across lost and found reports. When matching keywords (such as brand, color, or model) are detected, an alert is triggered in the notification bell with a link to the match.",
+      a: "HYT (Have Your Thing) analyzes descriptions, categories, and keywords across lost and found reports. When matching keywords (such as brand, color, or model) are detected, an alert is triggered in the notification bell with a link to the match.",
     },
     {
       q: "How do I prove that a found item is actually mine?",
@@ -44,7 +44,7 @@ export default function Home() {
     },
     {
       q: "Is this portal free for all campus students and faculty?",
-      a: "Yes, FindBack is completely free and designed exclusively for the campus community to make item recovery fast, transparent, and collaborative.",
+      a: "Yes, HYT is completely free and designed exclusively for the campus community to make item recovery fast, transparent, and collaborative.",
     },
   ];
 

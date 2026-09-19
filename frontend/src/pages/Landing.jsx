@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useScrollProgress } from "../hooks/useScrollProgress";
 import { evaluateTimeline } from "../scene/timeline";
 import SceneSvg from "../scene/SceneSvg";
 import StorySteps from "../scene/StorySteps";
 import LoginModal from "../components/LoginModal";
+import HytLogo from "../components/HytLogo";
 import { useApp } from "../context/AppContext";
 
 export default function Landing() {
   const { user } = useApp();
-  const navigate = useNavigate();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
 
@@ -50,7 +50,7 @@ export default function Landing() {
         stepsRef.current.applyTimeline(data);
       }
 
-      // 3. Update Hero Text
+      // 3. Update Hero Text (clear high contrast visibility)
       if (heroTextRef.current) {
         heroTextRef.current.style.opacity = data.heroText.opacity.toFixed(3);
         heroTextRef.current.style.transform = `translateY(${data.heroText.translateY.toFixed(1)}px)`;
@@ -84,19 +84,29 @@ export default function Landing() {
   }, [subscribe, handleScroll]);
 
   return (
-    <div className="landing-story-page">
+    <div className="landing-story-page light-theme">
       {/* 900vh Scroll Track */}
       <div className="story-track" ref={trackRef}>
         {/* Sticky 100svh Viewport Stage */}
         <div className="story-stage">
-          {/* Subtle Top Navigation Utility (Discreet Brand & Direct Skip to Browse) */}
+          {/* Topbar with custom HYT logo & actions */}
           <header className="story-topbar">
             <div className="story-brand">
-              <span className="brand-mark">FB</span>
-              <span className="story-brand-name">FindBack</span>
+              <HytLogo size={40} showTagline={true} />
             </div>
             <div className="story-top-actions">
-              <Link to="/browse" className="skip-browse-link" aria-label="Skip to Browse Board">
+              {user ? (
+                <span className="user-greeting">Hi, {user.name.split(" ")[0]}</span>
+              ) : (
+                <button
+                  type="button"
+                  className="top-login-pill-btn"
+                  onClick={() => setIsLoginModalOpen(true)}
+                >
+                  Log In
+                </button>
+              )}
+              <Link to="/browse" className="skip-browse-link" aria-label="Open Browse Board">
                 Browse Board <span>→</span>
               </Link>
             </div>
@@ -112,18 +122,14 @@ export default function Landing() {
             <SceneSvg ref={sceneRef} isPortrait={isPortrait} />
           </div>
 
-          {/* Dark Scrim Overlay on Left Column to ensure step readability */}
+          {/* Light Scrim Overlay on Left Column for crisp card readability */}
           <div className="story-scrim-left" ref={scrimRef} style={{ opacity: 0 }}></div>
 
-          {/* Hero Headline (p = 0) */}
+          {/* Hero Headline (p = 0): High-contrast, clean & visible */}
           <div className="story-hero-overlay" ref={heroTextRef}>
-            <div className="hero-box-tag">Campus Lost &amp; Found Portal</div>
             <h1 className="story-hero-heading">
               Everything lost on campus ends up in <em>one box</em>.
             </h1>
-            <p className="story-hero-sub">
-              From lecture halls to dining booths — scroll to discover how lost belongings get reunited.
-            </p>
             <div className="scroll-indicator" aria-hidden="true">
               <span className="mouse-wheel">
                 <span className="wheel-dot"></span>
@@ -140,13 +146,13 @@ export default function Landing() {
           {/* Finale Call to Action (p = 0.90 - 1.0) */}
           <div className="story-finale-overlay" ref={finaleRef} style={{ opacity: 0, display: "none" }}>
             <div className="finale-card">
-              <span className="finale-tag">Ready to Find or Return?</span>
+              <span className="finale-tag">HYT • Have Your Thing</span>
               <h2 className="finale-title">
                 Find what you’ve <em>lost</em>.<br />
                 Return what you’ve <em>found</em>.
               </h2>
               <p className="finale-sub">
-                Join students and faculty across campus to report misplaced items or claim what’s rightfully yours.
+                HYT ("Have Your Thing") connects campus students and staff to report misplaced items, verify ownership, and have your belongings reunited quickly.
               </p>
 
               <div className="finale-actions">
@@ -164,7 +170,7 @@ export default function Landing() {
                   </button>
                 )}
                 <Link to="/browse" className="btn-ghost-finale">
-                  Or browse items directly
+                  Or browse reported items directly
                 </Link>
               </div>
             </div>
@@ -172,7 +178,7 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Accessible Login Modal */}
+      {/* Accessible Login Modal with deep background blur */}
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}

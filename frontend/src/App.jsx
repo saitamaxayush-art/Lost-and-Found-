@@ -47,9 +47,12 @@ export default function App() {
         <footer className="site-footer">
           <div className="footer-inner">
             <div className="footer-brand">
-              <span className="brand-mark">FB</span>
-              <strong>FindBack</strong>
-              <p>Campus Lost &amp; Found Portal. Helping students and faculty recover what matters.</p>
+              <strong style={{ fontSize: "1.25rem", color: "#fff", display: "block", marginBottom: "0.4rem" }}>
+                HYT<span style={{ color: "#f59e0b" }}>.</span>
+              </strong>
+              <p style={{ margin: 0, fontSize: "0.88rem", color: "#94a3b8" }}>
+                <strong>Have Your Thing</strong> — Campus Lost &amp; Found Portal. Helping students and faculty recover what matters.
+              </p>
             </div>
             <div className="footer-links">
               <a href="/">Story</a>
@@ -59,7 +62,7 @@ export default function App() {
             </div>
           </div>
           <div className="footer-bottom">
-            FindBack — Campus Lost &amp; Found Story &amp; Recovery Platform
+            HYT (Have Your Thing) — Campus Lost &amp; Found Story &amp; Recovery Platform
           </div>
         </footer>
       )}

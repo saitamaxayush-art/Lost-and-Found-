@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
+import HytLogo from "./HytLogo";
 
 export default function Navbar() {
   const { user, logout, notifications, dismissNotifications } = useApp();
@@ -19,9 +20,8 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-inner">
-        <NavLink to="/" className="brand" title="FindBack Story">
-          <span className="brand-mark">FB</span>
-          FindBack
+        <NavLink to="/" className="brand" title="HYT — Have Your Thing">
+          <HytLogo size={34} showTagline={true} />
         </NavLink>
 
         <div className="nav-links">

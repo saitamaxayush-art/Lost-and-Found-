@@ -81,14 +81,14 @@ export function PhoneItem() {
         Monday, Oct 12
       </text>
 
-      {/* FindBack notification preview pill */}
-      <rect x="-30" y="-12" width="60" height="28" rx="6" fill="rgba(255, 255, 255, 0.92)" />
-      <circle cx="-22" cy="2" r="4" fill="#0b1f4d" />
-      <text x="-22" y="4" textAnchor="middle" fill="#f5c542" fontSize="5" fontWeight="800">
-        FB
+      {/* HYT notification preview pill */}
+      <rect x="-30" y="-12" width="60" height="28" rx="6" fill="rgba(255, 255, 255, 0.94)" />
+      <circle cx="-22" cy="2" r="4" fill="#0f2454" />
+      <text x="-22" y="3.5" textAnchor="middle" fill="#fbbf24" fontSize="3.8" fontWeight="800">
+        HYT
       </text>
-      <text x="-14" y="-1" fill="#0b1f4d" fontSize="5.5" fontWeight="700" fontFamily="Inter, sans-serif">
-        Match Found!
+      <text x="-14" y="-1" fill="#0f2454" fontSize="5.5" fontWeight="700" fontFamily="Inter, sans-serif">
+        HYT Match!
       </text>
       <text x="-14" y="8" fill="#586580" fontSize="4.5" fontFamily="Inter, sans-serif">
         Central Library Desk

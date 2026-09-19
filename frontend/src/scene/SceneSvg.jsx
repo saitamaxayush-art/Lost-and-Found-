@@ -66,7 +66,7 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
       aria-hidden="true"
     >
       <defs>
-        {/* Procedural Textures from Python generation */}
+        {/* Procedural Textures */}
         <pattern id="pat-cardboard" patternUnits="userSpaceOnUse" width="256" height="256">
           <image href={TEXTURES.cardboard} width="256" height="256" preserveAspectRatio="none" />
         </pattern>
@@ -80,124 +80,130 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
           <image href={TEXTURES.tape} width="128" height="128" preserveAspectRatio="none" />
         </pattern>
 
-        {/* Shadows & Blur Filters */}
+        {/* Filters */}
         <filter id="library-blur" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="8" />
+          <feGaussianBlur stdDeviation="9" />
         </filter>
         <filter id="item-shadow-blur" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="5" />
+          <feGaussianBlur stdDeviation="6" />
         </filter>
         <filter id="soft-glow" x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="16" />
+          <feGaussianBlur stdDeviation="18" />
         </filter>
 
-        {/* Gradients */}
+        {/* Light Theme Gradients */}
         <radialGradient id="grad-contact-shadow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgba(12, 6, 2, 0.75)" />
-          <stop offset="60%" stopColor="rgba(12, 6, 2, 0.35)" />
-          <stop offset="100%" stopColor="rgba(12, 6, 2, 0)" />
+          <stop offset="0%" stopColor="rgba(15, 23, 42, 0.45)" />
+          <stop offset="50%" stopColor="rgba(15, 23, 42, 0.22)" />
+          <stop offset="100%" stopColor="rgba(15, 23, 42, 0)" />
         </radialGradient>
 
         <radialGradient id="grad-burst-gold" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#fff2a8" stopOpacity="0.95" />
-          <stop offset="35%" stopColor="#f5c542" stopOpacity="0.75" />
-          <stop offset="70%" stopColor="#e59819" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#c27705" stopOpacity="0" />
+          <stop offset="0%" stopColor="#fff7cc" stopOpacity="0.95" />
+          <stop offset="35%" stopColor="#fbbf24" stopOpacity="0.75" />
+          <stop offset="70%" stopColor="#f59e0b" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#d97706" stopOpacity="0" />
         </radialGradient>
 
         <linearGradient id="phone-screen-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1a3575" />
-          <stop offset="60%" stopColor="#0a193d" />
-          <stop offset="100%" stopColor="#050e24" />
+          <stop offset="0%" stopColor="#1e3a8a" />
+          <stop offset="60%" stopColor="#0f172a" />
+          <stop offset="100%" stopColor="#020617" />
         </linearGradient>
 
         <linearGradient id="box-cavity-depth" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#150d08" />
-          <stop offset="50%" stopColor="#1f140c" />
-          <stop offset="100%" stopColor="#301f14" />
+          <stop offset="0%" stopColor="#18110b" />
+          <stop offset="50%" stopColor="#241a10" />
+          <stop offset="100%" stopColor="#362719" />
         </linearGradient>
 
         <linearGradient id="box-front-shade" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="rgba(255, 255, 255, 0.12)" />
+          <stop offset="0%" stopColor="rgba(255, 255, 255, 0.2)" />
           <stop offset="15%" stopColor="rgba(0, 0, 0, 0)" />
-          <stop offset="85%" stopColor="rgba(0, 0, 0, 0.15)" />
-          <stop offset="100%" stopColor="rgba(0, 0, 0, 0.35)" />
+          <stop offset="85%" stopColor="rgba(0, 0, 0, 0.12)" />
+          <stop offset="100%" stopColor="rgba(0, 0, 0, 0.3)" />
         </linearGradient>
 
         <linearGradient id="tape-sheen" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="rgba(255, 255, 255, 0.15)" />
-          <stop offset="50%" stopColor="rgba(255, 255, 255, 0.35)" />
-          <stop offset="100%" stopColor="rgba(255, 255, 255, 0.08)" />
+          <stop offset="0%" stopColor="rgba(255, 255, 255, 0.2)" />
+          <stop offset="50%" stopColor="rgba(255, 255, 255, 0.45)" />
+          <stop offset="100%" stopColor="rgba(255, 255, 255, 0.12)" />
         </linearGradient>
       </defs>
 
       {/* ========================================================
-          LAYER 1: BACKGROUND (Library Shelves + Wooden Table)
+          LAYER 1: BACKGROUND (Light Sunlit Library & Study Desk)
           ======================================================== */}
       <g className="scene-background">
-        {/* Wall & Ambient Shadow */}
-        <rect x="0" y="0" width="1200" height="800" fill="#0d1424" />
+        {/* Soft Warm Off-White / Sky Wall */}
+        <rect x="0" y="0" width="1200" height="800" fill="#f1f5f9" />
+        {/* Soft sunlight gradient from top */}
+        <linearGradient id="wall-sunlight" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#f8fafc" />
+          <stop offset="60%" stopColor="#edf2f7" />
+          <stop offset="100%" stopColor="#e2e8f0" />
+        </linearGradient>
+        <rect x="0" y="0" width="1200" height="470" fill="url(#wall-sunlight)" />
 
-        {/* Blurred Library Shelves */}
-        <g filter="url(#library-blur)" opacity="0.6">
+        {/* Blurred Library Shelves (Light, modern campus atmosphere) */}
+        <g filter="url(#library-blur)" opacity="0.65">
           {/* Top shelf line */}
-          <rect x="0" y="140" width="1200" height="18" fill="#1b253b" />
-          {/* Books Row 1 */}
-          <rect x="40" y="25" width="28" height="115" fill="#304775" rx="2" />
-          <rect x="70" y="40" width="34" height="100" fill="#4d3024" rx="2" />
-          <rect x="106" y="20" width="22" height="120" fill="#244535" rx="2" />
-          <rect x="130" y="32" width="40" height="108" fill="#5c4528" rx="2" />
-          <rect x="172" y="15" width="26" height="125" fill="#1a2744" rx="2" />
-          <rect x="200" y="38" width="32" height="102" fill="#7a3030" rx="2" />
+          <rect x="0" y="130" width="1200" height="18" fill="#cbd5e1" />
+          {/* Row 1 Books */}
+          <rect x="40" y="25" width="28" height="105" fill="#3b82f6" rx="2" />
+          <rect x="70" y="38" width="34" height="92" fill="#d97706" rx="2" />
+          <rect x="106" y="20" width="22" height="110" fill="#10b981" rx="2" />
+          <rect x="130" y="32" width="40" height="98" fill="#8b5cf6" rx="2" />
+          <rect x="172" y="15" width="26" height="115" fill="#0284c7" rx="2" />
+          <rect x="200" y="38" width="32" height="92" fill="#ef4444" rx="2" />
 
-          <rect x="880" y="20" width="36" height="120" fill="#2d3f66" rx="2" />
-          <rect x="918" y="35" width="24" height="105" fill="#523c28" rx="2" />
-          <rect x="944" y="25" width="42" height="115" fill="#284a36" rx="2" />
-          <rect x="988" y="18" width="30" height="122" fill="#75412b" rx="2" />
-          <rect x="1020" y="42" width="38" height="98" fill="#1e2c4a" rx="2" />
-          <rect x="1060" y="22" width="25" height="118" fill="#693030" rx="2" />
+          <rect x="880" y="20" width="36" height="110" fill="#475569" rx="2" />
+          <rect x="918" y="35" width="24" height="95" fill="#d97706" rx="2" />
+          <rect x="944" y="25" width="42" height="105" fill="#059669" rx="2" />
+          <rect x="988" y="18" width="30" height="112" fill="#ea580c" rx="2" />
+          <rect x="1020" y="42" width="38" height="88" fill="#2563eb" rx="2" />
+          <rect x="1060" y="22" width="25" height="108" fill="#e11d48" rx="2" />
 
           {/* Middle shelf line */}
-          <rect x="0" y="320" width="1200" height="22" fill="#151e30" />
-          {/* Books Row 2 */}
-          <rect x="60" y="190" width="32" height="130" fill="#40588a" rx="2" />
-          <rect x="94" y="205" width="26" height="115" fill="#57382c" rx="2" />
-          <rect x="122" y="180" width="44" height="140" fill="#224233" rx="2" />
-          <rect x="168" y="195" width="30" height="125" fill="#6e3939" rx="2" />
-          <rect x="200" y="215" width="36" height="105" fill="#203359" rx="2" />
+          <rect x="0" y="310" width="1200" height="22" fill="#94a3b8" />
+          {/* Row 2 Books */}
+          <rect x="60" y="190" width="32" height="120" fill="#1d4ed8" rx="2" />
+          <rect x="94" y="205" width="26" height="105" fill="#b45309" rx="2" />
+          <rect x="122" y="180" width="44" height="130" fill="#047857" rx="2" />
+          <rect x="168" y="195" width="30" height="115" fill="#dc2626" rx="2" />
+          <rect x="200" y="215" width="36" height="95" fill="#4338ca" rx="2" />
 
-          <rect x="850" y="185" width="42" height="135" fill="#324978" rx="2" />
-          <rect x="894" y="200" width="28" height="120" fill="#5c3f2d" rx="2" />
-          <rect x="924" y="175" width="34" height="145" fill="#2d523c" rx="2" />
-          <rect x="960" y="210" width="48" height="110" fill="#7d3b3b" rx="2" />
+          <rect x="850" y="185" width="42" height="125" fill="#3b82f6" rx="2" />
+          <rect x="894" y="200" width="28" height="110" fill="#b45309" rx="2" />
+          <rect x="924" y="175" width="34" height="135" fill="#059669" rx="2" />
+          <rect x="960" y="210" width="48" height="100" fill="#e11d48" rx="2" />
         </g>
 
-        {/* Ambient room lamp warm glow coming from top right */}
-        <ellipse cx="900" cy="180" rx="420" ry="260" fill="rgba(245, 197, 66, 0.08)" filter="url(#soft-glow)" />
+        {/* Ambient Window Daylight Warm Glow */}
+        <ellipse cx="650" cy="180" rx="550" ry="280" fill="rgba(254, 240, 138, 0.22)" filter="url(#soft-glow)" />
 
-        {/* Wooden Study Table Surface (Perspective) */}
-        <polygon points="0,460 1200,460 1200,800 0,800" fill="#24160d" />
-        <polygon points="0,460 1200,460 1200,800 0,800" fill="url(#pat-wood)" opacity="0.8" />
-        {/* Table back edge bevel highlight & shadow */}
-        <line x1="0" y1="460" x2="1200" y2="460" stroke="#523623" strokeWidth="3" />
-        <line x1="0" y1="463" x2="1200" y2="463" stroke="rgba(0,0,0,0.45)" strokeWidth="4" />
-        {/* Table top dark gradient vignette */}
-        <rect x="0" y="460" width="1200" height="340" fill="url(#grad-contact-shadow)" opacity="0.4" />
+        {/* Natural Warm Oak / Maple Study Table Surface (Perspective) */}
+        <polygon points="0,460 1200,460 1200,800 0,800" fill="#d8ba96" />
+        <polygon points="0,460 1200,460 1200,800 0,800" fill="url(#pat-wood)" opacity="0.45" />
+
+        {/* Table edge highlight & shadow */}
+        <line x1="0" y1="460" x2="1200" y2="460" stroke="#f1e0ca" strokeWidth="3" />
+        <line x1="0" y1="463" x2="1200" y2="463" stroke="rgba(100, 65, 35, 0.25)" strokeWidth="3" />
       </g>
 
       {/* ========================================================
           LAYER 2: CARDBOARD BOX GROUP (Imperatively positioned)
           ======================================================== */}
       <g id="scene-box-group" ref={boxGroupRef} transform="translate(600, 440) scale(1.15)">
-        {/* Contact Shadow under Box */}
-        <ellipse cx="0" cy="155" rx="270" ry="46" fill="url(#grad-contact-shadow)" opacity="0.85" />
-        <ellipse cx="10" cy="158" rx="210" ry="26" fill="#000000" opacity="0.6" filter="url(#item-shadow-blur)" />
+        {/* Realistic Multi-Layered Contact Shadow on Light Table */}
+        <ellipse cx="0" cy="155" rx="280" ry="48" fill="url(#grad-contact-shadow)" opacity="0.9" />
+        <ellipse cx="8" cy="158" rx="220" ry="26" fill="rgba(30, 20, 10, 0.38)" filter="url(#item-shadow-blur)" />
 
         {/* ----------------------------------------------------
             LAYER 2A: BOX BACK & INTERIOR CAVITY
             ---------------------------------------------------- */}
         <g className="box-back-layer">
-          {/* Back Flap (tilted slightly backwards/upwards) */}
+          {/* Back Flap */}
           <polygon
             points="-180,-70 180,-70 200,-150 -200,-150"
             fill="#a67946"
@@ -207,9 +213,8 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
           <polygon
             points="-180,-70 180,-70 200,-150 -200,-150"
             fill="url(#pat-cardboard)"
-            opacity="0.85"
+            opacity="0.88"
           />
-          {/* Corrugated fluting edge of back flap */}
           <line x1="-200" y1="-150" x2="200" y2="-150" stroke="#5e3e1c" strokeWidth="2.5" strokeDasharray="2 2" />
 
           {/* Left Inner Flap */}
@@ -230,12 +235,11 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
           />
           <polygon points="185,-65 185,45 270,-15 250,-100" fill="url(#pat-cardboard)" opacity="0.75" />
 
-          {/* Dark Interior Cavity (where items rest inside) */}
+          {/* Dark Interior Cavity (where items sit inside) */}
           <polygon
             points="-185,-68 185,-68 175,65 -175,65"
             fill="url(#box-cavity-depth)"
           />
-          {/* Deep corner inner shadows */}
           <polygon points="-185,-68 -150,-68 -140,65 -175,65" fill="#0c0704" opacity="0.6" />
           <polygon points="185,-68 150,-68 140,65 175,65" fill="#0c0704" opacity="0.6" />
         </g>
@@ -249,11 +253,9 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
           transform="scale(0)"
           style={{ opacity: 0, transformOrigin: "0px -35px" }}
         >
-          {/* Ambient Warm Radial Glow */}
           <circle cx="0" cy="-35" r="220" fill="url(#grad-burst-gold)" filter="url(#soft-glow)" />
 
-          {/* Sunburst Rays */}
-          <g opacity="0.65" stroke="#fce388" strokeWidth="2.5" strokeLinecap="round">
+          <g opacity="0.75" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round">
             <line x1="0" y1="-35" x2="-180" y2="-190" strokeDasharray="8 6" />
             <line x1="0" y1="-35" x2="-90" y2="-240" strokeDasharray="10 6" />
             <line x1="0" y1="-35" x2="0" y2="-270" strokeDasharray="12 6" strokeWidth="3" />
@@ -320,22 +322,17 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
         </g>
 
         {/* ----------------------------------------------------
-            LAYER 2D: FLOATING SPARKLES (Near box mouth)
+            LAYER 2D: FLOATING SPARKLES
             ---------------------------------------------------- */}
         <g id="box-sparkles-group" ref={sparklesGroupRef} style={{ opacity: 0 }}>
-          {/* Sparkle 1 */}
-          <path d="M -70 -160 Q -70 -140 -50 -140 Q -70 -140 -70 -120 Q -70 -140 -90 -140 Q -70 -140 -70 -160 Z" fill="#fff5be" />
-          {/* Sparkle 2 */}
-          <path d="M 60 -190 Q 60 -175 75 -175 Q 60 -175 60 -160 Q 60 -175 45 -175 Q 60 -175 60 -190 Z" fill="#f5c542" />
-          {/* Sparkle 3 */}
-          <path d="M -120 -80 Q -120 -70 -110 -70 Q -120 -70 -120 -60 Q -120 -70 -130 -70 Q -120 -70 -120 -80 Z" fill="#ffe27c" />
-          {/* Sparkle 4 */}
+          <path d="M -70 -160 Q -70 -140 -50 -140 Q -70 -140 -70 -120 Q -70 -140 -90 -140 Q -70 -140 -70 -160 Z" fill="#fbbf24" />
+          <path d="M 60 -190 Q 60 -175 75 -175 Q 60 -175 60 -160 Q 60 -175 45 -175 Q 60 -175 60 -190 Z" fill="#f59e0b" />
+          <path d="M -120 -80 Q -120 -70 -110 -70 Q -120 -70 -120 -60 Q -120 -70 -130 -70 Q -120 -70 -120 -80 Z" fill="#d97706" />
           <path d="M 120 -90 Q 120 -78 132 -78 Q 120 -78 120 -66 Q 120 -78 108 -78 Q 120 -78 120 -90 Z" fill="#ffffff" />
         </g>
 
         {/* ----------------------------------------------------
-            LAYER 2E: BOX FRONT (Cardboard Face, Flaps, Tape, Label)
-            This sits IN FRONT of items so they pop OUT of the box!
+            LAYER 2E: BOX FRONT (Cardboard Face, Corrugation, Tape, Label)
             ---------------------------------------------------- */}
         <g className="box-front-layer">
           {/* Front Cardboard Face */}
@@ -355,7 +352,7 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
             fill="url(#box-front-shade)"
           />
 
-          {/* Front Lip Flap (angled slightly downward towards camera) */}
+          {/* Front Lip Flap */}
           <polygon
             points="-185,-50 185,-50 195,5 -195,5"
             fill="#c99863"
@@ -368,7 +365,7 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
             opacity="0.9"
           />
 
-          {/* Corrugated Fluting Texture along the top rim edge */}
+          {/* Corrugated Edge Texture */}
           <line
             x1="-195"
             y1="5"
@@ -388,11 +385,11 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
             strokeDasharray="1.5 2"
           />
 
-          {/* Corner Creases & Vertical Corner Shading */}
-          <line x1="-185" y1="-50" x2="-175" y2="150" stroke="rgba(0,0,0,0.35)" strokeWidth="2.5" />
-          <line x1="185" y1="-50" x2="175" y2="150" stroke="rgba(0,0,0,0.4)" strokeWidth="2.5" />
+          {/* Creases */}
+          <line x1="-185" y1="-50" x2="-175" y2="150" stroke="rgba(0,0,0,0.3)" strokeWidth="2.5" />
+          <line x1="185" y1="-50" x2="175" y2="150" stroke="rgba(0,0,0,0.35)" strokeWidth="2.5" />
 
-          {/* Center Vertical Packaging Tape Seam */}
+          {/* Center Packing Tape Seam */}
           <rect
             x="-16"
             y="-50"
@@ -418,28 +415,26 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
           />
 
           {/* --------------------------------------------------
-              TAPED CREAM PAPER LABEL ("LOST & FOUND")
+              TAPED CREAM PAPER LABEL ("LOST & FOUND • HYT")
               -------------------------------------------------- */}
           <g id="box-paper-label" transform="translate(0, 52) rotate(-1.5)">
-            {/* Label Drop Shadow */}
             <rect
               x="-110"
               y="-42"
               width="220"
               height="84"
               rx="4"
-              fill="rgba(15, 8, 3, 0.4)"
+              fill="rgba(15, 8, 3, 0.35)"
               filter="url(#item-shadow-blur)"
             />
 
-            {/* Cream Textured Paper Label */}
             <rect
               x="-108"
               y="-40"
               width="216"
               height="80"
               rx="3"
-              fill="#f8f4e6"
+              fill="#faf7ee"
               stroke="#d5c8ad"
               strokeWidth="1.5"
             />
@@ -453,7 +448,6 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
               opacity="0.75"
             />
 
-            {/* Vintage Label Border Stamp Line */}
             <rect
               x="-102"
               y="-34"
@@ -461,32 +455,30 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
               height="68"
               rx="2"
               fill="none"
-              stroke="#0b1f4d"
+              stroke="#0f2454"
               strokeWidth="1.2"
               strokeDasharray="4 2"
               opacity="0.7"
             />
 
-            {/* Stamped Typography */}
             <text
               x="0"
               y="-12"
               textAnchor="middle"
-              fill="#0b1f4d"
+              fill="#0f2454"
               fontSize="8.5"
               fontWeight="800"
               fontFamily="Inter, sans-serif"
               letterSpacing="3"
-              opacity="0.85"
             >
-              CAMPUS PROPERTY
+              CAMPUS RECOVERY
             </text>
 
             <text
               x="0"
               y="14"
               textAnchor="middle"
-              fill="#0b1f4d"
+              fill="#0f2454"
               fontSize="20"
               fontWeight="900"
               fontFamily="Sora, sans-serif"
@@ -499,17 +491,16 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
               x="0"
               y="26"
               textAnchor="middle"
-              fill="#b5850a"
-              fontSize="7"
-              fontWeight="700"
+              fill="#d97706"
+              fontSize="7.5"
+              fontWeight="800"
               fontFamily="Inter, sans-serif"
-              letterSpacing="2"
+              letterSpacing="2.5"
             >
-              CENTRAL RECOVERY DESK • FINDBACK
+              HYT • HAVE YOUR THING
             </text>
 
-            {/* Transparent Packing Tape Strips across label top & bottom */}
-            {/* Top Tape Strip */}
+            {/* Tape Strips */}
             <rect
               x="-122"
               y="-46"
@@ -526,7 +517,6 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
               fill="url(#tape-sheen)"
             />
 
-            {/* Bottom Tape Strip */}
             <rect
               x="-122"
               y="32"
@@ -544,8 +534,8 @@ const SceneSvg = forwardRef(function SceneSvg({ isPortrait = false }, ref) {
             />
           </g>
 
-          {/* Barcode / Stamp on Bottom Right of Cardboard */}
-          <g opacity="0.45" transform="translate(110, 115)">
+          {/* Barcode Stamp on Bottom Right */}
+          <g opacity="0.4" transform="translate(110, 115)">
             <rect x="0" y="0" width="45" height="18" fill="none" stroke="#2b1a0d" strokeWidth="0.8" />
             <line x1="4" y1="3" x2="4" y2="15" stroke="#2b1a0d" strokeWidth="1.5" />
             <line x1="8" y1="3" x2="8" y2="15" stroke="#2b1a0d" strokeWidth="2.5" />

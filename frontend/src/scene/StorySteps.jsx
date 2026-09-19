@@ -197,7 +197,7 @@ const StorySteps = forwardRef(function StorySteps(props, ref) {
             </div>
           </div>
           <div className="mock-ticket-footer">
-            <span>Verified Desk Claim: <strong>#FB-2026-904</strong></span>
+            <span>Verified Desk Claim: <strong>#HYT-2026-904</strong></span>
           </div>
         </div>
       </div>
