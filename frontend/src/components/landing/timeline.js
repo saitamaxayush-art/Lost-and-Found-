@@ -6,54 +6,65 @@ export const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 export const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 export const lerp = (a, b, t) => a + (b - a) * t;
 
-// scroll length of the whole landing page, in viewport heights (480vh is comfortable and natural)
-export const TRACK_VH = 480;
+// scroll length of the whole landing page, in viewport heights (460vh is comfortable and natural)
+export const TRACK_VH = 460;
 
-// Box slides from centre to the right side, then back to centre for the finale
+// Box slides from centre to the right side during steps 1-4, then rests back for the finale
 export const BOX_MOVE_OUT = [0.04, 0.16];
-export const BOX_MOVE_BACK = [0.86, 0.95];
+export const BOX_MOVE_BACK = [0.75, 0.90];
 
-// Items: rise gracefully during steps 1-2, showcase during steps 3-4, and return smoothly in step 5
-export const POP = { riseStart: 0.16, riseEnd: 0.36, holdEnd: 0.68, fallEnd: 0.84 };
-
-// Content windows [start, end]
+// Content windows [start, end] for 4 clear steps
 export const HERO_END = 0.10;
 export const STEP_RANGES = [
-  [0.14, 0.28], // 1 report lost
-  [0.28, 0.43], // 2 report found
-  [0.43, 0.58], // 3 matching
-  [0.58, 0.72], // 4 notify
-  [0.72, 0.86], // 5 item found
+  [0.13, 0.28], // 1 report lost
+  [0.28, 0.42], // 2 report found
+  [0.42, 0.58], // 3 smart matching (wallet spotlight & glow)
+  [0.58, 0.74], // 4 you get notified
 ];
-export const FINALE_START = 0.89;
+
+// Wallet Spotlight & Centered Letter Progression
+export const WALLET_SPOTLIGHT = {
+  riseStart: 0.38,
+  riseEnd: 0.47,
+  glowStart: 0.42,
+  glowEnd: 0.74,
+  centerStart: 0.74,
+  centerEnd: 0.86,
+  openStart: 0.82,
+  openEnd: 0.96,
+};
+
+export const FINALE_START = 0.75;
 
 /**
- * Computes smooth 0..1 elevation progress for each item.
- * Staggered rise and staggered return curves eliminate abrupt cuts and freezing.
+ * Detailed state of the wallet across all scroll stages:
+ * - elevation: 0 = resting in box, 1 = floating above box
+ * - glow: 0..1 intensity of match glow aura during steps 3 & 4
+ * - centerT: 0 = at box on right, 1 = center screen
+ * - openT: 0 = closed wallet, 1 = unfolded letter
  */
-export function itemProgress(p, riseDelay = 0, fallDelay = 0) {
-  const { riseStart, riseEnd, holdEnd, fallEnd } = POP;
-  // Rise phase (0 -> 1)
-  const rSpan = riseEnd - riseStart;
-  const rStart = riseStart + riseDelay * (rSpan * 0.4);
-  const tRise = p <= rStart ? 0 : p >= riseEnd ? 1 : ease((p - rStart) / (riseEnd - rStart));
+export function walletState(p) {
+  const { riseStart, riseEnd, glowStart, glowEnd, centerStart, centerEnd, openStart, openEnd } = WALLET_SPOTLIGHT;
 
-  // Fall phase (0 -> 1)
-  const fSpan = fallEnd - holdEnd;
-  const fStart = holdEnd + fallDelay * (fSpan * 0.4);
-  const tFall = p <= fStart ? 0 : p >= fallEnd ? 1 : ease((p - fStart) / (fallEnd - fStart));
+  // Elevation out of the box
+  const rise = clamp((p - riseStart) / (riseEnd - riseStart));
+  const elevation = p < riseStart ? 0 : p < centerStart ? ease(rise) : 1;
 
-  return tRise * (1 - tFall);
-}
+  // Golden match glow pulse intensity
+  let glow = 0;
+  if (p >= glowStart && p <= glowEnd) {
+    const fadeIn = clamp((p - glowStart) / 0.05);
+    const fadeOut = clamp((glowEnd - p) / 0.05);
+    glow = Math.min(fadeIn, fadeOut);
+  }
 
-/** 0 = items resting in the box, 1 = fully popped. Same value going up and down. */
-export function popU(p) {
-  const { riseStart, riseEnd, holdEnd, fallEnd } = POP;
-  if (p <= riseStart) return 0;
-  if (p < riseEnd) return ease((p - riseStart) / (riseEnd - riseStart));
-  if (p <= holdEnd) return 1;
-  if (p < fallEnd) return 1 - ease((p - holdEnd) / (fallEnd - holdEnd));
-  return 0;
+  // Glide into center stage
+  const centerT = p < centerStart ? 0 : p >= centerEnd ? 1 : ease((p - centerStart) / (centerEnd - centerStart));
+
+  // Unfolding into letter
+  const openT = p < openStart ? 0 : p >= openEnd ? 1 : ease((p - openStart) / (openEnd - openStart));
+
+  return { elevation, glow, centerT, openT };
 }
 
 export function boxMove(p) {

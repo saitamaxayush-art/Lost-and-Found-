@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { SCENE_ASSETS } from "../../scene/assets";
-import { clamp, ease, lerp, boxMove, popU, itemProgress } from "./timeline";
+import { clamp, ease, lerp, boxMove, walletState } from "./timeline";
 
 /* ------------------------------------------------------------------ *
  *  Scene canvas is 1200 x 800. The SVG uses "xMidYMax slice", so the   *
@@ -9,7 +9,7 @@ import { clamp, ease, lerp, boxMove, popU, itemProgress } from "./timeline";
 
 const BOX_ANCHOR = { x: 600, y: 720 }; // where the box touches the table
 
-// per-item pop path (local units). Staggered rise and reverse staggered fall prevent crowding.
+// Items inside the box. Wallet is spotlighted in Step 3, other items remain in the box.
 const ITEMS = [
   { id: "wallet", sx: 522, sy: 522, dx: -190, dy: -330, rot: -190, sc: 0.35, sway: -34, delay: 0.0, fallDelay: 0.28, tilt: -12 },
   { id: "book", sx: 566, sy: 506, dx: -90, dy: -430, rot: -32, sc: 0.3, sway: 26, delay: 0.07, fallDelay: 0.21, tilt: 14 },
@@ -201,6 +201,7 @@ export default function Scene({ subscribe }) {
     ro.observe(svg);
 
     const unsub = subscribe((p) => {
+      const ws = walletState(p);
       const L = lay.current;
       const m = boxMove(p);
       const px = lerp(lerp(L.hero.x, L.side.x, m.out), L.fin.x, m.back);
@@ -210,51 +211,81 @@ export default function Scene({ subscribe }) {
         `translate(${px.toFixed(2)} ${BOX_ANCHOR.y}) scale(${ps.toFixed(4)}) translate(${-BOX_ANCHOR.x} ${-BOX_ANCHOR.y})`
       );
 
-      const uTotal = popU(p);
-      const dxK = Math.min(1, 0.55 + L.k * 0.5);
-
       ITEMS.forEach((it, i) => {
-        const t = itemProgress(p, it.delay, it.fallDelay);
-        const dxT = it.dx > 0 ? Math.min(it.dx * dxK, L.rightRoom) : -Math.min(-it.dx * dxK, L.leftRoom);
-        const x = it.sx + dxT * t + it.sway * Math.sin(Math.PI * t);
-        const y = it.sy + it.dy * L.k * t;
-        const rot = it.tilt + it.rot * t;
-        const sc = 1 + it.sc * Math.sin(Math.PI * t * 0.5);
-        const fl = it.flutter ? ` skewX(${(Math.sin(t * 9) * 8 * Math.sin(Math.PI * t)).toFixed(2)})` : "";
-        
-        // Gentle organic float while airborne (scales with t^2, completely eliminates discontinuity)
-        const hoverPower = t * t;
-        const bob = hoverPower * Math.sin(p * 26 + i * 1.5) * 4.5;
-        const swayAngle = hoverPower * Math.cos(p * 20 + i * 1.2) * 1.6;
+        if (i > 0) {
+          // Other items remain nestled inside the box behind the front rim
+          itemEls[i].setAttribute(
+            "transform",
+            `translate(${it.sx} ${it.sy}) rotate(${it.tilt}) scale(0.95)`
+          );
+          return;
+        }
 
-        itemEls[i].setAttribute(
+        // WALLET (i === 0): Spotlighted at Step 3, glows, and glides to center after Step 4
+        const t = ws.elevation;
+        const dxK = Math.min(1, 0.55 + L.k * 0.5);
+        const dxT = -Math.min(-it.dx * dxK, L.leftRoom);
+
+        // Position in spotlight above the box
+        const spotX = it.sx + dxT * t + it.sway * Math.sin(Math.PI * t);
+        const spotY = it.sy + it.dy * L.k * t;
+        const spotRot = it.tilt + it.rot * t;
+        const spotScale = 1 + it.sc * Math.sin(Math.PI * t * 0.5);
+
+        // Target center screen coordinates (converted into box group space)
+        const targetCenterX = (600 - px) / ps + BOX_ANCHOR.x;
+        const targetCenterY = (390 - BOX_ANCHOR.y) / ps + BOX_ANCHOR.y;
+
+        const curX = lerp(spotX, targetCenterX, ws.centerT);
+        const curY = lerp(spotY, targetCenterY, ws.centerT);
+        const curRot = lerp(spotRot, 0, ws.centerT);
+        const curScale = lerp(spotScale, 1.4 / ps, ws.centerT);
+
+        // Gentle floating when airborne
+        const hoverPower = t * (1 - ws.centerT);
+        const bob = hoverPower * Math.sin(p * 24) * 4.5;
+        const swayAngle = hoverPower * Math.cos(p * 18) * 1.6;
+
+        // Fades out as the 3D HTML unfolding wallet letter takes over
+        const walletOpacity = Math.max(0, 1 - ws.openT * 1.5);
+        itemEls[0].style.opacity = walletOpacity.toFixed(3);
+
+        itemEls[0].setAttribute(
           "transform",
-          `translate(${x.toFixed(2)} ${(y + bob).toFixed(2)}) rotate(${(rot + swayAngle).toFixed(2)}) scale(${sc.toFixed(3)})${fl}`
+          `translate(${curX.toFixed(2)} ${(curY + bob).toFixed(2)}) rotate(${(curRot + swayAngle).toFixed(2)}) scale(${curScale.toFixed(3)})`
         );
+
+        // Position the glowing matching aura right behind the wallet
+        const auraEl = svg.querySelector("#walletAura");
+        if (auraEl) {
+          auraEl.setAttribute("transform", `translate(${curX.toFixed(2)} ${(curY + bob).toFixed(2)})`);
+          const auraOpacity = (ws.glow * 0.92 * (1 - ws.centerT)).toFixed(3);
+          auraEl.setAttribute("opacity", auraOpacity);
+        }
       });
 
-      // Burst ring and sparks: fires only on the initial pop emergence (not during hold or descent)
-      const b = clamp(uTotal / 0.4);
-      const burstActive = p < 0.65 ? Math.sin(Math.PI * b) : 0;
-      burst.setAttribute("opacity", (burstActive * 0.85).toFixed(3));
-      ring.setAttribute("r", (20 + 230 * b).toFixed(1));
-      ring.setAttribute("stroke-width", (10 * (1 - b) + 2).toFixed(1));
-      rays.forEach((ln, i) => {
-        const a = Math.PI + (i / (rays.length - 1)) * Math.PI;
-        const r1 = 40 + 120 * b;
-        const r2 = r1 + 30 + 60 * b;
+      // Sparks during wallet elevation
+      const b = clamp(ws.elevation / 0.5);
+      const burstActive = ws.elevation > 0 && ws.elevation < 0.95 ? Math.sin(Math.PI * b) : 0;
+      burst.setAttribute("opacity", (burstActive * 0.7).toFixed(3));
+      ring.setAttribute("r", (20 + 200 * b).toFixed(1));
+      ring.setAttribute("stroke-width", (8 * (1 - b) + 2).toFixed(1));
+      rays.forEach((ln, idx) => {
+        const a = Math.PI + (idx / (rays.length - 1)) * Math.PI;
+        const r1 = 40 + 100 * b;
+        const r2 = r1 + 25 + 50 * b;
         ln.setAttribute("x1", (Math.cos(a) * r1).toFixed(1));
         ln.setAttribute("y1", (Math.sin(a) * r1).toFixed(1));
         ln.setAttribute("x2", (Math.cos(a) * r2).toFixed(1));
         ln.setAttribute("y2", (Math.sin(a) * r2).toFixed(1));
       });
-      glow.setAttribute("opacity", (Math.sin(Math.PI * clamp(uTotal) * 0.5) * 0.75).toFixed(3));
-      sparks.forEach((el, i) => {
-        const sp = spark[i];
-        const t = ease(clamp((uTotal - sp.delay) / (1 - sp.delay)));
+      glow.setAttribute("opacity", (Math.sin(Math.PI * clamp(ws.elevation) * 0.5) * 0.6).toFixed(3));
+      sparks.forEach((el, idx) => {
+        const sp = spark[idx];
+        const t = ease(clamp((ws.elevation - sp.delay) / (1 - sp.delay)));
         el.setAttribute("cx", (600 + sp.dx * t).toFixed(1));
         el.setAttribute("cy", (525 + sp.dy * t).toFixed(1));
-        el.setAttribute("opacity", (burstActive * Math.sin(Math.PI * t) * 0.9).toFixed(3));
+        el.setAttribute("opacity", (burstActive * Math.sin(Math.PI * t) * 0.85).toFixed(3));
       });
     });
 
@@ -294,6 +325,12 @@ export default function Scene({ subscribe }) {
         <radialGradient id="vignette" cx="50%" cy="55%" r="75%"><stop offset=".5" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".6" /></radialGradient>
         <linearGradient id="tableLight" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".22" /><stop offset=".12" stopColor="#fff" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".4" /></linearGradient>
         <radialGradient id="glowG" cx="50%" cy="50%" r="50%"><stop offset="0" stopColor="#ffe7a8" stopOpacity=".85" /><stop offset="1" stopColor="#ffe7a8" stopOpacity="0" /></radialGradient>
+        <radialGradient id="walletAuraG" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#fef08a" stopOpacity=".95" />
+          <stop offset="35%" stopColor="#f59e0b" stopOpacity=".65" />
+          <stop offset="70%" stopColor="#d97706" stopOpacity=".2" />
+          <stop offset="100%" stopColor="#d97706" stopOpacity="0" />
+        </radialGradient>
 
         <linearGradient id="frontShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#000" stopOpacity=".05" /><stop offset="1" stopColor="#000" stopOpacity=".34" /></linearGradient>
         <linearGradient id="sideShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#000" stopOpacity=".3" /><stop offset=".22" stopColor="#000" stopOpacity="0" /><stop offset=".78" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".34" /></linearGradient>
@@ -389,6 +426,27 @@ export default function Scene({ subscribe }) {
           <circle id="burstRing" r="10" fill="none" stroke="#ffe7a8" strokeWidth="6" />
           {Array.from({ length: 14 }).map((_, i) => (
             <line key={i} className="ray" stroke="#ffe7a8" strokeWidth="4" strokeLinecap="round" />
+          ))}
+        </g>
+
+        {/* Glowing match aura behind the spotlighted wallet */}
+        <g id="walletAura" opacity="0">
+          <circle cx="0" cy="0" r="130" fill="url(#walletAuraG)" />
+          <circle cx="0" cy="0" r="90" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeDasharray="6 4" />
+          <circle cx="0" cy="0" r="110" fill="none" stroke="#fbbf24" strokeWidth="1.2" opacity=".6" />
+          {Array.from({ length: 8 }).map((_, idx) => (
+            <line
+              key={idx}
+              x1="0"
+              y1="-25"
+              x2="0"
+              y2="-68"
+              stroke="#fbbf24"
+              strokeWidth="2"
+              strokeLinecap="round"
+              transform={`rotate(${idx * 45})`}
+              opacity=".75"
+            />
           ))}
         </g>
 

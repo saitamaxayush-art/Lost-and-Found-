@@ -236,3 +236,273 @@
 .lf-check { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; background: var(--success-bg); color: var(--success); display: grid; place-items: center; animation: lm-pop .4s cubic-bezier(.2, .9, .3, 1.3); }
 .lf-check path { stroke-dasharray: 26; stroke-dashoffset: 26; animation: lf-draw .45s .15s ease-out forwards; }
 @keyframes lf-draw { to { stroke-dashoffset: 0; } }
+
+/* ===================== Unfolding Wallet Letter Login ===================== */
+.lp-wallet-letter-wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) translateY(var(--ty, 0px)) scale(var(--scale, 1));
+  z-index: 70;
+  width: min(92vw, 460px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-out;
+  will-change: transform, opacity;
+}
+
+.lp-wallet-container {
+  position: relative;
+  perspective: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Leather Top Flap (3D folds backwards/upwards) */
+.lp-wallet-flap {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  height: 96px;
+  z-index: 15;
+  transform-origin: top center;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.lp-wallet-flap-front,
+.lp-wallet-flap-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 18px 18px 26px 26px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.lp-wallet-flap-front {
+  background: linear-gradient(170deg, #325796 0%, #1c325c 100%);
+  border: 1.5px solid #4a72b8;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.lp-wallet-flap-back {
+  background: linear-gradient(170deg, #172744 0%, #0e1a30 100%);
+  border: 1.5px solid #294474;
+  transform: rotateY(180deg) rotateZ(180deg);
+}
+
+.lp-wallet-stitch {
+  position: absolute;
+  inset: 5px;
+  border-radius: 14px 14px 22px 22px;
+  border: 1.5px dashed rgba(169, 189, 230, 0.45);
+  pointer-events: none;
+}
+
+.lp-wallet-snap {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fde68a, #d97706);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 1px #fff;
+  display: grid;
+  place-items: center;
+}
+
+.lp-snap-brass {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #78350f;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* The Slide-Out Letter Sheet */
+.lp-wallet-sheet {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  background: #fdfaf4;
+  color: var(--ink);
+  border-radius: 20px;
+  padding: 24px 22px 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 0 rgba(255, 255, 255, 0.8) inset;
+  border: 1px solid #e5dac6;
+  margin-top: 36px;
+  margin-bottom: 16px;
+  will-change: transform, opacity;
+  transition: box-shadow 0.2s ease;
+}
+
+.lp-wallet-letter-wrap.is-live .lp-wallet-sheet {
+  pointer-events: auto;
+}
+
+/* Header & Match Badge on the Letter */
+.lp-sheet-header {
+  margin-bottom: 16px;
+}
+
+.lp-sheet-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #b45309;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.lp-sheet-icon {
+  font-size: 14px;
+}
+
+.lp-sheet-title {
+  font-family: "Sora", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #17357a;
+  margin: 0 0 4px;
+}
+
+.lp-sheet-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #6b6558;
+  line-height: 1.4;
+}
+
+.lp-sheet-prompt {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #3b3a35;
+  margin-bottom: 10px;
+  border-top: 1px dashed #e8dfcc;
+  padding-top: 12px;
+}
+
+.lp-sheet-footer {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #efe8da;
+  text-align: center;
+  font-size: 11px;
+  color: #9c9484;
+  font-weight: 500;
+}
+
+/* Logged-In State inside the letter */
+.lp-sheet-auth-done {
+  padding: 10px 0;
+}
+
+.lp-user-welcome-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f4efe4;
+  border: 1px solid #e5dcce;
+  margin-bottom: 12px;
+}
+
+.lp-avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex: none;
+}
+
+.lp-user-meta strong {
+  display: block;
+  font-size: 14px;
+  color: #17357a;
+}
+
+.lp-user-meta span {
+  font-size: 12px;
+  color: #6b6558;
+}
+
+.lp-claim-prompt {
+  font-size: 13px;
+  color: #4b483e;
+  line-height: 1.45;
+  margin: 0 0 16px;
+}
+
+.lp-claim-cta-btn {
+  width: 100%;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #172554;
+  font-family: "Sora", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.35);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.lp-claim-cta-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+/* Lower Leather Wallet Pocket */
+.lp-wallet-pocket {
+  position: absolute;
+  bottom: 0;
+  left: 6px;
+  right: 6px;
+  height: 90px;
+  z-index: 12;
+  background: linear-gradient(180deg, #244275 0%, #162a4e 100%);
+  border: 1.5px solid #4369a8;
+  border-top: none;
+  border-radius: 0 0 24px 24px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), inset 0 2px 0 rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 10px;
+}
+
+.lp-wallet-pocket-rim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #375b98, #608bd2, #375b98);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.lp-wallet-emboss {
+  font-family: "Sora", sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(251, 243, 228, 0.45);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}

@@ -4,6 +4,7 @@ import { useApp } from "../context/AppContext";
 import { useScrollProgress } from "../hooks/useScrollProgress";
 import Scene from "../components/landing/Scene";
 import Steps from "../components/landing/Steps";
+import WalletLetterLogin from "../components/landing/WalletLetterLogin";
 import LoginModal from "../components/landing/LoginModal";
 import { TRACK_VH } from "../components/landing/timeline";
 import "../styles/landing.css";
@@ -20,7 +21,7 @@ export default function Landing() {
   useEffect(() => {
     document.title = "FindBack — Find what you've lost. Return what you've found.";
     return subscribe((p) => {
-      setFinaleLive(p > 0.93);
+      setFinaleLive(p > 0.88);
       if (hintRef.current) hintRef.current.style.opacity = String(Math.max(0, 1 - p / 0.05));
     });
   }, [subscribe]);
@@ -74,6 +75,7 @@ export default function Landing() {
             finaleLive={finaleLive}
             ctaLabel={user ? "Open the lost & found board" : "Log in to get started"}
           />
+          <WalletLetterLogin subscribe={subscribe} onSuccess={afterLogin} user={user} />
           <div className="lp-hint" ref={hintRef} aria-hidden="true">
             <span>Scroll</span>
             <i />

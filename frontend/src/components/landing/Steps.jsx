@@ -125,18 +125,13 @@ const STEPS = [
   },
   {
     title: ["Smart matching in ", "real time"],
-    body: "Our engine continuously compares lost and found submissions across categories, locations, and descriptions.",
+    body: "Our engine instantly flags potential matches across categories, descriptions, and locations — spotlighting the black wallet!",
     Mock: MockMatch,
   },
   {
     title: ["You get ", "notified"],
-    body: "The moment a likely match appears, a notification lands in your inbox with instant photo verification.",
+    body: "The moment a likely match appears, an alert lands in your notifications with photo verification ready to claim.",
     Mock: MockNotify,
-  },
-  {
-    title: ["Reunited & back it ", "goes"],
-    body: "Confirm ownership, claim your item securely, and close the loop. The campus box gets one item lighter.",
-    Mock: MockReturned,
   },
 ];
 
@@ -178,8 +173,8 @@ export default function Steps({ subscribe, onCta, ctaLabel, finaleLive }) {
         pips.current[i]?.classList.toggle("past", p >= r[1]);
       });
 
-      const fv = clamp((p - FINALE_START) / 0.06);
-      setVis(finale.current, fv, 1, 26);
+      const fv = clamp((p - FINALE_START) / 0.08);
+      setVis(finale.current, fv, 1, 20);
 
       // dark scrim behind text while the box is parked on the side
       const m = boxMove(p);
@@ -220,15 +215,6 @@ export default function Steps({ subscribe, onCta, ctaLabel, finaleLive }) {
           <br />
           Return what you've found.
         </h2>
-        <button
-          type="button"
-          className="lp-cta"
-          onClick={onCta}
-          tabIndex={finaleLive ? 0 : -1}
-          style={{ pointerEvents: finaleLive ? "auto" : "none" }}
-        >
-          {ctaLabel}
-        </button>
       </div>
     </>
   );
