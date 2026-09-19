@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 
 export default function Navbar() {
   const { user, logout, notifications, dismissNotifications } = useApp();
   const [showNotifs, setShowNotifs] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   function toggleNotifs() {
     setShowNotifs((s) => !s);
@@ -14,6 +15,15 @@ export default function Navbar() {
   function handleLogout() {
     logout();
     navigate("/");
+  }
+
+  function handleScrollTo(id) {
+    if (location.pathname !== "/") {
+      navigate(`/#${id}`);
+    } else {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
   }
 
   return (
@@ -26,8 +36,18 @@ export default function Navbar() {
 
         <div className="nav-links">
           <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
+            Home
+          </NavLink>
+          <NavLink to="/browse" className={({ isActive }) => (isActive ? "active" : "")}>
             Browse
           </NavLink>
+          <button
+            type="button"
+            className="nav-text-btn"
+            onClick={() => handleScrollTo("how-it-works")}
+          >
+            How It Works
+          </button>
           <NavLink to="/report-lost" className={({ isActive }) => (isActive ? "active" : "")}>
             Report Lost
           </NavLink>
