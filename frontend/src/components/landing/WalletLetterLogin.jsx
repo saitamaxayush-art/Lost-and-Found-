@@ -20,6 +20,7 @@ export default function WalletLetterLogin({ subscribe, onSuccess, user }) {
   const blurRef = useRef(null);
   const flapRef = useRef(null);
   const letterRef = useRef(null);
+  const btnRef = useRef(null);
 
   const [interactive, setInteractive] = useState(false);
   const [values, setValues] = useState({ name: "", whatsapp: "", campus: "" });
@@ -38,6 +39,7 @@ export default function WalletLetterLogin({ subscribe, onSuccess, user }) {
       const blur = blurRef.current;
       const flap = flapRef.current;
       const letter = letterRef.current;
+      const btn = btnRef.current;
       if (!root) return;
 
       currentOpenRef.current = ws.openT;
@@ -72,6 +74,13 @@ export default function WalletLetterLogin({ subscribe, onSuccess, user }) {
         letter.style.opacity = letterOpacity.toFixed(3);
       }
 
+      // Bottom button smooth fade-in as wallet opens
+      if (btn) {
+        const enterBtn = Math.min(1, ws.openT * 1.5);
+        btn.style.opacity = enterBtn.toFixed(3);
+        btn.style.transform = `translateY(${((1 - enterBtn) * 14).toFixed(1)}px)`;
+      }
+
       // Enable form interactivity once sufficiently open
       setInteractive(ws.openT > 0.65);
     });
@@ -103,6 +112,11 @@ export default function WalletLetterLogin({ subscribe, onSuccess, user }) {
         letterRef.current.style.transform = `translateY(${letterY.toFixed(1)}px)`;
         const letterOpacity = Math.max(0, curOpen * 1.35);
         letterRef.current.style.opacity = letterOpacity.toFixed(3);
+      }
+
+      if (btnRef.current) {
+        btnRef.current.style.opacity = curOpen.toFixed(3);
+        btnRef.current.style.transform = `translateY(${((1 - curOpen) * 14).toFixed(1)}px)`;
       }
 
       if (t < 1) {
@@ -180,16 +194,9 @@ export default function WalletLetterLogin({ subscribe, onSuccess, user }) {
 
           {/* The Slide-Out Match Letter & Login Sheet */}
           <div ref={letterRef} className="lp-wallet-sheet">
-            {/* Header: clearly indicates sign in required to continue */}
+            {/* Simple headline SIGN IN TO CONTINUE */}
             <div className="lp-sheet-header">
-              <div className="lp-sheet-badge">
-                <span className="lp-sheet-icon">🔒</span>
-                <span className="lp-sheet-tag">Sign In Required to Continue</span>
-              </div>
-              <h3 className="lp-sheet-title">Sign In to Continue</h3>
-              <p className="lp-sheet-sub">
-                Please sign in to verify your ownership and continue to the lost &amp; found board.
-              </p>
+              <h3 className="lp-sheet-title">SIGN IN TO CONTINUE</h3>
             </div>
 
             {/* Authenticated user view */}
@@ -203,20 +210,8 @@ export default function WalletLetterLogin({ subscribe, onSuccess, user }) {
                   </div>
                 </div>
                 <p className="lp-claim-prompt">
-                  Your identity is verified. Click below to close the wallet and open the campus dashboard.
+                  Your identity is verified. Click the button below to close the wallet and open the campus dashboard.
                 </p>
-                <button
-                  type="button"
-                  className="lp-wallet-sign-btn"
-                  onClick={triggerWalletCloseAnimation}
-                  disabled={status === "closing"}
-                >
-                  <span className="lp-wallet-btn-brass-snap" />
-                  <span>{status === "closing" ? "Closing Wallet…" : "Continue to Campus Dashboard"}</span>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </button>
               </div>
             ) : status === "confirmed" || status === "closing" ? (
               /* Confirmation view with animated tick inside the tooltip */
@@ -237,12 +232,8 @@ export default function WalletLetterLogin({ subscribe, onSuccess, user }) {
                 </div>
               </div>
             ) : (
-              /* Sign In Form with button at the bottom of the wallet */
-              <form className="lp-wallet-form" onSubmit={handleSubmit} noValidate>
-                <div className="lp-sheet-prompt">
-                  <span>Enter your details below to sign in easily</span>
-                </div>
-
+              /* Sign In Form with details */
+              <form id="wallet-login-form" className="lp-wallet-form" onSubmit={handleSubmit} noValidate>
                 <div className="lp-wallet-input-row">
                   <label htmlFor="wallet-name">Full Name</label>
                   <input
@@ -288,19 +279,6 @@ export default function WalletLetterLogin({ subscribe, onSuccess, user }) {
                   />
                   {showErr("campus") && <span className="lf-err">{errors.campus}</span>}
                 </div>
-
-                {/* Prominent sign in button at the bottom of the wallet */}
-                <button
-                  type="submit"
-                  className="lp-wallet-sign-btn"
-                  disabled={status === "loading"}
-                >
-                  <span className="lp-wallet-btn-brass-snap" />
-                  <span>{status === "loading" ? "Signing In…" : "Sign In & Continue to Dashboard"}</span>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </button>
               </form>
             )}
           </div>
@@ -309,6 +287,47 @@ export default function WalletLetterLogin({ subscribe, onSuccess, user }) {
           <div className="lp-wallet-pocket">
             <span className="lp-wallet-stitch" />
             <div className="lp-wallet-pocket-rim" />
+          </div>
+
+          {/* Sign In button mounted on the bottom of the wallet */}
+          <div className="lp-wallet-bottom-bar">
+            {user ? (
+              <button
+                ref={btnRef}
+                type="button"
+                className="lp-wallet-bottom-action-btn"
+                onClick={triggerWalletCloseAnimation}
+                disabled={status === "closing"}
+              >
+                <span>{status === "closing" ? "Closing Wallet…" : "Continue to Dashboard"}</span>
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            ) : status === "confirmed" || status === "closing" ? (
+              <button
+                ref={btnRef}
+                type="button"
+                className="lp-wallet-bottom-action-btn is-closing"
+                disabled
+              >
+                <span className="lp-closing-dot" />
+                <span>{status === "closing" ? "Closing Wallet…" : "Verified • Redirecting…"}</span>
+              </button>
+            ) : (
+              <button
+                ref={btnRef}
+                type="submit"
+                form="wallet-login-form"
+                className="lp-wallet-bottom-action-btn"
+                disabled={status === "loading" || !interactive}
+              >
+                <span>{status === "loading" ? "Signing In…" : "Sign In & Continue"}</span>
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       </div>
