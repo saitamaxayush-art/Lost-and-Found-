@@ -15,7 +15,7 @@ export default function ItemDetail() {
       <div className="page">
         <div className="empty-state">
           This item doesn't exist (or was removed).{" "}
-          <Link to="/" className="link-btn">
+          <Link to="/browse" className="link-btn">
             Back to browse
           </Link>
         </div>
@@ -38,7 +38,7 @@ export default function ItemDetail() {
   return (
     <div className="page">
       <div className="page-header">
-        <Link to="/" className="link-btn">
+        <Link to="/browse" className="link-btn">
           ← Back to browse
         </Link>
       </div>

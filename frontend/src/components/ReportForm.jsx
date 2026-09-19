@@ -39,7 +39,7 @@ export default function ReportForm({ type }) {
     if (match) {
       navigate(`/item/${match.id}`);
     } else {
-      navigate("/");
+      navigate("/browse");
     }
   }
 

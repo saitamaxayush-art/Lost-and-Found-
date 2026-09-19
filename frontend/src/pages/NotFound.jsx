@@ -6,7 +6,7 @@ export default function NotFound() {
       <div className="empty-state">
         <h2 style={{ marginBottom: "0.6rem" }}>Page not found</h2>
         <p style={{ marginBottom: "1rem" }}>The page you're looking for doesn't exist.</p>
-        <Link to="/" className="link-btn">
+        <Link to="/browse" className="link-btn">
           Back to browse
         </Link>
       </div>

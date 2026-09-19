@@ -59,7 +59,7 @@ export function AppProvider({ children }) {
       id: `item-${Date.now()}`,
       status: "Reported",
       createdAt: Date.now(),
-      reporter: user?.email || "guest",
+      reporter: user?.whatsapp || user?.email || "guest",
       ...newItemData,
     };
 
@@ -83,8 +83,22 @@ export function AppProvider({ children }) {
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status } : it)));
   }
 
-  function login(name, email) {
-    setUser({ name, email });
+  function login(profileOrName, emailOrNone) {
+    if (typeof profileOrName === "object" && profileOrName !== null) {
+      setUser({
+        name: profileOrName.name || "Student",
+        whatsapp: profileOrName.whatsapp || "",
+        campus: profileOrName.campus || "",
+        email: profileOrName.email || profileOrName.whatsapp || "",
+      });
+    } else {
+      setUser({
+        name: profileOrName || "Student",
+        email: emailOrNone || "",
+        whatsapp: emailOrNone || "",
+        campus: "",
+      });
+    }
   }
 
   function logout() {
