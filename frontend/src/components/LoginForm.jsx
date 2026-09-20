@@ -62,9 +62,9 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
           </svg>
         </div>
         <h3>You're signed in, {values.name.trim().split(" ")[0]}.</h3>
-        <p>Taking you to {values.campus.trim()}'s lost &amp; found board…</p>
+        <p>Getting things ready for {values.campus.trim()}…</p>
         <button type="button" className="lf-submit" onClick={() => onSuccess?.()}>
-          Continue now
+          Continue
         </button>
       </div>
     );

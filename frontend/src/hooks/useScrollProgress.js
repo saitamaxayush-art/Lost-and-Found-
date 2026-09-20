@@ -48,11 +48,19 @@ export function useScrollProgress(trackRef) {
     };
   }, [trackRef]);
 
+  // Jump straight to the target value (used after an instant section jump so the
+  // animation never "catches up" visibly).
+  const snap = useCallback(() => {
+    const s = st.current;
+    s.current = s.target;
+    subs.current.forEach((fn) => fn(s.current));
+  }, []);
+
   const subscribe = useCallback((fn) => {
     subs.current.add(fn);
     fn(st.current.current);
     return () => subs.current.delete(fn);
   }, []);
 
-  return { subscribe };
+  return { subscribe, snap };
 }

@@ -6,8 +6,8 @@ export const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 export const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 export const lerp = (a, b, t) => a + (b - a) * t;
 
-// scroll length of the whole landing page, in viewport heights
-export const TRACK_VH = 460;
+// scroll length of the "How it works" animation track, in viewport heights
+export const TRACK_VH = 360;
 
 // Box slides from centre to the right side during step 1
 export const BOX_MOVE_OUT = [0.04, 0.16];
@@ -22,7 +22,7 @@ export const STEP_RANGES = [
   [0.13, 0.26], // 1 report lost
   [0.26, 0.42], // 2 report found (all items pop out!)
   [0.42, 0.58], // 3 smart matching (wallet spotlight + glow, others in box)
-  [0.58, 0.92], // 4 you get notified & returned (wallet glides to center)
+  [0.58, 0.74], // 4 you get notified (wallet glides to center)
 ];
 
 // Items pop in step 2 and return in step 3
@@ -33,14 +33,21 @@ export const ITEMS_POP = {
   fallEnd: 0.53,
 };
 
-// Wallet progression across steps 2, 3, 4 and finale
+// Wallet progression across steps 2, 3 and 4. The wallet rises, glows gold
+// once matched, then glides to center and simply rests there — there is no
+// login/letter step anymore, so open/blur never trigger (kept out of the
+// 0..1 range on purpose rather than removed, since Scene.jsx still reads them).
 export const WALLET_STORY = {
   riseStart: 0.24,
   riseEnd: 0.35,
   glowStart: 0.41,
-  glowEnd: 0.98,
+  glowEnd: 0.95,
   centerStart: 0.58,
-  centerEnd: 0.76, // in 4th point bring wallet to center
+  centerEnd: 0.9, // wallet glides to center and stays there
+  openStart: 1.5,
+  openEnd: 1.6,
+  blurStart: 1.5,
+  blurEnd: 1.6,
 };
 
 /**
@@ -66,18 +73,17 @@ export function otherItemElevation(p, delay = 0, fallDelay = 0) {
  * Wallet state:
  * - elevation: rises in step 2, stays hovering in 3 and 4
  * - glow: 0..1 highlighted golden match aura during step 3 & 4
- * - centerT: 0..1 brings to center during step 4
- * - openT: 0..1 unfolds into login tooltip after step 4
- * - blurT: 0..1 blurs the whole background after step 4
+ * - centerT: 0..1 brings to center during step 4, where it rests
+ * - openT / blurT: retained for Scene.jsx compatibility, never trigger
  */
 export function walletState(p) {
-  const { riseStart, riseEnd, glowStart, glowEnd, centerStart, centerEnd } = WALLET_STORY;
+  const { riseStart, riseEnd, glowStart, glowEnd, centerStart, centerEnd, openStart, openEnd, blurStart, blurEnd } = WALLET_STORY;
 
   // Elevation out of the box
   const rise = clamp((p - riseStart) / (riseEnd - riseStart));
   const elevation = p < riseStart ? 0 : ease(rise);
 
-  // Golden match glow pulse intensity: active throughout step 3 and step 4
+  // Golden match glow pulse intensity
   let glow = 0;
   if (p >= glowStart && p <= glowEnd) {
     const fadeIn = clamp((p - glowStart) / 0.04);
@@ -88,7 +94,13 @@ export function walletState(p) {
   // Brings to center in step 4
   const centerT = p < centerStart ? 0 : p >= centerEnd ? 1 : ease((p - centerStart) / (centerEnd - centerStart));
 
-  return { elevation, glow, centerT, openT: 0, blurT: 0 };
+  // Opens wallet like a letter/tooltip after step 4
+  const openT = p < openStart ? 0 : p >= openEnd ? 1 : ease((p - openStart) / (openEnd - openStart));
+
+  // Full background blur
+  const blurT = p < blurStart ? 0 : p >= blurEnd ? 1 : ease((p - blurStart) / (blurEnd - blurStart));
+
+  return { elevation, glow, centerT, openT, blurT };
 }
 
 export function boxMove(p) {

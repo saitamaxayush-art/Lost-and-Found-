@@ -3,7 +3,7 @@ import { seedItems } from "../data/mockItems";
 
 const AppContext = createContext(null);
 
-const ITEMS_KEY = "lf_items";
+const ITEMS_KEY = "lf_items_v2";
 const USER_KEY = "lf_user";
 const NOTIF_KEY = "lf_notifications";
 
@@ -97,14 +97,8 @@ export function AppProvider({ children }) {
     setUser(null);
   }
 
-  const [activeModal, setActiveModal] = useState(null); // 'howItWorks' | 'history' | 'contact' | 'login' | null
-
-  function openModal(name) {
-    setActiveModal(name);
-  }
-
-  function closeModal() {
-    setActiveModal(null);
+  function dismissNotifications() {
+    setNotifications([]);
   }
 
   const value = useMemo(
@@ -117,11 +111,8 @@ export function AppProvider({ children }) {
       logout,
       notifications,
       dismissNotifications,
-      activeModal,
-      openModal,
-      closeModal,
     }),
-    [items, user, notifications, activeModal]
+    [items, user, notifications]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

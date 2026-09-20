@@ -4,28 +4,34 @@ A sample React frontend for the S4i Hackathon "Lost & Found Portal" problem
 statement. Covers every core requirement plus all four bonus features, using
 mock/local data so it runs standalone with no backend.
 
-## Landing page (scroll-through story)
+## Single-page app
 
-`/` is now a full-screen landing page: no header, a pinned library scene and a
-Lost & Found box that reacts to scroll (both directions).
+There is only one page (`/`). Every other URL redirects to it. Top navigation (no logo/name),
+in the same peach theme as the rest of the page:
 
-1. Hero: box centred, big.
-2. Box glides to the right, steps reveal on the left as you scroll.
-   (1) report lost and (2) report found -> items pop out of the box,
-   (3) matching and (4) notifications -> items hover,
-   (5) item found -> items drop back into the box along the same path.
-3. Finale: "Find what you've lost. Return what you've found." + login button.
-4. The button opens a sign-in pop-up (name, WhatsApp number, campus). On success the
-   user is signed in (mock, stored in `localStorage`) and sent to `/browse`.
+| Nav item | Section |
+|---|---|
+| Search a Lost Item | `#search` — keyword/type/category/status search over reported items, item detail pop-up, "Report lost / found" pop-ups (login required) |
+| How it Works | `#how-it-works` — the pinned, scroll-driven box animation |
+| History | `#history` — success stats (count-up), reported-vs-reunited chart, review cards (all sample data in `src/data/successData.js`) |
+| Contact Us | `#contact` — contact cards + message form (mock) |
 
-The old browse feed now lives at `/browse`.
+**Nav behaviour** (`components/landing/Nav.jsx`): a full-width transparent bar at the top of the page that
+continuously shrinks into a compact floating pill as you scroll down (CSS variable `--s`, 0..1, eased) and
+grows back into place when you return to the top. The current section's link is highlighted.
 
-Files: `src/pages/Landing.jsx`, `src/components/landing/*` (Scene, Steps, LoginModal,
-`timeline.js` = all scroll timings), `src/hooks/useScrollProgress.js`,
-`src/components/LoginForm.jsx`, `src/styles/landing.css`.
+**Smooth section jumps** (`pages/Landing.jsx` → `goTo`): if the trip to a section would scroll *through* the pinned
+"how it works" animation, the page fades a soft veil in, jumps, and fades the veil out, so the animation never
+plays in the background. Trips that don't cross it use normal smooth scrolling.
 
-Tweak timings in `src/components/landing/timeline.js` (all values are scroll progress 0..1,
-page length is `TRACK_VH`).
+**Login pop-up:** name, WhatsApp number, campus. Reporting an item or advancing its status asks you to sign in
+first, then continues what you were doing.
+
+Files: `src/pages/Landing.jsx`, `src/components/landing/*` (Nav, SearchSection, ItemModal, ReportModal, Modal,
+LoginModal, Scene, Steps, HistorySection, ContactSection, `timeline.js` = all scroll timings),
+`src/hooks/useScrollProgress.js`, `src/hooks/useReveal.js`, `src/styles/landing.css`, `src/styles/sections.css`.
+
+Tweak timings in `src/components/landing/timeline.js` (scroll progress 0..1, length is `TRACK_VH`).
 
 ### Using real photos instead of the vector scene
 The scene is drawn with shaded vector art plus procedural cardboard/wood textures

@@ -1,3 +1,32 @@
+# Prompt for Antigravity — UPDATE (single-page structure)
+
+The project already contains the scroll-driven landing page described further below. Apply these changes on top of it.
+Plain React + CSS only, no new UI libraries.
+
+1. **One page only.** `/` is the whole product. Remove the /browse, /report-lost, /report-found, /item/:id and /login
+   pages and the old Navbar/footer; every other URL redirects to `/`. Browsing, reporting, item detail and login all
+   happen on `/` (search section + pop-ups).
+2. **Top navigation, inspired by https://www.reunited.co.in/#** but in the existing peach theme. NO logo and NO project
+   name. Items: Search a Lost Item, How it Works, History, Contact Us (each smooth-scrolls to its section on the same
+   page), plus Log in (or notifications bell + avatar + Log out when signed in). Highlight the link of the section in view.
+3. **Sections in order:** hero, `#search`, `#how-it-works` (existing animation), `#history`, `#contact`.
+   - `#search`: search box, All/Lost/Found toggle, category + status selects, "Report a lost item" / "I found
+     something" buttons, result cards, item-detail pop-up with the Reported -> Matched -> Returned tracker.
+   - `#history`: made-up success numbers with count-up (items reported, reunited, success rate, average time to
+     match), a reported-vs-reunited bar chart, then a grid of 6 review cards with good feedback.
+   - `#contact`: contact cards and a message form.
+4. **Shrinking nav:** the bar is full-width and transparent at the top of the page, continuously shrinks into a compact
+   floating pill while scrolling down and grows back to its place when scrolling back to the top (drive a `--s` 0..1 CSS
+   variable from scrollY with easing; no layout-jumping). It must never look like a full-width divider over the animation.
+5. **No animation in the background on nav jumps:** if the jump between the current position and the target section would
+   pass through the pinned "how it works" track, do NOT scroll through it. Fade a full-screen veil in (~260ms), jump
+   instantly (also snap the scroll-progress value), then fade the veil out. Otherwise use native smooth scrolling.
+   Respect prefers-reduced-motion.
+6. Reporting or advancing an item's status requires login: open the login pop-up, and after signing in continue the
+   original action.
+
+---
+
 # Prompt for Antigravity
 
 You are working in an existing React 18 + Vite + react-router-dom v6 project called FindBack

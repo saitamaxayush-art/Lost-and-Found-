@@ -1,88 +1,192 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useScrollProgress } from "../hooks/useScrollProgress";
+import { useReveal } from "../hooks/useReveal";
 import Scene from "../components/landing/Scene";
 import Steps from "../components/landing/Steps";
-import WalletLetterLogin from "../components/landing/WalletLetterLogin";
+import Nav from "../components/landing/Nav";
+import SearchSection from "../components/landing/SearchSection";
+import HistorySection from "../components/landing/HistorySection";
+import ContactSection from "../components/landing/ContactSection";
 import LoginModal from "../components/landing/LoginModal";
+import ReportModal from "../components/landing/ReportModal";
+import ItemModal from "../components/landing/ItemModal";
 import { TRACK_VH } from "../components/landing/timeline";
 import "../styles/landing.css";
+import "../styles/sections.css";
+
+const VEIL_MS = 260;
 
 export default function Landing() {
+  const rootRef = useRef(null);
   const trackRef = useRef(null);
-  const { subscribe } = useScrollProgress(trackRef);
-  const { user } = useApp();
-  const navigate = useNavigate();
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [finaleLive, setFinaleLive] = useState(false);
+  const veilRef = useRef(null);
+  const jumping = useRef(false);
+  const pending = useRef(null);
   const hintRef = useRef(null);
+  const { subscribe, snap } = useScrollProgress(trackRef);
+  const { user } = useApp();
+
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [reportType, setReportType] = useState(null); // "lost" | "found" | null
+  const [itemId, setItemId] = useState(null);
+
+  useReveal(rootRef);
 
   useEffect(() => {
     document.title = "FindBack — Find what you've lost. Return what you've found.";
+  }, []);
+
+  // Fade the "scroll" hint out once the visitor is a little way into the animation track.
+  useEffect(() => {
     return subscribe((p) => {
-      setFinaleLive(p > 0.88);
       if (hintRef.current) hintRef.current.style.opacity = String(Math.max(0, 1 - p / 0.05));
     });
   }, [subscribe]);
 
-  const onCta = useCallback(() => {
-    if (user) navigate("/browse");
-    else setLoginOpen(true);
-  }, [user, navigate]);
+  /* ---------------------------------------------------------------- *
+   *  Section navigation.                                              *
+   *  If the trip between where you are and where you're going would   *
+   *  scroll THROUGH the pinned "how it works" animation, we don't     *
+   *  scroll through it at all: a soft veil fades in, the page jumps,  *
+   *  the veil fades out. Otherwise we use a normal smooth scroll.     *
+   * ---------------------------------------------------------------- */
+  const goTo = useCallback(
+    (id) => {
+      const el = document.getElementById(id);
+      const track = trackRef.current;
+      if (!el || jumping.current) return;
 
-  const closeLogin = useCallback(() => setLoginOpen(false), []);
-  const afterLogin = useCallback(() => navigate("/browse"), [navigate]);
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const from = window.scrollY;
+      const to = Math.max(0, Math.round(el.getBoundingClientRect().top + from));
+      if (Math.abs(to - from) < 4) return;
+
+      const tTop = track.getBoundingClientRect().top + from;
+      const tBottom = tTop + track.offsetHeight;
+      const lo = Math.min(from, to);
+      const hi = Math.max(from, to);
+      const crossesAnimation = lo < tBottom - 1 && hi > tTop + 1;
+
+      if (!crossesAnimation) {
+        window.scrollTo({ top: to, behavior: reduce ? "auto" : "smooth" });
+        return;
+      }
+
+      const veil = veilRef.current;
+      if (reduce || !veil) {
+        window.scrollTo({ top: to, behavior: "auto" });
+        requestAnimationFrame(snap);
+        return;
+      }
+
+      jumping.current = true;
+      veil.classList.add("on");
+      window.setTimeout(() => {
+        window.scrollTo({ top: to, behavior: "auto" });
+        snap(); // animation state follows instantly, unseen behind the veil
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            veil.classList.remove("on");
+            window.setTimeout(() => (jumping.current = false), VEIL_MS);
+          })
+        );
+      }, VEIL_MS);
+    },
+    [snap]
+  );
+
+  /* ---------------------------- auth gate --------------------------- */
+  const requireLogin = useCallback(
+    (action) => {
+      if (user) {
+        action();
+      } else {
+        pending.current = action;
+        setLoginOpen(true);
+      }
+    },
+    [user]
+  );
+
+  const closeLogin = useCallback(() => {
+    pending.current = null;
+    setLoginOpen(false);
+  }, []);
+
+  const afterLogin = useCallback(() => {
+    setLoginOpen(false);
+    const action = pending.current;
+    pending.current = null;
+    action?.();
+  }, []);
+
+  const openLogin = useCallback(() => setLoginOpen(true), []);
+  const openReport = useCallback((type) => requireLogin(() => setReportType(type)), [requireLogin]);
+  const closeReport = useCallback(() => setReportType(null), []);
+  const closeItem = useCallback(() => setItemId(null), []);
+  const viewItem = useCallback((id) => {
+    setReportType(null);
+    setItemId(id);
+  }, []);
 
   return (
-    <div className="lp-root">
-      {/* Top right direct login button with tinted glass effect */}
-      <div className="lp-top-bar">
-        <button
-          type="button"
-          className="lp-glass-btn"
-          onClick={onCta}
-          aria-label={user ? "Go to board" : "Log in"}
-          id="direct-login-btn"
-        >
-          {user ? (
-            <>
-              <span className="lp-glass-dot" />
-              <span>Go to Board</span>
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </>
-          ) : (
-            <>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                <polyline points="10 17 15 12 10 7" />
-                <line x1="15" y1="12" x2="3" y2="12" />
-              </svg>
-              <span>Log in</span>
-            </>
-          )}
-        </button>
-      </div>
+    <div className="lp-root" ref={rootRef}>
+      <Nav goTo={goTo} onLogin={openLogin} />
+      <div className="lp-veil" ref={veilRef} aria-hidden="true" />
 
-      <div className="lp-track" ref={trackRef} style={{ height: `${TRACK_VH}vh` }}>
-        <div className="lp-stage">
-          <Scene subscribe={subscribe} />
-          <Steps
-            subscribe={subscribe}
-            onCta={onCta}
-            finaleLive={finaleLive}
-            ctaLabel={user ? "Open the lost & found board" : "Log in to get started"}
-          />
-          <WalletLetterLogin subscribe={subscribe} onSuccess={afterLogin} user={user} />
-          <div className="lp-hint" ref={hintRef} aria-hidden="true">
-            <span>Scroll</span>
-            <i />
+      {/* ---------- Hero ---------- */}
+      <section id="top" className="lp-hero-section">
+        <div className="lp-hero-content">
+          <span className="lp-eyebrow">Campus Lost &amp; Found</span>
+          <h1>Everything lost on campus ends up in one box.</h1>
+          <p>
+            Report what you've lost or found, and let smart matching quietly do the searching — so things make
+            their way back to the people they belong to.
+          </p>
+          <div className="lp-hero-actions">
+            <button type="button" className="lp-btn-primary" onClick={() => goTo("search")}>
+              Search a lost item
+            </button>
+            <button type="button" className="lp-btn-secondary" onClick={() => goTo("how-it-works")}>
+              See how it works
+            </button>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* ---------- Search ---------- */}
+      <SearchSection onOpenItem={setItemId} onReport={openReport} />
+
+      {/* ---------- How it works (the scroll-driven animation lives here) ---------- */}
+      <section id="how-it-works" className="lp-track-section">
+        <div className="lp-track-heading">
+          <span className="lp-eyebrow">How it Works</span>
+          <h2>Keep scrolling to watch a lost item find its way home.</h2>
+        </div>
+
+        <div className="lp-track" ref={trackRef} style={{ height: `${TRACK_VH}vh` }}>
+          <div className="lp-stage">
+            <Scene subscribe={subscribe} />
+            <Steps subscribe={subscribe} />
+            <div className="lp-hint" ref={hintRef} aria-hidden="true">
+              <span>Scroll</span>
+              <i />
+            </div>
+          </div>
+        </div>
+        <div className="lp-track-outro" aria-hidden="true" />
+      </section>
+
+      {/* ---------- History + reviews ---------- */}
+      <HistorySection />
+
+      {/* ---------- Contact ---------- */}
+      <ContactSection />
+
       <LoginModal open={loginOpen} onClose={closeLogin} onSuccess={afterLogin} />
+      {reportType && <ReportModal type={reportType} onClose={closeReport} onViewItem={viewItem} />}
+      {itemId && <ItemModal itemId={itemId} onClose={closeItem} requireLogin={requireLogin} />}
     </div>
   );
 }
