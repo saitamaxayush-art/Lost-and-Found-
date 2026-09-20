@@ -22,63 +22,45 @@ html.cc-on [role="button"] {
 }
 .cc-root.is-hidden { opacity: 0; }
 
-/* Big, ambient wash that recolours the page faintly around the pointer —
-   this is the "gradient" that is rebuilt every frame at the cursor's
-   position instead of being a fixed, static background. */
-.cc-aura {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(
-    560px 560px at var(--gx, 50%) var(--gy, 50%),
-    rgba(245, 197, 66, 0.16) 0%,
-    rgba(245, 197, 66, 0.06) 32%,
-    rgba(245, 197, 66, 0) 62%
-  );
-  mix-blend-mode: screen;
-  opacity: 1;
-  transition: opacity 0.45s ease;
-  will-change: background;
-}
-
-/* Tighter spotlight glow that sits immediately around the dot */
+/* Black ring, trailing a touch behind the dot */
 .cc-ring {
   position: fixed;
   top: 0;
   left: 0;
-  width: 220px;
-  height: 220px;
-  margin-left: -110px;
-  margin-top: -110px;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  margin-top: -11px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(245, 197, 66, 0.32) 0%, rgba(245, 197, 66, 0.09) 45%, rgba(245, 197, 66, 0) 72%);
+  border: 2px solid rgba(15, 12, 8, 0.88);
+  background: transparent;
   opacity: 1;
   transition: opacity 0.35s ease;
   will-change: transform;
 }
 
-/* The dot itself */
+/* The yellow dot */
 .cc-dot {
   position: fixed;
   top: 0;
   left: 0;
-  width: 10px;
-  height: 10px;
-  margin-left: -5px;
-  margin-top: -5px;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  margin-top: -4.5px;
   border-radius: 50%;
   background: var(--amber, #f5c542);
-  box-shadow: 0 0 0 1px rgba(20, 12, 6, 0.35), 0 0 14px rgba(245, 197, 66, 0.55);
+  box-shadow: 0 0 0 1px rgba(20, 12, 6, 0.35);
   opacity: 1;
   transition: opacity 0.35s ease;
   will-change: transform;
 }
 
-/* Docked inside the "how it works" story: freeze in place (handled in JS)
-   then fade out, as if set down on the wallet's clasp. A short delay lets
-   the glide-to-centre motion land before it disappears. */
+/* Docked inside the "how it works" story: the ring shrinks down to hug the
+   dot (handled in JS via scale), then both fade out — as if set down on
+   the wallet's clasp. The delay lets the shrink land before it disappears. */
 .cc-root.is-docked .cc-dot,
-.cc-root.is-docked .cc-ring,
-.cc-root.is-docked .cc-aura {
+.cc-root.is-docked .cc-ring {
   opacity: 0;
   transition-delay: 0.16s;
 }

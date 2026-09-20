@@ -2,18 +2,21 @@ import { useEffect, useRef } from "react";
 import { WALLET_STORY } from "./timeline";
 
 /**
- * A small dot cursor plus a soft amber glow that both track the real
- * pointer. While the visitor is inside the pinned "how it works" story
- * (subscribe's p is between FREEZE_FROM and RELEASE_AT) the cursor stops
- * chasing the mouse, glides to the centre of the stage instead — right
- * about where the wallet ends up once it's centred — and fades out there,
- * as if it had been set down on the wallet's brass clasp. It reappears
- * and flies back out to the pointer once the wallet finishes gliding to
- * the centre of the screen (WALLET_STORY.centerEnd), which reads as the
- * cursor "detaching" from the golden knob.
+ * Cursor = a small yellow dot with a black ring trailing a little behind it.
+ * While the visitor is inside the pinned "how it works" story (subscribe's p
+ * between FREEZE_FROM and RELEASE_AT) it stops chasing the mouse and instead
+ * tracks the wallet's real golden knob element (#walletKnob in Scene.jsx) —
+ * whatever that element's live on-screen position actually is, at that exact
+ * moment, at this viewport size — shrinking the ring down to hug the dot and
+ * then hiding both. Once the wallet finishes gliding to centre screen
+ * (WALLET_STORY.centerEnd) it reappears right there and flies back out to
+ * wherever the real pointer is, reading as the cursor detaching from the knob.
  */
 const FREEZE_FROM = 0.035;
 const RELEASE_AT = WALLET_STORY.centerEnd;
+
+// Ring shrinks to roughly the dot's own size while docked (dot ~10px / ring ~22px)
+const RING_FIT_SCALE = 0.46;
 
 const HOVER_SELECTOR = "a, button, input, select, textarea, label, [role='button'], .sr-card";
 
@@ -21,7 +24,6 @@ export default function CustomCursor({ subscribe }) {
   const rootRef = useRef(null);
   const dotRef = useRef(null);
   const ringRef = useRef(null);
-  const auraRef = useRef(null);
 
   useEffect(() => {
     const isFine = window.matchMedia("(pointer: fine)").matches;
@@ -35,8 +37,9 @@ export default function CustomCursor({ subscribe }) {
     const s = {
       mx: mid.x, my: mid.y, // real pointer position
       x: mid.x, y: mid.y, // smoothed dot position
-      ax: mid.x, ay: mid.y, // smoothed glow position (a touch more lag)
-      scale: 1,
+      rx: mid.x, ry: mid.y, // smoothed ring position (trails a touch more)
+      dotScale: 1,
+      ringScale: 1,
       docked: false,
       dockX: mid.x,
       dockY: mid.y,
@@ -44,11 +47,15 @@ export default function CustomCursor({ subscribe }) {
       raf: 0,
     };
 
-    const setDock = () => {
-      const r = document.querySelector(".lp-stage")?.getBoundingClientRect();
-      if (!r) return;
-      s.dockX = r.left + r.width / 2;
-      s.dockY = r.top + r.height / 2;
+    // Live centre of the wallet's actual golden knob, in real screen pixels —
+    // accurate at any scroll position / viewport size, since it just reads
+    // the element's current transformed bounding box straight off the DOM.
+    const knobPoint = () => {
+      const el = document.getElementById("walletKnob");
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) return null;
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     };
 
     const onMove = (e) => {
@@ -56,7 +63,10 @@ export default function CustomCursor({ subscribe }) {
       s.my = e.clientY;
     };
     const onOver = (e) => {
-      s.hover = !!e.target.closest?.(HOVER_SELECTOR);
+      // The bell has its own hover animation — an oversized cursor on top of it
+      // hides that, so the cursor stays at its normal size there on purpose.
+      const overBell = !!e.target.closest?.(".lp-bell-btn");
+      s.hover = !overBell && !!e.target.closest?.(HOVER_SELECTOR);
     };
     const onLeaveDoc = () => root?.classList.add("is-hidden");
     const onEnterDoc = () => root?.classList.remove("is-hidden");
@@ -65,30 +75,33 @@ export default function CustomCursor({ subscribe }) {
     document.addEventListener("mouseover", onOver);
     document.addEventListener("mouseleave", onLeaveDoc);
     document.addEventListener("mouseenter", onEnterDoc);
-    window.addEventListener("resize", setDock);
-    setDock();
 
     const tick = () => {
+      if (s.docked) {
+        const k = knobPoint();
+        if (k) {
+          s.dockX = k.x;
+          s.dockY = k.y;
+        }
+      }
+
       const tx = s.docked ? s.dockX : s.mx;
       const ty = s.docked ? s.dockY : s.my;
-      const targetScale = s.docked ? 0.4 : s.hover ? 1.9 : 1;
+      const targetDotScale = s.hover && !s.docked ? 1.3 : 1;
+      const targetRingScale = s.docked ? RING_FIT_SCALE : s.hover ? 1.7 : 1;
 
-      s.x += (tx - s.x) * 0.32;
-      s.y += (ty - s.y) * 0.32;
-      s.ax += (tx - s.ax) * 0.1;
-      s.ay += (ty - s.ay) * 0.1;
-      s.scale += (targetScale - s.scale) * 0.22;
+      s.x += (tx - s.x) * 0.35;
+      s.y += (ty - s.y) * 0.35;
+      s.rx += (tx - s.rx) * 0.18;
+      s.ry += (ty - s.ry) * 0.18;
+      s.dotScale += (targetDotScale - s.dotScale) * 0.25;
+      s.ringScale += (targetRingScale - s.ringScale) * 0.22;
 
       if (dotRef.current) {
-        dotRef.current.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -50%) scale(${s.scale.toFixed(3)})`;
+        dotRef.current.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -50%) scale(${s.dotScale.toFixed(3)})`;
       }
       if (ringRef.current) {
-        const ringScale = s.docked ? s.scale : s.hover ? 1.4 : 1;
-        ringRef.current.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -50%) scale(${ringScale.toFixed(3)})`;
-      }
-      if (auraRef.current) {
-        auraRef.current.style.setProperty("--gx", `${s.ax}px`);
-        auraRef.current.style.setProperty("--gy", `${s.ay}px`);
+        ringRef.current.style.transform = `translate(${s.rx}px, ${s.ry}px) translate(-50%, -50%) scale(${s.ringScale.toFixed(3)})`;
       }
 
       s.raf = requestAnimationFrame(tick);
@@ -97,7 +110,6 @@ export default function CustomCursor({ subscribe }) {
 
     const unsub = subscribe?.((p) => {
       const shouldDock = p > FREEZE_FROM && p < RELEASE_AT;
-      if (shouldDock && !s.docked) setDock(); // re-measure right as it docks (layout may have shifted)
       s.docked = shouldDock;
       root?.classList.toggle("is-docked", shouldDock);
     });
@@ -108,7 +120,6 @@ export default function CustomCursor({ subscribe }) {
       document.removeEventListener("mouseover", onOver);
       document.removeEventListener("mouseleave", onLeaveDoc);
       document.removeEventListener("mouseenter", onEnterDoc);
-      window.removeEventListener("resize", setDock);
       cancelAnimationFrame(s.raf);
       unsub?.();
     };
@@ -116,7 +127,6 @@ export default function CustomCursor({ subscribe }) {
 
   return (
     <div className="cc-root" ref={rootRef} aria-hidden="true">
-      <div className="cc-aura" ref={auraRef} />
       <div className="cc-ring" ref={ringRef} />
       <div className="cc-dot" ref={dotRef} />
     </div>

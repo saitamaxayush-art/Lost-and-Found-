@@ -133,7 +133,7 @@ function Wallet() {
       <rect x="-46" y="-32" width="92" height="64" rx="11" fill="url(#leather)" />
       <rect x="-40" y="-26" width="80" height="52" rx="7" fill="none" stroke="#e8d8bd" strokeOpacity=".7" strokeWidth="1.5" strokeDasharray="4 3" />
       <path d="M-46 -6 q46 20 92 0" stroke="#08080a" strokeWidth="1.8" fill="none" />
-      <circle cx="0" cy="8" r="6" fill="url(#brass)" />
+      <circle id="walletKnob" cx="0" cy="8" r="6" fill="url(#brass)" />
       <rect x="-46" y="-32" width="92" height="64" rx="11" fill="url(#leatherGloss)" />
     </>
   );

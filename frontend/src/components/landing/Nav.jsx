@@ -12,6 +12,42 @@ const SHRINK_DISTANCE = 120; // px of scroll over which the bar shrinks into a p
 
 const clamp = (v) => Math.min(1, Math.max(0, v));
 
+// A short, bright bell "ding" — synthesised with the Web Audio API (a few
+// detuned sine partials with a quick attack and decay) so hovering the bell
+// doesn't depend on shipping/loading an audio file.
+let bellCtx;
+function playBellChime() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    bellCtx = bellCtx || new Ctx();
+    if (bellCtx.state === "suspended") bellCtx.resume();
+
+    const now = bellCtx.currentTime;
+    const master = bellCtx.createGain();
+    master.gain.setValueAtTime(0, now);
+    master.gain.linearRampToValueAtTime(0.22, now + 0.008);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+    master.connect(bellCtx.destination);
+
+    // A fundamental plus a couple of quieter overtones gives it a small,
+    // bright "bell" timbre rather than a flat beep.
+    [[1046.5, 1], [1568, 0.32], [2637, 0.14]].forEach(([freq, level]) => {
+      const osc = bellCtx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const g = bellCtx.createGain();
+      g.gain.value = level;
+      osc.connect(g);
+      g.connect(master);
+      osc.start(now);
+      osc.stop(now + 0.85);
+    });
+  } catch {
+    // Web Audio unavailable — the ring animation still plays on its own.
+  }
+}
+
 export default function Nav({ goTo, onLogin }) {
   const { user, logout, notifications, dismissNotifications } = useApp();
   const rootRef = useRef(null);
@@ -120,6 +156,7 @@ export default function Nav({ goTo, onLogin }) {
                 className="lp-icon-btn lp-bell-btn"
                 aria-label={`Notifications${notifications.length ? ` (${notifications.length})` : ""}`}
                 aria-expanded={notifOpen}
+                onMouseEnter={playBellChime}
                 onClick={() => {
                   setNotifOpen((o) => !o);
                   setMenuOpen(false);
