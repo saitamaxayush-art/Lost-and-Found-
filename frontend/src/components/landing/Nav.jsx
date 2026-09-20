@@ -117,7 +117,7 @@ export default function Nav({ goTo, onLogin }) {
             <div className="lp-notif-wrap">
               <button
                 type="button"
-                className="lp-icon-btn"
+                className="lp-icon-btn lp-bell-btn"
                 aria-label={`Notifications${notifications.length ? ` (${notifications.length})` : ""}`}
                 aria-expanded={notifOpen}
                 onClick={() => {

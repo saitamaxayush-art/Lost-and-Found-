@@ -5,6 +5,7 @@ import { useReveal } from "../hooks/useReveal";
 import Scene from "../components/landing/Scene";
 import Steps from "../components/landing/Steps";
 import Nav from "../components/landing/Nav";
+import CustomCursor from "../components/landing/CustomCursor";
 import SearchSection from "../components/landing/SearchSection";
 import HistorySection from "../components/landing/HistorySection";
 import ContactSection from "../components/landing/ContactSection";
@@ -14,6 +15,7 @@ import ItemModal from "../components/landing/ItemModal";
 import { TRACK_VH } from "../components/landing/timeline";
 import "../styles/landing.css";
 import "../styles/sections.css";
+import "../styles/cursor.css";
 
 const VEIL_MS = 260;
 
@@ -132,6 +134,7 @@ export default function Landing() {
 
   return (
     <div className="lp-root" ref={rootRef}>
+      <CustomCursor subscribe={subscribe} />
       <Nav goTo={goTo} onLogin={openLogin} />
       <div className="lp-veil" ref={veilRef} aria-hidden="true" />
 
