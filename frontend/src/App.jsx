@@ -1,49 +1,73 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import { useApp } from "./context/AppContext";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Landing from "./pages/Landing";
 import Home from "./pages/Home";
 import ReportLost from "./pages/ReportLost";
 import ReportFound from "./pages/ReportFound";
 import ItemDetail from "./pages/ItemDetail";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import HistoryModal from "./components/modals/HistoryModal";
+import ContactModal from "./components/modals/ContactModal";
+import HowItWorksModal from "./components/landing/HowItWorksModal";
+import LoginModal from "./components/landing/LoginModal";
 
 export default function App() {
-  // The landing page is a full-screen scroll experience: no header, no footer note.
-  const isLanding = useLocation().pathname === "/";
+  const { activeModal, closeModal } = useApp();
 
   return (
     <div className="app-shell">
-      {!isLanding && <Navbar />}
+      {/* Top Navigation Bar with History, Contact us, How it works */}
+      <Navbar />
 
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/browse" element={<Home />} />
-        <Route path="/item/:id" element={<ItemDetail />} />
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/report-lost"
-          element={
-            <ProtectedRoute>
-              <ReportLost />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/report-found"
-          element={
-            <ProtectedRoute>
-              <ReportFound />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/browse" element={<Home />} />
+          <Route path="/item/:id" element={<ItemDetail />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/report-lost"
+            element={
+              <ProtectedRoute>
+                <ReportLost />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/report-found"
+            element={
+              <ProtectedRoute>
+                <ReportFound />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
 
-      {!isLanding && (
-        <div className="footer-note">FindBack — a sample frontend for the S4i Hackathon Lost &amp; Found Portal</div>
-      )}
+      {/* Global Modals triggered from Navbar, Hero CTAs, or Footer */}
+      <HistoryModal
+        open={activeModal === "history"}
+        onClose={closeModal}
+      />
+
+      <ContactModal
+        open={activeModal === "contact"}
+        onClose={closeModal}
+      />
+
+      <HowItWorksModal
+        open={activeModal === "howItWorks"}
+        onClose={closeModal}
+      />
+
+      <LoginModal
+        open={activeModal === "login"}
+        onClose={closeModal}
+        onSuccess={closeModal}
+      />
     </div>
   );
 }

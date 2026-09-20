@@ -129,9 +129,9 @@ const STEPS = [
     Mock: MockMatch,
   },
   {
-    title: ["You get ", "notified"],
-    body: "The moment a likely match appears, an alert lands in your notifications with photo verification ready to claim.",
-    Mock: MockNotify,
+    title: ["Reunited & ", "returned"],
+    body: "The moment a likely match appears, the owner is notified, identity verified, and the item is safely returned!",
+    Mock: MockReturned,
   },
 ];
 

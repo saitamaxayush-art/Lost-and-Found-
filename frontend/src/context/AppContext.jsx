@@ -97,8 +97,14 @@ export function AppProvider({ children }) {
     setUser(null);
   }
 
-  function dismissNotifications() {
-    setNotifications([]);
+  const [activeModal, setActiveModal] = useState(null); // 'howItWorks' | 'history' | 'contact' | 'login' | null
+
+  function openModal(name) {
+    setActiveModal(name);
+  }
+
+  function closeModal() {
+    setActiveModal(null);
   }
 
   const value = useMemo(
@@ -111,8 +117,11 @@ export function AppProvider({ children }) {
       logout,
       notifications,
       dismissNotifications,
+      activeModal,
+      openModal,
+      closeModal,
     }),
-    [items, user, notifications]
+    [items, user, notifications, activeModal]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

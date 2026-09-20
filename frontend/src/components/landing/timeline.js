@@ -22,7 +22,7 @@ export const STEP_RANGES = [
   [0.13, 0.26], // 1 report lost
   [0.26, 0.42], // 2 report found (all items pop out!)
   [0.42, 0.58], // 3 smart matching (wallet spotlight + glow, others in box)
-  [0.58, 0.74], // 4 you get notified (wallet glides to center)
+  [0.58, 0.92], // 4 you get notified & returned (wallet glides to center)
 ];
 
 // Items pop in step 2 and return in step 3
@@ -38,13 +38,9 @@ export const WALLET_STORY = {
   riseStart: 0.24,
   riseEnd: 0.35,
   glowStart: 0.41,
-  glowEnd: 0.74,
+  glowEnd: 0.98,
   centerStart: 0.58,
-  centerEnd: 0.74, // in 4th point bring wallet to center
-  openStart: 0.74, // after 4th point open wallet
-  openEnd: 0.89,
-  blurStart: 0.73,
-  blurEnd: 0.86,
+  centerEnd: 0.76, // in 4th point bring wallet to center
 };
 
 /**
@@ -75,13 +71,13 @@ export function otherItemElevation(p, delay = 0, fallDelay = 0) {
  * - blurT: 0..1 blurs the whole background after step 4
  */
 export function walletState(p) {
-  const { riseStart, riseEnd, glowStart, glowEnd, centerStart, centerEnd, openStart, openEnd, blurStart, blurEnd } = WALLET_STORY;
+  const { riseStart, riseEnd, glowStart, glowEnd, centerStart, centerEnd } = WALLET_STORY;
 
   // Elevation out of the box
   const rise = clamp((p - riseStart) / (riseEnd - riseStart));
   const elevation = p < riseStart ? 0 : ease(rise);
 
-  // Golden match glow pulse intensity
+  // Golden match glow pulse intensity: active throughout step 3 and step 4
   let glow = 0;
   if (p >= glowStart && p <= glowEnd) {
     const fadeIn = clamp((p - glowStart) / 0.04);
@@ -92,13 +88,7 @@ export function walletState(p) {
   // Brings to center in step 4
   const centerT = p < centerStart ? 0 : p >= centerEnd ? 1 : ease((p - centerStart) / (centerEnd - centerStart));
 
-  // Opens wallet like a letter/tooltip after step 4
-  const openT = p < openStart ? 0 : p >= openEnd ? 1 : ease((p - openStart) / (openEnd - openStart));
-
-  // Full background blur
-  const blurT = p < blurStart ? 0 : p >= blurEnd ? 1 : ease((p - blurStart) / (blurEnd - blurStart));
-
-  return { elevation, glow, centerT, openT, blurT };
+  return { elevation, glow, centerT, openT: 0, blurT: 0 };
 }
 
 export function boxMove(p) {

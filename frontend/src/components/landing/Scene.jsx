@@ -262,10 +262,8 @@ export default function Scene({ subscribe }) {
         const bob = hoverPower * Math.sin(p * 24) * 4.5;
         const swayAngle = hoverPower * Math.cos(p * 18) * 1.6;
 
-        // Clean seamless handover: SVG wallet is visible throughout step 4 centering,
-        // and hands over smoothly to the 3D unfolding wallet at the center once opening begins
-        const walletOpacity = ws.openT > 0 ? Math.max(0, 1 - ws.openT * 4) : 1;
-        itemEls[0].style.opacity = walletOpacity.toString();
+        // SVG wallet stays prominently visible at the center
+        itemEls[0].style.opacity = "1";
 
         itemEls[0].setAttribute(
           "transform",
@@ -276,7 +274,7 @@ export default function Scene({ subscribe }) {
         const auraEl = svg.querySelector("#walletAura");
         if (auraEl) {
           auraEl.setAttribute("transform", `translate(${curX.toFixed(2)} ${(curY + bob).toFixed(2)}) scale(${curScale.toFixed(3)})`);
-          const auraOpacity = (ws.glow * 0.95 * Math.max(0, 1 - ws.openT * 3)).toFixed(3);
+          const auraOpacity = (ws.glow * 0.95).toFixed(3);
           auraEl.setAttribute("opacity", auraOpacity);
         }
       });
