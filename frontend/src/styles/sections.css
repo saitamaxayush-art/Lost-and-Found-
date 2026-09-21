@@ -1,68 +1,107 @@
-/* ===================== Navigation (floating header, shrinks on scroll) ===================== */
+/* ===================== Navigation (seamless, indulges with background) ===================== */
 .lp-nav {
-  --s: 0; /* 0 = spacious top bar, 1 = compact sleek header bar (set from JS) */
+  --s: 0;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  width: 100%;
   z-index: 95;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: calc(14px - 8px * var(--s));
-  pointer-events: none;
-  transition: padding-top 0.2s ease;
+  background-color: rgba(255, 248, 239, calc(0.82 * var(--s)));
+  -webkit-backdrop-filter: blur(calc(16px * var(--s))) saturate(calc(100% + 50% * var(--s)));
+  backdrop-filter: blur(calc(16px * var(--s))) saturate(calc(100% + 50% * var(--s)));
+  box-shadow: 0 1px 0 rgba(74, 52, 32, calc(0.08 * var(--s)));
+  border: none;
+  padding: calc(22px - 10px * var(--s)) 0;
+  transition: padding 0.25s ease, background-color 0.4s ease, backdrop-filter 0.4s ease, box-shadow 0.4s ease;
+  will-change: padding, background-color, backdrop-filter;
 }
-.lp-nav-bar {
-  pointer-events: auto;
+
+.lp-nav-container {
+  width: min(calc(100% - 48px), 1200px);
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: calc(24px - 10px * var(--s));
-  width: min(calc(100% - 32px), 1180px);
-  padding: calc(13px - 5px * var(--s)) calc(20px - 4px * var(--s));
-  border-radius: 14px; /* Clean modern rectangular shape, NOT circular pill */
-  background: rgba(255, 248, 239, calc(0.76 + 0.22 * var(--s)));
-  border: 1px solid rgba(74, 52, 32, calc(0.08 + 0.08 * var(--s)));
-  box-shadow: 0 calc(4px + 8px * var(--s)) calc(16px + 14px * var(--s)) rgba(40, 24, 10, calc(0.08 + 0.12 * var(--s)));
-  -webkit-backdrop-filter: blur(calc(12px + 8px * var(--s))) saturate(150%);
-  backdrop-filter: blur(calc(12px + 8px * var(--s))) saturate(150%);
-  will-change: padding, background, box-shadow;
+  gap: 20px;
 }
+
+.lp-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  color: var(--peach-ink);
+  font-family: "Sora", sans-serif;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  user-select: none;
+}
+.lp-logo:hover {
+  transform: translateY(-1px);
+}
+.lp-logo-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lp-logo-text {
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  color: var(--peach-ink);
+}
+.lp-logo-text .logo-dot {
+  color: var(--peach-accent);
+}
+.lp-logo-tagline {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--peach-accent-dark);
+  background: rgba(217, 130, 43, 0.12);
+  padding: 3px 8px;
+  border-radius: 999px;
+  margin-left: 4px;
+}
+@media (max-width: 720px) {
+  .lp-logo-tagline { display: none; }
+}
+
 .lp-nav-links { display: flex; align-items: center; gap: 4px; }
 .lp-nav-links a,
 .lp-nav-menu a {
-  font-size: calc(15px - 1px * var(--s));
+  font-size: 15px;
   font-weight: 600;
   color: var(--peach-ink-soft);
   text-decoration: none;
   white-space: nowrap;
-  padding: calc(9px - 2px * var(--s)) calc(16px - 3px * var(--s));
-  border-radius: 8px; /* Clean rectangular corners */
+  padding: 8px 14px;
+  border-radius: 8px;
   transition: background 0.18s ease, color 0.18s ease;
 }
 .lp-nav-links a:hover,
-.lp-nav-menu a:hover { background: rgba(217, 130, 43, 0.12); color: var(--peach-accent-dark); }
+.lp-nav-menu a:hover { background: rgba(217, 130, 43, 0.1); color: var(--peach-accent-dark); }
 .lp-nav-links a.is-active,
-.lp-nav-menu a.is-active { background: rgba(217, 130, 43, 0.16); color: var(--peach-accent-dark); }
+.lp-nav-menu a.is-active { background: rgba(217, 130, 43, 0.14); color: var(--peach-accent-dark); }
 .lp-nav a:focus-visible,
 .lp-nav button:focus-visible { outline: 2.5px solid var(--peach-accent); outline-offset: 2px; }
 
-.lp-nav-actions { display: flex; align-items: center; gap: 8px; }
+.lp-nav-actions { display: flex; align-items: center; gap: 10px; }
 .lp-nav-cta {
   font: inherit;
   font-weight: 700;
-  font-size: calc(14.5px - 0.5px * var(--s));
+  font-size: 14px;
   color: #fffaf0;
   background: linear-gradient(135deg, var(--peach-accent) 0%, var(--peach-accent-dark) 100%);
   border: 0;
-  border-radius: 9px; /* Modern sleek button radius */
-  padding: calc(10px - 2px * var(--s)) calc(22px - 4px * var(--s));
+  border-radius: 50px;
+  padding: 9px 22px;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(181, 101, 26, 0.28);
+  box-shadow: 0 4px 14px rgba(181, 101, 26, 0.28);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.lp-nav-cta:hover { transform: translateY(-1px); box-shadow: 0 9px 22px rgba(181, 101, 26, 0.38); }
+.lp-nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(181, 101, 26, 0.38); }
 .lp-nav-cta-ghost { background: transparent; color: var(--peach-ink); box-shadow: none; border: 1.5px solid rgba(74, 52, 32, 0.2); }
 .lp-nav-cta-ghost:hover { box-shadow: none; border-color: var(--peach-accent); }
 .lp-user {
@@ -122,7 +161,6 @@
   .lp-nav-links { display: none; }
   .lp-menu-btn { display: grid; }
   .lp-nav-menu { display: flex; }
-  .lp-nav-bar { justify-content: flex-end; width: calc(100% - 24px - 40px * var(--s)); }
 }
 
 /* ---------- section-jump veil (hides the pinned animation during long jumps) ---------- */
@@ -306,7 +344,7 @@
 .rv-card figcaption small { color: var(--peach-ink-soft); font-size: 12.5px; }
 
 /* ===================== How it works: seamless edges ===================== */
-.lp-track-outro { height: 180px; background: linear-gradient(180deg, #4a3220 0%, var(--peach-1) 100%); }
+.lp-track-outro { height: 160px; background: linear-gradient(180deg, var(--peach-2) 0%, var(--peach-1) 100%); }
 
 /* ===================== Contact ===================== */
 .lp-contact { background: var(--peach-2); padding-bottom: 40px; }

@@ -133,7 +133,24 @@ export default function Nav({ goTo, onLogin }) {
 
   return (
     <header className="lp-nav" ref={rootRef} style={{ "--s": 0 }}>
-      <div className="lp-nav-bar">
+      <div className="lp-nav-container">
+        <a href="#top" className="lp-logo" onClick={(e) => go(e, "top")} aria-label="HYT home">
+          <span className="lp-logo-mark">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L3 7v6c0 5.25 3.75 10.15 9 11.35 5.25-1.2 9-6.1 9-11.35V7l-9-5z" fill="url(#hyt-grad)" />
+              <path d="M8.5 12l2.5 2.5 4.5-4.5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              <defs>
+                <linearGradient id="hyt-grad" x1="3" y1="2" x2="21" y2="24" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#d9822b" />
+                  <stop offset="1" stopColor="#b5651a" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
+          <span className="lp-logo-text">HYT<span className="logo-dot">.</span></span>
+          <span className="lp-logo-tagline">Have Your Thing</span>
+        </a>
+
         <nav className="lp-nav-links" aria-label="Primary">
           {NAV_LINKS.map((l) => (
             <a
