@@ -174,7 +174,18 @@ export default function Landing() {
             <Steps subscribe={subscribe} />
             <div className="lp-hint" ref={hintRef} aria-hidden="true">
               <span>Scroll</span>
-              <i />
+              <div className="lp-sine-indicator" aria-hidden="true">
+                <svg width="44" height="18" viewBox="0 0 44 18" fill="none">
+                  <path
+                    className="lp-sine-wave-line"
+                    d="M -24 9 Q -18 2 -12 9 T 0 9 T 12 9 T 24 9 T 36 9 T 48 9 T 68 9"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>

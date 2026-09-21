@@ -97,11 +97,15 @@ export default function CustomCursor({ subscribe }) {
       s.dotScale += (targetDotScale - s.dotScale) * 0.25;
       s.ringScale += (targetRingScale - s.ringScale) * 0.22;
 
+      // Centring is done once, via each element's CSS negative margin (see
+      // cursor.css) — this transform only moves and scales it, so the dot
+      // and ring line up on exactly the same point instead of drifting
+      // apart by different amounts.
       if (dotRef.current) {
-        dotRef.current.style.transform = `translate(${s.x}px, ${s.y}px) translate(-50%, -50%) scale(${s.dotScale.toFixed(3)})`;
+        dotRef.current.style.transform = `translate(${s.x}px, ${s.y}px) scale(${s.dotScale.toFixed(3)})`;
       }
       if (ringRef.current) {
-        ringRef.current.style.transform = `translate(${s.rx}px, ${s.ry}px) translate(-50%, -50%) scale(${s.ringScale.toFixed(3)})`;
+        ringRef.current.style.transform = `translate(${s.rx}px, ${s.ry}px) scale(${s.ringScale.toFixed(3)})`;
       }
 
       s.raf = requestAnimationFrame(tick);

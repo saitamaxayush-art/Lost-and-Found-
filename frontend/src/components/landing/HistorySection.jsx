@@ -1,44 +1,37 @@
 import { useEffect, useRef, useState } from "react";
 import { MONTHLY, REVIEWS, STATS } from "../../data/successData";
 
-function CountUp({ to, decimals = 0, suffix = "" }) {
-  const ref = useRef(null);
+function CountUp({ to, decimals = 0, suffix = "", active = false }) {
   const [val, setVal] = useState(0);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce || !("IntersectionObserver" in window)) {
+    if (reduce) {
       setVal(to);
       return;
     }
+
+    if (!active) {
+      setVal(0);
+      return;
+    }
+
     let raf = 0;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (!e.isIntersecting) return;
-        io.disconnect();
-        const t0 = performance.now();
-        const dur = 1400;
-        const step = (now) => {
-          const k = Math.min(1, (now - t0) / dur);
-          setVal(to * (1 - Math.pow(1 - k, 3)));
-          if (k < 1) raf = requestAnimationFrame(step);
-        };
-        raf = requestAnimationFrame(step);
-      },
-      { threshold: 0.6 }
-    );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      cancelAnimationFrame(raf);
+    const t0 = performance.now();
+    const dur = 1300;
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / dur);
+      setVal(to * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) raf = requestAnimationFrame(step);
     };
-  }, [to]);
+    raf = requestAnimationFrame(step);
+
+    return () => cancelAnimationFrame(raf);
+  }, [active, to]);
 
   const text = decimals ? val.toFixed(decimals) : Math.round(val).toLocaleString("en-IN");
   return (
-    <span ref={ref}>
+    <span>
       {text}
       {suffix}
     </span>
@@ -55,6 +48,34 @@ function Stars() {
 
 export default function HistorySection() {
   const max = Math.max(...MONTHLY.map((m) => m.reported));
+  const statsRef = useRef(null);
+  const chartRef = useRef(null);
+  const [statsActive, setStatsActive] = useState(false);
+  const [chartActive, setChartActive] = useState(false);
+
+  useEffect(() => {
+    const sEl = statsRef.current;
+    const cEl = chartRef.current;
+    if (!sEl && !cEl) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.target === sEl) {
+            setStatsActive(e.isIntersecting);
+          } else if (e.target === cEl) {
+            setChartActive(e.isIntersecting);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -4% 0px" }
+    );
+
+    if (sEl) io.observe(sEl);
+    if (cEl) io.observe(cEl);
+
+    return () => io.disconnect();
+  }, []);
 
   return (
     <section id="history" className="lp-section lp-history">
@@ -69,11 +90,11 @@ export default function HistorySection() {
           </p>
         </div>
 
-        <div className="hs-stats">
+        <div className="hs-stats" ref={statsRef}>
           {STATS.map((s, i) => (
-            <div className="hs-stat reveal" style={{ "--d": `${i * 80}ms` }} key={s.label}>
+            <div className={`hs-stat hs-repeat ${statsActive ? "in" : ""}`} style={{ "--d": `${i * 80}ms` }} key={s.label}>
               <strong>
-                <CountUp to={s.value} decimals={s.decimals} suffix={s.suffix} />
+                <CountUp to={s.value} decimals={s.decimals} suffix={s.suffix} active={statsActive} />
               </strong>
               <span className="hs-label">{s.label}</span>
               <small>{s.note}</small>
@@ -81,7 +102,7 @@ export default function HistorySection() {
           ))}
         </div>
 
-        <div className="hs-chart reveal">
+        <div className={`hs-chart hs-repeat ${chartActive ? "in" : ""}`} ref={chartRef}>
           <div className="hs-chart-head">
             <h3>Reported vs. reunited</h3>
             <div className="hs-legend">

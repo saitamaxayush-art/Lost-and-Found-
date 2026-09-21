@@ -1,6 +1,6 @@
-/* ===================== Navigation (floating, shrinks on scroll) ===================== */
+/* ===================== Navigation (floating header, shrinks on scroll) ===================== */
 .lp-nav {
-  --s: 0; /* 0 = full-width bar at the top of the page, 1 = compact floating pill (set from JS) */
+  --s: 0; /* 0 = spacious top bar, 1 = compact sleek header bar (set from JS) */
   position: fixed;
   top: 0;
   left: 0;
@@ -9,26 +9,27 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: calc(16px - 6px * var(--s));
+  padding-top: calc(14px - 8px * var(--s));
   pointer-events: none;
+  transition: padding-top 0.2s ease;
 }
 .lp-nav-bar {
   pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: calc(20px - 8px * var(--s));
-  width: min(calc(100% - 24px), calc(1140px - 360px * var(--s)));
-  padding: calc(9px - 3px * var(--s)) calc(12px - 3px * var(--s)) calc(9px - 3px * var(--s)) calc(14px - 2px * var(--s));
-  border-radius: 999px;
-  background: rgba(255, 248, 239, calc(0.88 * var(--s)));
-  border: 1px solid rgba(74, 52, 32, calc(0.1 * var(--s)));
-  box-shadow: 0 10px 30px rgba(40, 24, 10, calc(0.2 * var(--s)));
-  -webkit-backdrop-filter: blur(calc(16px * var(--s))) saturate(calc(100% + 60% * var(--s)));
-  backdrop-filter: blur(calc(16px * var(--s))) saturate(calc(100% + 60% * var(--s)));
-  will-change: width, padding, background;
+  gap: calc(24px - 10px * var(--s));
+  width: min(calc(100% - 32px), 1180px);
+  padding: calc(13px - 5px * var(--s)) calc(20px - 4px * var(--s));
+  border-radius: 14px; /* Clean modern rectangular shape, NOT circular pill */
+  background: rgba(255, 248, 239, calc(0.76 + 0.22 * var(--s)));
+  border: 1px solid rgba(74, 52, 32, calc(0.08 + 0.08 * var(--s)));
+  box-shadow: 0 calc(4px + 8px * var(--s)) calc(16px + 14px * var(--s)) rgba(40, 24, 10, calc(0.08 + 0.12 * var(--s)));
+  -webkit-backdrop-filter: blur(calc(12px + 8px * var(--s))) saturate(150%);
+  backdrop-filter: blur(calc(12px + 8px * var(--s))) saturate(150%);
+  will-change: padding, background, box-shadow;
 }
-.lp-nav-links { display: flex; align-items: center; gap: 2px; }
+.lp-nav-links { display: flex; align-items: center; gap: 4px; }
 .lp-nav-links a,
 .lp-nav-menu a {
   font-size: calc(15px - 1px * var(--s));
@@ -36,8 +37,8 @@
   color: var(--peach-ink-soft);
   text-decoration: none;
   white-space: nowrap;
-  padding: calc(10px - 2px * var(--s)) calc(17px - 4px * var(--s));
-  border-radius: 999px;
+  padding: calc(9px - 2px * var(--s)) calc(16px - 3px * var(--s));
+  border-radius: 8px; /* Clean rectangular corners */
   transition: background 0.18s ease, color 0.18s ease;
 }
 .lp-nav-links a:hover,
@@ -55,8 +56,8 @@
   color: #fffaf0;
   background: linear-gradient(135deg, var(--peach-accent) 0%, var(--peach-accent-dark) 100%);
   border: 0;
-  border-radius: 999px;
-  padding: calc(11px - 2px * var(--s)) calc(24px - 4px * var(--s));
+  border-radius: 9px; /* Modern sleek button radius */
+  padding: calc(10px - 2px * var(--s)) calc(22px - 4px * var(--s));
   cursor: pointer;
   box-shadow: 0 6px 18px rgba(181, 101, 26, 0.28);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -264,15 +265,31 @@
 .hs-bars { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; }
 .hs-col { display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 12.5px; font-weight: 600; color: var(--peach-ink-soft); }
 .hs-pair { height: 200px; width: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 5px; }
+.hs-repeat {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.75s ease var(--d, 0ms), transform 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms);
+}
+.hs-repeat.in {
+  opacity: 1;
+  transform: none;
+}
+
 .hs-bar {
   width: 100%; max-width: 22px; height: calc(var(--h) * 100%);
   border-radius: 7px 7px 3px 3px;
   transform: scaleY(0); transform-origin: bottom;
+  transition: transform 0.22s ease;
+}
+.hs-chart.in .hs-bar {
+  transform: scaleY(1);
   transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms);
 }
-.hs-chart.in .hs-bar { transform: scaleY(1); }
 .hs-col:hover .hs-bar { filter: brightness(1.06); }
-@media (prefers-reduced-motion: reduce) { .hs-bar { transform: scaleY(1); transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .hs-repeat { opacity: 1; transform: none; transition: none; }
+  .hs-bar { transform: scaleY(1); transition: none; }
+}
 
 .rv-head { margin: 84px auto 34px; }
 .rv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
