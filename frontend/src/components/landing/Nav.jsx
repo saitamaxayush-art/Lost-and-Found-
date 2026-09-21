@@ -67,38 +67,25 @@ export default function Nav({ goTo, onLogin }) {
     let raf = 0;
 
     const paint = () => {
-      el.style.setProperty("--s", cur.toFixed(4));
-      el.classList.toggle("is-compact", cur > 0.5);
-    };
-    const tick = () => {
-      raf = 0;
-      cur = reduce ? target : cur + (target - cur) * 0.2;
-      if (Math.abs(target - cur) < 0.002) cur = target;
-      paint();
-      if (cur !== target) raf = requestAnimationFrame(tick);
+      el.classList.toggle("is-scrolled", window.scrollY > 25);
     };
     const onScroll = () => {
-      target = clamp(window.scrollY / SHRINK_DISTANCE);
+      paint();
 
       // which section is in view -> highlight its link
       let now = "";
-      const line = window.innerHeight * 0.4;
+      const line = window.innerHeight * 0.38;
       for (const id of SECTION_IDS) {
         const s = document.getElementById(id);
         if (s && s.getBoundingClientRect().top <= line) now = id === "top" ? "" : id;
       }
       setActive((prev) => (prev === now ? prev : now));
-
-      if (!raf) raf = requestAnimationFrame(tick);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
-    cur = target; // no shrink animation on first paint / refresh mid-page
-    paint();
     return () => {
       window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(raf);
     };
   }, []);
 
@@ -128,42 +115,28 @@ export default function Nav({ goTo, onLogin }) {
   const go = (e, id) => {
     e.preventDefault();
     setMenuOpen(false);
+    setActive(id);
     goTo(id);
   };
 
   return (
-    <header className="lp-nav" ref={rootRef} style={{ "--s": 0 }}>
+    <header className="lp-nav" ref={rootRef}>
       <div className="lp-nav-container">
-        <a href="#top" className="lp-logo" onClick={(e) => go(e, "top")} aria-label="HYT home">
-          <span className="lp-logo-mark">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L3 7v6c0 5.25 3.75 10.15 9 11.35 5.25-1.2 9-6.1 9-11.35V7l-9-5z" fill="url(#hyt-grad)" />
-              <path d="M8.5 12l2.5 2.5 4.5-4.5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              <defs>
-                <linearGradient id="hyt-grad" x1="3" y1="2" x2="21" y2="24" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#d9822b" />
-                  <stop offset="1" stopColor="#b5651a" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </span>
-          <span className="lp-logo-text">HYT<span className="logo-dot">.</span></span>
-          <span className="lp-logo-tagline">Have Your Thing</span>
-        </a>
-
-        <nav className="lp-nav-links" aria-label="Primary">
-          {NAV_LINKS.map((l) => (
-            <a
-              key={l.id}
-              href={`#${l.id}`}
-              className={active === l.id ? "is-active" : ""}
-              aria-current={active === l.id ? "true" : undefined}
-              onClick={(e) => go(e, l.id)}
-            >
-              {l.label}
-            </a>
-          ))}
-        </nav>
+        <div className="lp-nav-center">
+          <nav className="lp-nav-links" aria-label="Primary">
+            {NAV_LINKS.map((l) => (
+              <a
+                key={l.id}
+                href={`#${l.id}`}
+                className={active === l.id ? "is-active" : ""}
+                aria-current={active === l.id ? "true" : undefined}
+                onClick={(e) => go(e, l.id)}
+              >
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        </div>
 
         <div className="lp-nav-actions">
           {user && (

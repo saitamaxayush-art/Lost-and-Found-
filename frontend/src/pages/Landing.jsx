@@ -60,8 +60,8 @@ export default function Landing() {
       if (!el || jumping.current) return;
 
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const from = window.scrollY;
-      const to = Math.max(0, Math.round(el.getBoundingClientRect().top + from));
+      const navOffset = id === "top" ? 0 : 68;
+      const to = Math.max(0, Math.round(el.getBoundingClientRect().top + from - navOffset));
       if (Math.abs(to - from) < 4) return;
 
       const tTop = track.getBoundingClientRect().top + from;
@@ -174,11 +174,11 @@ export default function Landing() {
             <Steps subscribe={subscribe} />
             <div className="lp-hint" ref={hintRef} aria-hidden="true">
               <span>Scroll</span>
-              <div className="lp-sine-indicator" aria-hidden="true">
-                <svg width="44" height="18" viewBox="0 0 44 18" fill="none">
+              <div className="lp-vert-wave-indicator" aria-hidden="true">
+                <svg width="20" height="38" viewBox="0 0 20 38" fill="none">
                   <path
-                    className="lp-sine-wave-line"
-                    d="M -24 9 Q -18 2 -12 9 T 0 9 T 12 9 T 24 9 T 36 9 T 48 9 T 68 9"
+                    className="lp-vert-wave-line"
+                    d="M 10 -24 Q 16 -18 10 -12 T 10 0 T 10 12 T 10 24 T 10 36 T 10 48 T 10 64"
                     stroke="currentColor"
                     strokeWidth="2.2"
                     strokeLinecap="round"

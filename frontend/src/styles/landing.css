@@ -198,36 +198,36 @@
 .lf-submit:focus-visible, .lm-close:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
 .lp-hint { position: absolute; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; text-shadow: 0 1px 8px rgba(0, 0, 0, .6); pointer-events: none; }
-.lp-sine-indicator {
-  width: 44px;
-  height: 18px;
+.lp-vert-wave-indicator {
+  width: 20px;
+  height: 38px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: lp-sine-bob 1.8s ease-in-out infinite;
+  animation: lp-vert-wave-bob 1.8s ease-in-out infinite;
   color: var(--cream, #fffdf8);
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
 }
-.lp-sine-indicator svg {
+.lp-vert-wave-indicator svg {
   overflow: visible;
-  width: 44px;
-  height: 18px;
+  width: 20px;
+  height: 38px;
 }
-.lp-sine-wave-line {
-  animation: lp-sine-travel 1.4s linear infinite;
+.lp-vert-wave-line {
+  animation: lp-vert-wave-flow 1.5s linear infinite;
   will-change: transform;
 }
-@keyframes lp-sine-travel {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-24px); }
+@keyframes lp-vert-wave-flow {
+  0% { transform: translateY(-24px); }
+  100% { transform: translateY(0); }
 }
-@keyframes lp-sine-bob {
+@keyframes lp-vert-wave-bob {
   0%, 100% { transform: translateY(0); opacity: 0.85; }
   50% { transform: translateY(4px); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lp-sine-indicator, .lp-sine-wave-line { animation: none; }
+  .lp-vert-wave-indicator, .lp-vert-wave-line { animation: none; }
 }
 
 /* ---------- narrow / portrait: text on top, box at the bottom ---------- */
