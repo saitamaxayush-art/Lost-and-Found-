@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HERO_END, STEP_RANGES, boxMove, clamp, windowVis } from "./timeline";
+import { playBellChime } from "./Nav";
 
 /* ---------- small mock UIs (visual explanation of each step) ---------- */
 
@@ -70,10 +71,30 @@ function MockMatch() {
 }
 
 function MockNotify() {
+  const [ringing, setRinging] = useState(false);
+  const ringRef = useRef(null);
+
+  const ring = () => {
+    setRinging(false);
+    if (ringRef.current) clearTimeout(ringRef.current);
+    requestAnimationFrame(() => {
+      setRinging(true);
+      ringRef.current = setTimeout(() => setRinging(false), 650);
+    });
+    playBellChime();
+  };
+
   return (
     <div className="mock">
       <div className="mock-note">
-        <div className="mock-bell" aria-hidden="true">
+        <div
+          className={`mock-bell lp-bell-btn ${ringing ? "is-ringing" : ""}`}
+          onClick={ring}
+          onMouseEnter={ring}
+          style={{ cursor: "pointer" }}
+          title="Click to ring bell"
+          aria-hidden="true"
+        >
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.7 21a2 2 0 0 1-3.4 0" />

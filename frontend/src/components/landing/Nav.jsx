@@ -12,48 +12,95 @@ const SHRINK_DISTANCE = 120; // px of scroll over which the bar shrinks into a p
 
 const clamp = (v) => Math.min(1, Math.max(0, v));
 
-// A short, bright bell "ding" — synthesised with the Web Audio API (a few
-// detuned sine partials with a quick attack and decay) so hovering the bell
-// doesn't depend on shipping/loading an audio file.
 let bellCtx;
-function playBellChime() {
+
+function getAudioContext() {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
+  if (!bellCtx) {
+    bellCtx = new Ctx();
+  }
+  return bellCtx;
+}
+
+// Warm up AudioContext on first user interaction so it's already running
+if (typeof window !== "undefined") {
+  const unlockAudio = () => {
+    try {
+      const ctx = getAudioContext();
+      if (ctx && ctx.state === "suspended") {
+        ctx.resume();
+      }
+    } catch {}
+    window.removeEventListener("pointerdown", unlockAudio);
+    window.removeEventListener("keydown", unlockAudio);
+  };
+  window.addEventListener("pointerdown", unlockAudio, { passive: true });
+  window.addEventListener("keydown", unlockAudio, { passive: true });
+}
+
+let lastChimeTime = 0;
+export async function playBellChime() {
   try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
-    bellCtx = bellCtx || new Ctx();
-    if (bellCtx.state === "suspended") bellCtx.resume();
+    const nowMs = performance.now();
+    if (nowMs - lastChimeTime < 160) return;
+    lastChimeTime = nowMs;
 
-    const now = bellCtx.currentTime;
-    const master = bellCtx.createGain();
-    master.gain.setValueAtTime(0, now);
-    master.gain.linearRampToValueAtTime(0.22, now + 0.008);
-    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
-    master.connect(bellCtx.destination);
+    const ctx = getAudioContext();
+    if (!ctx) return;
 
-    // A fundamental plus a couple of quieter overtones gives it a small,
-    // bright "bell" timbre rather than a flat beep.
-    [[1046.5, 1], [1568, 0.32], [2637, 0.14]].forEach(([freq, level]) => {
-      const osc = bellCtx.createOscillator();
+    if (ctx.state === "suspended") {
+      await ctx.resume();
+    }
+
+    if (ctx.state !== "running") return;
+
+    // Small lookahead buffer to guarantee envelope begins cleanly
+    const startTime = ctx.currentTime + 0.02;
+    const duration = 0.85;
+
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.0001, startTime);
+    master.gain.linearRampToValueAtTime(0.24, startTime + 0.012);
+    master.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+    master.connect(ctx.destination);
+
+    // Warm bell overtones: fundamental (C6), fifth (G6), octave (C7), third (E7)
+    const partials = [
+      [1046.5, 1.0, 1.0],
+      [1567.98, 0.35, 0.82],
+      [2093.0, 0.18, 0.65],
+      [2637.02, 0.11, 0.5]
+    ];
+
+    partials.forEach(([freq, level, decayRatio]) => {
+      const osc = ctx.createOscillator();
       osc.type = "sine";
-      osc.frequency.value = freq;
-      const g = bellCtx.createGain();
-      g.gain.value = level;
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(level, startTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, startTime + duration * decayRatio);
+
       osc.connect(g);
       g.connect(master);
-      osc.start(now);
-      osc.stop(now + 0.85);
+
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.05);
     });
   } catch {
-    // Web Audio unavailable — the ring animation still plays on its own.
+    // Web Audio fallback
   }
 }
 
 export default function Nav({ goTo, onLogin }) {
   const { user, logout, notifications, dismissNotifications } = useApp();
   const rootRef = useRef(null);
+  const ringTimerRef = useRef(null);
   const [active, setActive] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [isRinging, setIsRinging] = useState(false);
 
   // Shrink amount --s (0 = full-width bar at the top, 1 = compact floating pill).
   // It follows the scroll position continuously and is eased, so the bar shrinks
@@ -119,18 +166,33 @@ export default function Nav({ goTo, onLogin }) {
     goTo(id);
   };
 
+  const triggerBellRing = () => {
+    setIsRinging(false);
+    if (ringTimerRef.current) clearTimeout(ringTimerRef.current);
+    requestAnimationFrame(() => {
+      setIsRinging(true);
+      ringTimerRef.current = setTimeout(() => {
+        setIsRinging(false);
+      }, 650);
+    });
+    playBellChime();
+  };
+
   return (
     <header className="lp-nav" ref={rootRef}>
       <div className="lp-nav-container">
         <div className="lp-nav-center">
-          <nav className="lp-nav-links" aria-label="Primary">
+          <nav className="lp-nav-links" aria-label="Sections">
             {NAV_LINKS.map((l) => (
               <a
                 key={l.id}
                 href={`#${l.id}`}
                 className={active === l.id ? "is-active" : ""}
-                aria-current={active === l.id ? "true" : undefined}
-                onClick={(e) => go(e, l.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActive(l.id);
+                  goTo(l.id);
+                }}
               >
                 {l.label}
               </a>
@@ -143,11 +205,12 @@ export default function Nav({ goTo, onLogin }) {
             <div className="lp-notif-wrap">
               <button
                 type="button"
-                className="lp-icon-btn lp-bell-btn"
+                className={`lp-icon-btn lp-bell-btn ${isRinging ? "is-ringing" : ""}`}
                 aria-label={`Notifications${notifications.length ? ` (${notifications.length})` : ""}`}
                 aria-expanded={notifOpen}
-                onMouseEnter={playBellChime}
+                onMouseEnter={triggerBellRing}
                 onClick={() => {
+                  triggerBellRing();
                   setNotifOpen((o) => !o);
                   setMenuOpen(false);
                 }}
