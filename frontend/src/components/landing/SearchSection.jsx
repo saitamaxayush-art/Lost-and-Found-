@@ -70,6 +70,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
             </svg>
             <span className="sr-sr">Search reported items</span>
             <input
+              id="search-input"
               type="search"
               value={query}
               onChange={(e) => {

@@ -60,9 +60,15 @@ export default function Landing() {
       if (!el || jumping.current) return;
 
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const from = window.scrollY;
       const navOffset = id === "top" ? 0 : 68;
       const to = Math.max(0, Math.round(el.getBoundingClientRect().top + from - navOffset));
-      if (Math.abs(to - from) < 4) return;
+      if (Math.abs(to - from) < 4) {
+        if (id === "search") {
+          document.getElementById("search-input")?.focus();
+        }
+        return;
+      }
 
       const tTop = track.getBoundingClientRect().top + from;
       const tBottom = tTop + track.offsetHeight;
@@ -72,6 +78,11 @@ export default function Landing() {
 
       if (!crossesAnimation) {
         window.scrollTo({ top: to, behavior: reduce ? "auto" : "smooth" });
+        if (id === "search") {
+          setTimeout(() => {
+            document.getElementById("search-input")?.focus();
+          }, 400);
+        }
         return;
       }
 
