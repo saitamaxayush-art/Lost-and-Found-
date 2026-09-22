@@ -9,7 +9,14 @@ const clamp = (v) => Math.min(1, Math.max(0, v));
  */
 export function useScrollProgress(trackRef) {
   const subs = useRef(new Set());
-  const st = useRef({ target: 0, current: 0, raf: 0 });
+  const st = useRef({
+    target: 0,
+    current: 0,
+    raf: 0,
+    lastTime: 0,
+    top: 0,
+    range: 1,
+  });
 
   useEffect(() => {
     const track = trackRef.current;
@@ -17,33 +24,79 @@ export function useScrollProgress(trackRef) {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const s = st.current;
 
-    const emit = () => subs.current.forEach((fn) => fn(s.current));
-
-    const read = () => {
-      const top = track.getBoundingClientRect().top + window.scrollY;
-      const range = Math.max(1, track.offsetHeight - window.innerHeight);
-      s.target = clamp((window.scrollY - top) / range);
-      if (!s.raf) s.raf = requestAnimationFrame(tick);
+    const emit = () => {
+      const val = s.current;
+      subs.current.forEach((fn) => fn(val));
     };
 
-    const tick = () => {
+    // Cache track metrics so scroll handlers never trigger layout reflow
+    const measure = () => {
+      const rect = track.getBoundingClientRect();
+      s.top = rect.top + window.scrollY;
+      s.range = Math.max(1, track.offsetHeight - window.innerHeight);
+    };
+
+    const updateTarget = (scrollY = window.scrollY) => {
+      s.target = clamp((scrollY - s.top) / s.range);
+      if (!s.raf) {
+        s.lastTime = performance.now();
+        s.raf = requestAnimationFrame(tick);
+      }
+    };
+
+    const tick = (now) => {
       s.raf = 0;
-      s.current = reduce ? s.target : s.current + (s.target - s.current) * 0.2;
-      if (Math.abs(s.target - s.current) < 0.0001) s.current = s.target;
+      const dt = Math.min(0.064, (now - s.lastTime) / 1000 || 0.016);
+      s.lastTime = now;
+
+      if (reduce) {
+        s.current = s.target;
+      } else {
+        // Framerate-independent exponential smoothing (~12 factor gives luxurious cinematic weight)
+        const factor = 1 - Math.exp(-12.5 * dt);
+        s.current += (s.target - s.current) * factor;
+
+        // Snap when difference is imperceptible to prevent infinite micro-ticks
+        if (Math.abs(s.target - s.current) < 0.00008) {
+          s.current = s.target;
+        }
+      }
+
       emit();
-      if (s.current !== s.target) s.raf = requestAnimationFrame(tick);
+
+      if (s.current !== s.target) {
+        s.raf = requestAnimationFrame(tick);
+      }
     };
 
-    window.addEventListener("scroll", read, { passive: true });
-    window.addEventListener("resize", read);
-    read();
-    s.current = s.target; // no fly-in on first paint / refresh mid-page
+    const onScroll = () => {
+      updateTarget(window.scrollY);
+    };
+
+    const onResize = () => {
+      measure();
+      updateTarget(window.scrollY);
+    };
+
+    measure();
+    updateTarget(window.scrollY);
+    s.current = s.target; // prevent jump on initial page load / refresh
     emit();
 
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(onResize);
+      ro.observe(track);
+    }
+
     return () => {
-      window.removeEventListener("scroll", read);
-      window.removeEventListener("resize", read);
-      cancelAnimationFrame(s.raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      if (ro) ro.disconnect();
+      if (s.raf) cancelAnimationFrame(s.raf);
       s.raf = 0;
     };
   }, [trackRef]);
@@ -52,9 +105,19 @@ export function useScrollProgress(trackRef) {
   // animation never "catches up" visibly).
   const snap = useCallback(() => {
     const s = st.current;
+    if (trackRef.current) {
+      const rect = trackRef.current.getBoundingClientRect();
+      s.top = rect.top + window.scrollY;
+      s.range = Math.max(1, trackRef.current.offsetHeight - window.innerHeight);
+    }
+    s.target = clamp((window.scrollY - s.top) / s.range);
     s.current = s.target;
+    if (s.raf) {
+      cancelAnimationFrame(s.raf);
+      s.raf = 0;
+    }
     subs.current.forEach((fn) => fn(s.current));
-  }, []);
+  }, [trackRef]);
 
   const subscribe = useCallback((fn) => {
     subs.current.add(fn);
@@ -64,3 +127,4 @@ export function useScrollProgress(trackRef) {
 
   return { subscribe, snap };
 }
+

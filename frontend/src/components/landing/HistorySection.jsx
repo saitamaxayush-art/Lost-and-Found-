@@ -2,40 +2,41 @@ import { useEffect, useRef, useState } from "react";
 import { MONTHLY, REVIEWS, STATS } from "../../data/successData";
 
 function CountUp({ to, decimals = 0, suffix = "", active = false }) {
-  const [val, setVal] = useState(0);
+  const spanRef = useRef(null);
 
   useEffect(() => {
+    const el = spanRef.current;
+    if (!el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const format = (v) => (decimals ? v.toFixed(decimals) : Math.round(v).toLocaleString("en-IN")) + suffix;
+
     if (reduce) {
-      setVal(to);
+      el.textContent = format(to);
       return;
     }
 
     if (!active) {
-      setVal(0);
+      el.textContent = format(0);
       return;
     }
 
     let raf = 0;
     const t0 = performance.now();
-    const dur = 1300;
+    const dur = 1350;
     const step = (now) => {
       const k = Math.min(1, (now - t0) / dur);
-      setVal(to * (1 - Math.pow(1 - k, 3)));
+      // Smooth quartic ease-out for silky deceleration
+      const eased = 1 - Math.pow(1 - k, 4);
+      el.textContent = format(to * eased);
       if (k < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
 
     return () => cancelAnimationFrame(raf);
-  }, [active, to]);
+  }, [active, to, decimals, suffix]);
 
-  const text = decimals ? val.toFixed(decimals) : Math.round(val).toLocaleString("en-IN");
-  return (
-    <span>
-      {text}
-      {suffix}
-    </span>
-  );
+  const initial = decimals ? (0).toFixed(decimals) : "0";
+  return <span ref={spanRef}>{initial + suffix}</span>;
 }
 
 function Stars() {

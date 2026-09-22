@@ -76,7 +76,11 @@ export default function CustomCursor({ subscribe }) {
     document.addEventListener("mouseleave", onLeaveDoc);
     document.addEventListener("mouseenter", onEnterDoc);
 
-    const tick = () => {
+    let lastTime = performance.now();
+    const tick = (now) => {
+      const dt = Math.min(0.064, (now - lastTime) / 1000 || 0.016);
+      lastTime = now;
+
       if (s.docked) {
         const k = knobPoint();
         if (k) {
@@ -90,22 +94,23 @@ export default function CustomCursor({ subscribe }) {
       const targetDotScale = s.hover && !s.docked ? 1.3 : 1;
       const targetRingScale = s.docked ? RING_FIT_SCALE : s.hover ? 1.7 : 1;
 
-      s.x += (tx - s.x) * 0.35;
-      s.y += (ty - s.y) * 0.35;
-      s.rx += (tx - s.rx) * 0.18;
-      s.ry += (ty - s.ry) * 0.18;
-      s.dotScale += (targetDotScale - s.dotScale) * 0.25;
-      s.ringScale += (targetRingScale - s.ringScale) * 0.22;
+      // Delta-time based exponential damping for organic fluidity
+      const fDot = 1 - Math.exp(-28 * dt);
+      const fRing = 1 - Math.exp(-14 * dt);
+      const fScale = 1 - Math.exp(-20 * dt);
 
-      // Centring is done once, via each element's CSS negative margin (see
-      // cursor.css) — this transform only moves and scales it, so the dot
-      // and ring line up on exactly the same point instead of drifting
-      // apart by different amounts.
+      s.x += (tx - s.x) * fDot;
+      s.y += (ty - s.y) * fDot;
+      s.rx += (tx - s.rx) * fRing;
+      s.ry += (ty - s.ry) * fRing;
+      s.dotScale += (targetDotScale - s.dotScale) * fScale;
+      s.ringScale += (targetRingScale - s.ringScale) * fScale;
+
       if (dotRef.current) {
-        dotRef.current.style.transform = `translate(${s.x}px, ${s.y}px) scale(${s.dotScale.toFixed(3)})`;
+        dotRef.current.style.transform = `translate3d(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0) scale(${s.dotScale.toFixed(3)})`;
       }
       if (ringRef.current) {
-        ringRef.current.style.transform = `translate(${s.rx}px, ${s.ry}px) scale(${s.ringScale.toFixed(3)})`;
+        ringRef.current.style.transform = `translate3d(${s.rx.toFixed(2)}px, ${s.ry.toFixed(2)}px, 0) scale(${s.ringScale.toFixed(3)})`;
       }
 
       s.raf = requestAnimationFrame(tick);

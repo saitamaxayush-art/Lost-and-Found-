@@ -200,7 +200,10 @@ export default function Scene({ subscribe }) {
     const ro = new ResizeObserver(onResize);
     ro.observe(svg);
 
-    const unsub = subscribe((p) => {
+    let lastP = 0;
+    let idleRaf = 0;
+
+    const render = (p, timeMs) => {
       const ws = walletState(p);
       const L = lay.current;
       const m = boxMove(p);
@@ -210,6 +213,8 @@ export default function Scene({ subscribe }) {
         "transform",
         `translate(${px.toFixed(2)} ${BOX_ANCHOR.y}) scale(${ps.toFixed(4)}) translate(${-BOX_ANCHOR.x} ${-BOX_ANCHOR.y})`
       );
+
+      const tSec = timeMs * 0.001;
 
       ITEMS.forEach((it, i) => {
         if (i > 0) {
@@ -222,7 +227,9 @@ export default function Scene({ subscribe }) {
           const rot = it.tilt + it.rot * tOther;
           const sc = 1 + it.sc * Math.sin(Math.PI * tOther * 0.5);
           const fl = it.flutter ? ` skewX(${(Math.sin(tOther * 9) * 8 * Math.sin(Math.PI * tOther)).toFixed(2)})` : "";
-          const bobOther = tOther * Math.sin(p * 22 + i * 1.5) * 3;
+          
+          // Gentle organic idle floating when airborne
+          const bobOther = tOther * (Math.sin(tSec * 2.2 + i * 1.3) * 4.5);
 
           itemEls[i].setAttribute(
             "transform",
@@ -235,7 +242,6 @@ export default function Scene({ subscribe }) {
         // 1. Pops out in Step 2 alongside other items
         // 2. In Step 3: stays in the air, highlighted with glowing match aura
         // 3. In Step 4: glides to center
-        // 4. After Step 4: opens wallet into login tooltip
         const t = ws.elevation;
         const dxK = Math.min(1, 0.55 + L.k * 0.5);
         const dxT = -Math.min(-it.dx * dxK, L.leftRoom);
@@ -253,17 +259,14 @@ export default function Scene({ subscribe }) {
         const curX = lerp(spotX, targetCenterX, ws.centerT);
         const curY = lerp(spotY, targetCenterY, ws.centerT);
         const curRot = lerp(spotRot, 0, ws.centerT);
-        // Target scale matches the grand large centered wallet size
         const targetScale = Math.min(4.8, 4.4 / ps);
         const curScale = lerp(spotScale, targetScale, ws.centerT);
 
-        // Gentle floating when airborne
+        // Gentle organic floating when airborne
         const hoverPower = t * (1 - ws.centerT);
-        const bob = hoverPower * Math.sin(p * 24) * 4.5;
-        const swayAngle = hoverPower * Math.cos(p * 18) * 1.6;
+        const bob = hoverPower * Math.sin(tSec * 1.8) * 5.5;
+        const swayAngle = hoverPower * Math.cos(tSec * 1.4) * 2.0;
 
-        // Clean seamless handover: SVG wallet is visible throughout step 4 centering,
-        // and hands over smoothly to the 3D unfolding wallet at the center once opening begins
         const walletOpacity = ws.openT > 0 ? Math.max(0, 1 - ws.openT * 4) : 1;
         itemEls[0].style.opacity = walletOpacity.toString();
 
@@ -304,10 +307,25 @@ export default function Scene({ subscribe }) {
         el.setAttribute("cy", (525 + sp.dy * t).toFixed(1));
         el.setAttribute("opacity", (burstActive * Math.sin(Math.PI * t) * 0.85).toFixed(3));
       });
+    };
+
+    const idleLoop = (time) => {
+      const ws = walletState(lastP);
+      if (ws.elevation > 0.005) {
+        render(lastP, time);
+      }
+      idleRaf = requestAnimationFrame(idleLoop);
+    };
+    idleRaf = requestAnimationFrame(idleLoop);
+
+    const unsub = subscribe((p) => {
+      lastP = p;
+      render(p, performance.now());
     });
 
     return () => {
       unsub();
+      cancelAnimationFrame(idleRaf);
       ro.disconnect();
     };
   }, [subscribe, spark]);
@@ -411,7 +429,7 @@ export default function Scene({ subscribe }) {
       <rect x="0" y="653" width="1200" height="6" fill="#000" opacity=".16" />
 
       {/* ---------- everything that moves with the box ---------- */}
-      <g id="boxGroup">
+      <g id="boxGroup" style={{ willChange: "transform" }}>
         <ellipse id="glow" cx="600" cy="545" rx="300" ry="220" fill="url(#glowG)" opacity="0" />
         {/* contact + soft shadow on the table */}
         <ellipse cx="604" cy="727" rx="232" ry="20" fill="#000" opacity=".4" filter="url(#soft)" />
@@ -472,7 +490,7 @@ export default function Scene({ subscribe }) {
           const Art = ITEM_ART[it.id];
           const custom = A.items[it.id];
           return (
-            <g key={it.id} id={it.id} filter="url(#ds)">
+            <g key={it.id} id={it.id} filter="url(#ds)" style={{ willChange: "transform" }}>
               {custom ? <ItemImage cfg={custom} /> : <Art />}
             </g>
           );

@@ -61,7 +61,33 @@ textarea {
   font-size: 0.95rem;
 }
 
-html { scroll-behavior: auto; }
+html {
+  scroll-behavior: auto;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Lenis smooth scrolling rules */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
 .brand-mark {
   width: 34px;
   height: 34px;
@@ -74,3 +100,4 @@ html { scroll-behavior: auto; }
   font-weight: 800;
   font-size: 1rem;
 }
+

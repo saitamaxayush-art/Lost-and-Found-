@@ -12,6 +12,7 @@ import ContactSection from "../components/landing/ContactSection";
 import LoginModal from "../components/landing/LoginModal";
 import ReportModal from "../components/landing/ReportModal";
 import ItemModal from "../components/landing/ItemModal";
+import Lenis from "lenis";
 import { TRACK_VH } from "../components/landing/timeline";
 import "../styles/landing.css";
 import "../styles/sections.css";
@@ -26,6 +27,7 @@ export default function Landing() {
   const jumping = useRef(false);
   const pending = useRef(null);
   const hintRef = useRef(null);
+  const lenisRef = useRef(null);
   const { subscribe, snap } = useScrollProgress(trackRef);
   const { user } = useApp();
 
@@ -39,6 +41,49 @@ export default function Landing() {
     document.title = "FindBack — Find what you've lost. Return what you've found.";
   }, []);
 
+  // Initialize Lenis smooth inertia scrolling for the entire page
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: "vertical",
+      gestureOrientation: "vertical",
+      smoothWheel: true,
+      wheelMultiplier: 0.95,
+      touchMultiplier: 1.5,
+      infinite: false,
+    });
+    lenisRef.current = lenis;
+
+    let rafId = 0;
+    function raf(time) {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+    rafId = requestAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
+      lenisRef.current = null;
+    };
+  }, []);
+
+  // Pause Lenis and lock document scroll while modals are open
+  useEffect(() => {
+    const isModalOpen = loginOpen || !!reportType || !!itemId;
+    if (isModalOpen) {
+      lenisRef.current?.stop();
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      lenisRef.current?.start();
+      document.documentElement.style.overflow = "";
+    }
+  }, [loginOpen, reportType, itemId]);
+
   // Fade the "scroll" hint out once the visitor is a little way into the animation track.
   useEffect(() => {
     return subscribe((p) => {
@@ -51,7 +96,7 @@ export default function Landing() {
    *  If the trip between where you are and where you're going would   *
    *  scroll THROUGH the pinned "how it works" animation, we don't     *
    *  scroll through it at all: a soft veil fades in, the page jumps,  *
-   *  the veil fades out. Otherwise we use a normal smooth scroll.     *
+   *  the veil fades out. Otherwise we use ultra-smooth inertia scroll. *
    * ---------------------------------------------------------------- */
   const goTo = useCallback(
     (id) => {
@@ -77,18 +122,29 @@ export default function Landing() {
       const crossesAnimation = lo < tBottom - 1 && hi > tTop + 1;
 
       if (!crossesAnimation) {
-        window.scrollTo({ top: to, behavior: reduce ? "auto" : "smooth" });
+        if (lenisRef.current && !reduce) {
+          lenisRef.current.scrollTo(to, {
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          });
+        } else {
+          window.scrollTo({ top: to, behavior: reduce ? "auto" : "smooth" });
+        }
         if (id === "search") {
           setTimeout(() => {
             document.getElementById("search-input")?.focus();
-          }, 400);
+          }, 450);
         }
         return;
       }
 
       const veil = veilRef.current;
       if (reduce || !veil) {
-        window.scrollTo({ top: to, behavior: "auto" });
+        if (lenisRef.current) {
+          lenisRef.current.scrollTo(to, { immediate: true });
+        } else {
+          window.scrollTo({ top: to, behavior: "auto" });
+        }
         requestAnimationFrame(snap);
         return;
       }
@@ -96,7 +152,11 @@ export default function Landing() {
       jumping.current = true;
       veil.classList.add("on");
       window.setTimeout(() => {
-        window.scrollTo({ top: to, behavior: "auto" });
+        if (lenisRef.current) {
+          lenisRef.current.scrollTo(to, { immediate: true });
+        } else {
+          window.scrollTo({ top: to, behavior: "auto" });
+        }
         snap(); // animation state follows instantly, unseen behind the veil
         requestAnimationFrame(() =>
           requestAnimationFrame(() => {
@@ -108,6 +168,7 @@ export default function Landing() {
     },
     [snap]
   );
+
 
   /* ---------------------------- auth gate --------------------------- */
   const requireLogin = useCallback(

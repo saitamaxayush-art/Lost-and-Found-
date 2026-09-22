@@ -3,8 +3,20 @@
 // identically scrolling down and scrolling up.
 
 export const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
-export const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+/**
+ * Organic smootherstep easing (Perlin's smootherstep):
+ * 6*t^5 - 15*t^4 + 10*t^3
+ * Has 1st and 2nd derivatives of zero at both t=0 and t=1,
+ * eliminating all velocity and acceleration discontinuities.
+ */
+export const ease = (t) => {
+  const c = Math.min(1, Math.max(0, t));
+  return c * c * c * (c * (6 * c - 15) + 10);
+};
+
 export const lerp = (a, b, t) => a + (b - a) * t;
+
 
 // scroll length of the "How it works" animation track, in viewport heights
 export const TRACK_VH = 360;
