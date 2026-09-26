@@ -23,7 +23,29 @@
   height: 100svh;
   overflow: hidden;
 }
-.lp-scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.lp-stage::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 130px;
+  background: linear-gradient(180deg, var(--peach-2) 0%, rgba(251, 233, 211, 0) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+.lp-stage::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 130px;
+  background: linear-gradient(0deg, var(--peach-2) 0%, rgba(251, 233, 211, 0) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+.lp-scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
 
 /* legibility scrim, only while text is on screen */
 .lp-scrim {
@@ -139,7 +161,7 @@
   z-index: 2;
   text-align: center;
   padding: 96px 24px 44px;
-  background: linear-gradient(180deg, var(--peach-1) 0%, var(--peach-2) 100%);
+  background: var(--peach-2);
 }
 .lp-track-heading h2 {
   font-family: "Sora", "Inter", sans-serif;
@@ -157,9 +179,10 @@
   will-change: opacity, transform;
   visibility: hidden;
   opacity: 0;
+  z-index: 4;
 }
 .lp-h1, .lp-h2 { color: var(--cream); font-family: "Sora", "Inter", sans-serif; }
-.lp-hero { text-shadow: 0 2px 22px rgba(0, 0, 0, .55); }
+.lp-hero { text-shadow: 0 2px 22px rgba(0, 0, 0, .55); z-index: 4; }
 
 .lp-hero {
   position: absolute; left: 50%; top: clamp(92px, 13svh, 132px);

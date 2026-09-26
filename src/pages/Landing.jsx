@@ -18,7 +18,7 @@ import "../styles/landing.css";
 import "../styles/sections.css";
 import "../styles/cursor.css";
 
-const VEIL_MS = 260;
+const VEIL_MS = 380;
 
 export default function Landing() {
   const rootRef = useRef(null);
