@@ -1,10 +1,32 @@
 import { useMemo, useState } from "react";
 import { useApp } from "../../context/AppContext";
 import { CATEGORIES, STATUSES } from "../../data/mockItems";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import SearchDissolveLoader from "./SearchDissolveLoader";
 
 const PAGE = 6;
+const SEARCH_DELAY = 700; // ms of typing-pause before a search actually runs
 
-export function ItemCard({ item, onOpen }) {
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Wraps every occurrence of any search token inside `text` in a <mark>,
+// so the words the user searched for are visibly highlighted in results.
+function highlightText(text, tokens) {
+  if (!tokens.length) return text;
+  const pattern = tokens
+    .map(escapeRegExp)
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length)
+    .join("|");
+  if (!pattern) return text;
+  const re = new RegExp(`(${pattern})`, "gi");
+  const parts = String(text).split(re);
+  return parts.map((part, i) => (i % 2 === 1 ? <mark key={i} className="sr-hl">{part}</mark> : part));
+}
+
+export function ItemCard({ item, onOpen, tokens = [] }) {
   return (
     <button type="button" className="sr-card" onClick={() => onOpen(item.id)}>
       <div className="sr-card-media">
@@ -15,9 +37,9 @@ export function ItemCard({ item, onOpen }) {
           <span className={`sr-tag sr-${item.type}`}>{item.type === "lost" ? "Lost" : "Found"}</span>
           <span className={`sr-status sr-st-${item.status.toLowerCase()}`}>{item.status}</span>
         </div>
-        <h3>{item.description}</h3>
+        <h3>{highlightText(item.description, tokens)}</h3>
         <div className="sr-meta">
-          <span>{item.category}</span>
+          <span>{highlightText(item.category, tokens)}</span>
           <span>{item.date}</span>
         </div>
       </div>
@@ -33,15 +55,30 @@ export default function SearchSection({ onOpenItem, onReport }) {
   const [status, setStatus] = useState("all");
   const [showAll, setShowAll] = useState(false);
 
+  // The query only "commits" (and triggers a search) once the user pauses
+  // typing for SEARCH_DELAY — clearing the box is the one thing that's instant.
+  const settledQuery = useDebouncedValue(query, SEARCH_DELAY);
+  const debouncedQuery = query.trim() === "" ? "" : settledQuery;
+  const searching = query.trim() !== "" && query.trim().toLowerCase() !== debouncedQuery.trim().toLowerCase();
+  const hasSearched = debouncedQuery.trim().length > 0;
+
+  const tokens = useMemo(
+    () => debouncedQuery.trim().toLowerCase().split(/\s+/).filter(Boolean),
+    [debouncedQuery]
+  );
+
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    if (!tokens.length) return [];
     return items
       .filter((i) => (type === "all" ? true : i.type === type))
       .filter((i) => (category === "all" ? true : i.category === category))
       .filter((i) => (status === "all" ? true : i.status === status))
-      .filter((i) => (q ? `${i.description} ${i.category}`.toLowerCase().includes(q) : true))
+      .filter((i) => {
+        const haystack = `${i.description} ${i.category} ${i.type} ${i.status}`.toLowerCase();
+        return tokens.every((t) => haystack.includes(t));
+      })
       .sort((a, b) => b.createdAt - a.createdAt);
-  }, [items, query, type, category, status]);
+  }, [items, tokens, type, category, status]);
 
   const visible = showAll ? results : results.slice(0, PAGE);
   const filtersOn = query || type !== "all" || category !== "all" || status !== "all";
@@ -51,6 +88,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
     setType("all");
     setCategory("all");
     setStatus("all");
+    setShowAll(false);
   };
 
   return (
@@ -59,7 +97,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
         <div className="lp-head reveal">
           <span className="lp-eyebrow">Search a Lost Item</span>
           <h2>Look through everything reported on campus.</h2>
-          <p>Type what you lost — colour, brand, where you last had it — or browse what people have handed in.</p>
+          <p>Type the full description — colour, brand, where you last had it — and we'll match it for you.</p>
         </div>
 
         <div className="sr-panel reveal">
@@ -77,7 +115,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
                 setQuery(e.target.value);
                 setShowAll(false);
               }}
-              placeholder="e.g. black wallet, blue bottle, ID card…"
+              placeholder="Describe it fully — e.g. black leather wallet lost near the library…"
             />
           </label>
 
@@ -117,29 +155,40 @@ export default function SearchSection({ onOpenItem, onReport }) {
           </div>
         </div>
 
-        <p className="sr-count" aria-live="polite">
-          {results.length} {results.length === 1 ? "item" : "items"}
-          {filtersOn ? " match your search" : " reported"}
-        </p>
-
-        {results.length === 0 ? (
-          <div className="sr-empty">
-            Nothing matches that yet. Try fewer words, or report it so we can watch for a match.
+        {searching ? (
+          <div className="sr-loader-slot">
+            <SearchDissolveLoader />
+          </div>
+        ) : !hasSearched ? (
+          <div className="sr-empty sr-prompt">
+            Start typing the full description above — we'll search everything reported once you pause.
           </div>
         ) : (
-          <div className="sr-grid">
-            {visible.map((item) => (
-              <ItemCard key={item.id} item={item} onOpen={onOpenItem} />
-            ))}
-          </div>
-        )}
+          <>
+            <p className="sr-count" aria-live="polite">
+              {results.length} {results.length === 1 ? "item" : "items"} match "{debouncedQuery.trim()}"
+            </p>
 
-        {results.length > PAGE && (
-          <div className="sr-more">
-            <button type="button" className="lp-btn-secondary sm" onClick={() => setShowAll((s) => !s)}>
-              {showAll ? "Show fewer" : `Show all ${results.length} items`}
-            </button>
-          </div>
+            {results.length === 0 ? (
+              <div className="sr-empty">
+                Nothing matches that yet. Try fewer or different words, or report it so we can watch for a match.
+              </div>
+            ) : (
+              <div className="sr-grid">
+                {visible.map((item) => (
+                  <ItemCard key={item.id} item={item} onOpen={onOpenItem} tokens={tokens} />
+                ))}
+              </div>
+            )}
+
+            {results.length > PAGE && (
+              <div className="sr-more">
+                <button type="button" className="lp-btn-secondary sm" onClick={() => setShowAll((s) => !s)}>
+                  {showAll ? "Show fewer" : `Show all ${results.length} items`}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>
