@@ -5,7 +5,7 @@ import SearchDissolveLoader from "./SearchDissolveLoader";
 
 const PAGE = 6;
 
-// Popular item suggestions frequently searched by campus students
+// Popular items frequently reported on campus
 const QUICK_SUGGESTIONS = [
   "AirPods",
   "ID Card",
@@ -21,7 +21,7 @@ function escapeRegExp(str) {
 }
 
 // Wraps every occurrence of any search token inside `text` in a <mark>,
-// so matched words are visibly and tastefully highlighted on-theme.
+// so matched words are visibly highlighted on-theme.
 function highlightText(text, tokens) {
   if (!tokens || !tokens.length) return text;
   const pattern = tokens
@@ -72,7 +72,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
   const [status, setStatus] = useState("all");
   const [showAll, setShowAll] = useState(false);
 
-  // Managed smooth search state with comfortable minimum animation time so it never flashes or jitters
+  // Managed smooth search state
   const [isSearching, setIsSearching] = useState(false);
   const [activeQuery, setActiveQuery] = useState("");
   const [activeTokens, setActiveTokens] = useState([]);
@@ -80,7 +80,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
   useEffect(() => {
     const trimmed = query.trim();
 
-    // If query is cleared, reset immediately without artificial delay
+    // If query is cleared, reset immediately without showing any items
     if (!trimmed) {
       setIsSearching(false);
       setActiveQuery("");
@@ -91,7 +91,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
     // When query is non-empty, initiate smooth searching state
     setIsSearching(true);
     const startTime = Date.now();
-    const MIN_LOAD_TIME = 750; // smooth, clear minimum animation duration
+    const MIN_LOAD_TIME = 750; // smooth, steady animation duration
 
     const debounceTimer = setTimeout(() => {
       const elapsed = Date.now() - startTime;
@@ -104,19 +104,21 @@ export default function SearchSection({ onOpenItem, onReport }) {
       }, remaining);
 
       return () => clearTimeout(finishTimer);
-    }, 380); // gentle pause after user stops typing
+    }, 380);
 
     return () => clearTimeout(debounceTimer);
   }, [query]);
 
-  // Results computed from active tokens and active filters
+  // Results are only computed when an active search query has been entered
+  const hasSearched = activeQuery.length > 0 || isSearching;
+
   const results = useMemo(() => {
+    if (!activeTokens.length) return [];
     return items
       .filter((i) => (type === "all" ? true : i.type === type))
       .filter((i) => (category === "all" ? true : i.category === category))
       .filter((i) => (status === "all" ? true : i.status === status))
       .filter((i) => {
-        if (!activeTokens.length) return true;
         const haystack = `${i.description} ${i.category} ${i.type} ${i.status}`.toLowerCase();
         return activeTokens.every((t) => haystack.includes(t));
       })
@@ -152,7 +154,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
         <div className="lp-head reveal">
           <span className="lp-eyebrow">Search a Lost Item</span>
           <h2>Look through everything reported on campus.</h2>
-          <p>Type what you lost — colour, brand, where you last had it — or browse what people have handed in.</p>
+          <p>Type what you lost — colour, brand, where you last had it — and we'll match it for you.</p>
         </div>
 
         <div className="sr-panel reveal">
@@ -193,7 +195,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
             )}
           </label>
 
-          {/* Quick suggestions: practical popular lost items */}
+          {/* Quick suggestions: popular search chips */}
           <div className="sr-quick-tags">
             <span className="sr-quick-label">Popular:</span>
             <div className="sr-quick-list">
@@ -284,23 +286,16 @@ export default function SearchSection({ onOpenItem, onReport }) {
           </div>
         </div>
 
-        {/* Search Results / Loading State */}
+        {/* Search Results / Loading State:
+            Only display when the user has typed keywords or clicked a quick chip */}
         {isSearching ? (
           <div className="sr-loader-slot">
-            <SearchDissolveLoader
-              label={`Searching for "${query.trim()}"…`}
-              caption="Scanning campus reports, matching descriptions & locations…"
-            />
+            <SearchDissolveLoader query={query.trim()} />
           </div>
-        ) : (
+        ) : hasSearched ? (
           <div className="sr-results-container">
             <p className="sr-count" aria-live="polite">
-              {results.length} {results.length === 1 ? "item" : "items"}{" "}
-              {activeQuery
-                ? `matching "${activeQuery}"`
-                : filtersOn
-                ? "matching selected filters"
-                : "reported across campus"}
+              {results.length} {results.length === 1 ? "item" : "items"} found for "{activeQuery}"
             </p>
 
             {results.length === 0 ? (
@@ -310,9 +305,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
                 </div>
                 <h3>No matching items found</h3>
                 <p>
-                  {activeQuery
-                    ? `We couldn't find any reports matching "${activeQuery}". Try different keywords or check back soon.`
-                    : "No items match your filter criteria. Try broadening your selection or clearing filters."}
+                  We couldn't find any reports matching "<strong>{activeQuery}</strong>". Try using broader keywords or report it below so our campus community can keep a lookout.
                 </p>
                 <div className="sr-empty-actions">
                   <button
@@ -322,11 +315,9 @@ export default function SearchSection({ onOpenItem, onReport }) {
                   >
                     Report it as lost
                   </button>
-                  {filtersOn && (
-                    <button type="button" className="lp-btn-secondary sm" onClick={reset}>
-                      Reset search
-                    </button>
-                  )}
+                  <button type="button" className="lp-btn-secondary sm" onClick={reset}>
+                    Clear search
+                  </button>
                 </div>
               </div>
             ) : (
@@ -354,7 +345,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
               </div>
             )}
           </div>
-        )}
+        ) : null}
       </div>
     </section>
   );
