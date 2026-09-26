@@ -116,19 +116,19 @@
 }
 .lp-btn-primary:active { transform: translateY(0) scale(0.97); }
 .lp-btn-secondary {
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.65);
   color: var(--peach-ink);
-  background: rgba(255, 255, 255, 0.32);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65),
-              0 8px 22px rgba(120, 80, 30, 0.1);
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8),
+              0 8px 24px rgba(120, 80, 30, 0.08);
 }
 .lp-btn-secondary:hover {
-  border-color: var(--peach-accent);
-  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.45);
   transform: translateY(-2px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 12px 28px rgba(120, 80, 30, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 28px rgba(120, 80, 30, 0.12);
 }
 .lp-btn-secondary:active { transform: translateY(0) scale(0.97); }
 
@@ -186,15 +186,25 @@
 
 /* ---------- mock UI cards (glassmorphism indulging with background) ---------- */
 .mock {
-  background: rgba(255, 252, 246, 0.88); color: var(--ink);
-  border-radius: 18px; padding: 16px;
+  background: rgba(255, 252, 246, 0.52); color: var(--ink);
+  border-radius: 20px; padding: 16px;
   display: flex; flex-direction: column; gap: 10px;
-  box-shadow: 0 18px 44px rgba(40, 24, 10, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85),
+              0 20px 48px rgba(40, 24, 10, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
   font-size: 14px; max-width: 460px;
 }
-.mock-field { display: flex; flex-direction: column; gap: 3px; background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(232, 223, 204, 0.7); border-radius: 11px; padding: 8px 12px; flex: 1; min-width: 0; }
+.mock-field {
+  display: flex; flex-direction: column; gap: 3px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border-radius: 12px; padding: 8px 12px; flex: 1; min-width: 0;
+}
 .mock-label { font-size: 11px; color: #7b7466; font-weight: 500; }
 .mock-value { font-weight: 500; display: flex; justify-content: space-between; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mock-chev { width: 7px; height: 7px; border-right: 2px solid #8b8474; border-bottom: 2px solid #8b8474; transform: rotate(45deg) translateY(-2px); flex: none; }
@@ -204,14 +214,30 @@
 .mock-col { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 0; }
 .mock-photo { width: 88px; border-radius: 10px; background: linear-gradient(135deg, #cdb58b, #8d6c3e); position: relative; flex: none; overflow: hidden; }
 .mock-photo span { position: absolute; left: 22px; right: 22px; top: 34%; bottom: 26%; border-radius: 6px; background: #1d232e; box-shadow: 0 3px 8px rgba(0,0,0,.35); }
-.mock-item { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #e8dfcc; border-radius: 10px; padding: 10px 12px; font-weight: 500; }
+.mock-item {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  border-radius: 12px; padding: 10px 12px; font-weight: 500;
+}
 .tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; flex: none; }
 .tag-lost { background: var(--danger-bg); color: var(--danger); }
 .tag-found { background: var(--warning-bg); color: var(--warning); }
 .tag-ok { background: var(--success-bg); color: var(--success); }
 .mock-link { display: flex; align-items: center; gap: 10px; color: var(--success); font-size: 12px; }
 .mock-link span { height: 1.5px; flex: 1; background: repeating-linear-gradient(90deg, var(--success) 0 5px, transparent 5px 9px); }
-.mock-note { display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 1px solid #e8dfcc; border-radius: 12px; padding: 12px; }
+.mock-note {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  border-radius: 14px; padding: 12px;
+}
 .mock-note strong { display: block; margin-bottom: 2px; }
 .mock-note p { margin: 0 0 4px; color: #4c4f58; line-height: 1.4; }
 .mock-note small { color: #8b8474; }
@@ -286,14 +312,16 @@
 /* ===================== Login modal ===================== */
 .lm-backdrop {
   position: fixed; inset: 0; z-index: 100;
-  background: rgba(15, 9, 4, .62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  background: rgba(20, 12, 6, 0.48); backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
   display: grid; place-items: center; padding: 20px;
   animation: lm-fade 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .lm-dialog {
   position: relative; width: min(440px, 100%); max-height: calc(100svh - 40px); overflow: auto;
-  background: #fffaf0; color: var(--ink); border-radius: 22px; padding: 28px 26px 26px;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+  background: rgba(255, 250, 240, 0.78); color: var(--ink); border-radius: 26px; padding: 28px 26px 26px;
+  backdrop-filter: blur(28px) saturate(190%); -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 30px 80px rgba(0, 0, 0, 0.28);
   animation: lm-pop 0.55s cubic-bezier(0.19, 1, 0.22, 1) both;
   will-change: transform, opacity;
 }
@@ -302,20 +330,20 @@
 .lm-sub { margin: 0 0 18px; color: #6b6558; font-size: 14.5px; line-height: 1.5; }
 .lm-close {
   position: absolute; top: 14px; right: 14px; width: 36px; height: 36px;
-  border: 1px solid rgba(74, 52, 32, 0.14); border-radius: 50%;
-  background: rgba(255, 255, 255, 0.45); color: #4a4638;
-  backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 14px rgba(74, 52, 32, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.7); border-radius: 50%;
+  background: rgba(255, 255, 255, 0.38); color: #4a4638;
+  backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 4px 14px rgba(74, 52, 32, 0.08);
   display: grid; place-items: center; cursor: pointer;
   transition: background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
               transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
               box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.lm-close:hover { background: rgba(255, 255, 255, 0.7); transform: scale(1.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 6px 18px rgba(74, 52, 32, 0.16); }
+.lm-close:hover { background: rgba(255, 255, 255, 0.7); transform: scale(1.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 6px 18px rgba(74, 52, 32, 0.14); }
 .lm-close:active { transform: scale(0.94); }
 @keyframes lm-fade {
   from { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
-  to { opacity: 1; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  to { opacity: 1; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 }
 @keyframes lm-pop {
   from { opacity: 0; transform: translateY(22px) scale(.94); }
@@ -330,17 +358,21 @@
 .lf-row label { font-size: 13px; font-weight: 600; color: #3b352e; }
 .lf-row input {
   padding: 12px 14px;
-  border: 1.5px solid #dfd4be;
+  border: 1.5px solid rgba(223, 212, 190, 0.65);
   border-radius: 12px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
   color: var(--ink);
   font-size: 15px;
-  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease;
 }
 .lf-row input:focus {
   outline: none;
+  background: rgba(255, 255, 255, 0.88);
   border-color: #d97706;
-  box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.16);
+  box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 .lf-row input[aria-invalid="true"] { border-color: var(--danger); }
 .lf-err { font-size: 12.5px; color: var(--danger); }
