@@ -241,9 +241,7 @@
 /* ===================== Shared section styling ===================== */
 .lp-hero-section {
   position: relative;
-  background:
-    radial-gradient(100% 75% at 50% 18%, var(--peach-1) 0%, rgba(255, 248, 239, 0) 70%),
-    linear-gradient(180deg, var(--peach-2) 0%, var(--peach-3) 50%, var(--peach-1) 100%);
+  background: transparent;
 }
 .lp-section { position: relative; padding: 110px 24px; color: var(--peach-ink); }
 .lp-wrap { max-width: 1140px; margin: 0 auto; }
@@ -262,10 +260,7 @@
 /* ===================== Search ===================== */
 .lp-search {
   position: relative;
-  background:
-    radial-gradient(65% 55% at 85% 20%, rgba(246, 215, 172, 0.35) 0%, transparent 70%),
-    radial-gradient(55% 65% at 15% 75%, rgba(251, 233, 211, 0.45) 0%, transparent 70%),
-    linear-gradient(180deg, var(--peach-1) 0%, var(--peach-1) 68%, var(--peach-2) 100%);
+  background: transparent;
 }
 .sr-panel {
   background: rgba(255, 252, 247, 0.54);
@@ -356,7 +351,20 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 2px 8px rgba(181, 101, 26, 0.3);
 }
 .sr-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.sr-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.sr-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+  z-index: 30;
+}
+.sr-theme-select-category .theme-dropdown-trigger {
+  min-width: 185px;
+}
+.sr-theme-select-status .theme-dropdown-trigger {
+  min-width: 165px;
+}
 .sr-seg {
   display: inline-flex; padding: 4px; border-radius: 999px;
   background: rgba(255, 255, 255, 0.38);
@@ -584,10 +592,7 @@
 /* ===================== History ===================== */
 .lp-history {
   position: relative;
-  background:
-    radial-gradient(65% 55% at 20% 30%, rgba(246, 215, 172, 0.4) 0%, transparent 70%),
-    radial-gradient(55% 55% at 80% 80%, rgba(251, 233, 211, 0.45) 0%, transparent 70%),
-    linear-gradient(180deg, var(--peach-1) 0%, var(--peach-1) 70%, var(--peach-2) 100%);
+  background: transparent;
 }
 .hs-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
 .hs-stat {
@@ -698,15 +703,12 @@
 .rv-card figcaption small { color: var(--peach-ink-soft); font-size: 12.5px; }
 
 /* ===================== How it works: seamless edges ===================== */
-.lp-track-outro { height: 160px; background: linear-gradient(180deg, var(--peach-2) 0%, var(--peach-1) 100%); }
+.lp-track-outro { height: 60px; background: transparent; }
 
 /* ===================== Contact ===================== */
 .lp-contact {
   position: relative;
-  background:
-    radial-gradient(60% 60% at 75% 25%, rgba(255, 248, 239, 0.55) 0%, transparent 70%),
-    radial-gradient(50% 50% at 15% 85%, rgba(246, 215, 172, 0.35) 0%, transparent 70%),
-    var(--peach-2);
+  background: transparent;
   padding-bottom: 40px;
 }
 .ct-layout { display: grid; grid-template-columns: 1fr 1.25fr; gap: 24px; align-items: start; }
@@ -848,65 +850,72 @@
   display: inline-block;
   font-family: inherit;
 }
+.theme-dropdown-root.is-open {
+  z-index: 1000;
+}
 
 .theme-dropdown-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  height: 42px;
-  padding: 0 16px;
+  gap: 12px;
+  height: 44px;
+  padding: 0 18px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(18px) saturate(170%);
-  -webkit-backdrop-filter: blur(18px) saturate(170%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 2px 8px rgba(120, 80, 30, 0.05);
-  color: var(--peach-ink);
+  border: 1.5px solid rgba(217, 130, 43, 0.35);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 2px 10px rgba(120, 80, 30, 0.08);
+  color: #382413;
   font-size: 14px;
   font-weight: 600;
+  min-width: 175px;
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .theme-dropdown-trigger:hover {
-  background: rgba(255, 255, 255, 0.7);
-  border-color: rgba(217, 130, 43, 0.4);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 14px rgba(120, 80, 30, 0.09);
+  background: #ffffff;
+  border-color: var(--peach-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 16px rgba(217, 130, 43, 0.16);
   transform: translateY(-1px);
 }
 
 .theme-dropdown-root.is-open .theme-dropdown-trigger,
 .theme-dropdown-trigger:focus-visible {
   outline: none;
-  background: rgba(255, 255, 255, 0.82);
+  background: #ffffff;
   border-color: var(--peach-accent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 0 0 3.5px rgba(217, 130, 43, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 0 0 3.5px rgba(217, 130, 43, 0.22);
 }
 
 .theme-dropdown-root.is-filtered .theme-dropdown-trigger {
-  background: rgba(255, 246, 233, 0.88);
-  border-color: rgba(217, 130, 43, 0.5);
+  background: rgba(255, 246, 233, 0.96);
+  border-color: var(--peach-accent);
   color: var(--peach-accent-dark);
   font-weight: 700;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 2px 8px rgba(217, 130, 43, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 2px 10px rgba(217, 130, 43, 0.14);
 }
 
 .theme-dropdown-label-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
 .theme-dropdown-icon {
-  font-size: 14px;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--peach-accent-dark);
 }
 
 .theme-dropdown-label {
-  font-size: 13.5px;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 
@@ -925,19 +934,19 @@
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
-  min-width: 200px;
-  max-width: 280px;
-  z-index: 140;
-  background: rgba(255, 250, 242, 0.94);
+  min-width: 220px;
+  max-width: 290px;
+  z-index: 1001;
+  background: rgba(255, 254, 251, 0.98);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba(217, 130, 43, 0.28);
   border-radius: 18px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95),
-              0 20px 48px rgba(74, 52, 32, 0.18),
-              0 4px 14px rgba(74, 52, 32, 0.08);
+              0 20px 48px rgba(74, 45, 18, 0.18),
+              0 4px 14px rgba(74, 45, 18, 0.08);
   padding: 6px;
-  animation: theme-dd-in 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: theme-dd-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
   transform-origin: top center;
 }
 
@@ -953,17 +962,17 @@
 }
 
 .theme-dropdown-options-scroll {
-  max-height: 260px;
+  max-height: 270px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 2px;
+  padding: 3px;
 }
 
 .theme-dropdown-options-scroll::-webkit-scrollbar {
   width: 5px;
 }
 .theme-dropdown-options-scroll::-webkit-scrollbar-thumb {
-  background: rgba(217, 130, 43, 0.25);
+  background: rgba(217, 130, 43, 0.3);
   border-radius: 999px;
 }
 
@@ -972,11 +981,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 9px 12px;
+  padding: 10px 14px;
   border-radius: 12px;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--peach-ink);
+  color: #382413;
   cursor: pointer;
   user-select: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -986,6 +995,7 @@
 .theme-dropdown-option.is-highlighted {
   background: rgba(217, 130, 43, 0.12);
   color: var(--peach-accent-dark);
+  font-weight: 600;
   transform: translateX(2px);
 }
 
@@ -998,14 +1008,16 @@
 .theme-dropdown-option-left {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   min-width: 0;
 }
 
 .theme-dropdown-option-icon {
-  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--peach-accent-dark);
   flex-shrink: 0;
-  line-height: 1;
 }
 
 .theme-dropdown-option-text {
@@ -1035,91 +1047,8 @@
   max-width: 100%;
 }
 
-/* ===================== Section Hover Darkening & Pill Highlight Interactions ===================== */
-.lp-hero-section,
-.lp-search,
-.lp-track-section,
-.lp-history,
-.lp-contact {
-  position: relative;
-  isolation: isolate;
-}
-
-.lp-hero-section > *,
-.lp-search > *,
-.lp-track-section > *,
-.lp-history > *,
-.lp-contact > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Dedicated hardware-accelerated crossfade overlay for butter-smooth color transitions */
-.lp-hero-section::before,
-.lp-search::before,
-.lp-track-section::before,
-.lp-history::before,
-.lp-contact::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.75s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity;
-}
-
-.lp-hero-section::before {
-  background: radial-gradient(110% 85% at 50% 8%, #f8ddbc 0%, #f0c99e 48%, #e8ba84 100%);
-  box-shadow: inset 0 0 120px rgba(74, 45, 18, 0.08);
-}
-
-.lp-search::before {
-  background:
-    radial-gradient(70% 60% at 85% 20%, rgba(200, 140, 75, 0.45) 0%, transparent 70%),
-    radial-gradient(65% 75% at 15% 75%, rgba(215, 155, 95, 0.5) 0%, transparent 70%),
-    linear-gradient(180deg, #edd5b6 0%, #edd5b6 68%, #e6caa3 100%);
-  box-shadow: inset 0 0 120px rgba(74, 45, 18, 0.09);
-}
-
-.lp-track-section::before {
-  background: #ecd3b3;
-  box-shadow: inset 0 0 120px rgba(74, 45, 18, 0.08);
-}
-
-.lp-history::before {
-  background:
-    radial-gradient(70% 60% at 20% 30%, rgba(200, 140, 75, 0.45) 0%, transparent 70%),
-    radial-gradient(65% 65% at 80% 80%, rgba(215, 155, 95, 0.5) 0%, transparent 70%),
-    linear-gradient(180deg, #edd5b6 0%, #edd5b6 70%, #e5c49b 100%);
-  box-shadow: inset 0 0 120px rgba(74, 45, 18, 0.09);
-}
-
-.lp-contact::before {
-  background:
-    radial-gradient(65% 65% at 75% 25%, rgba(240, 190, 140, 0.5) 0%, transparent 70%),
-    radial-gradient(55% 55% at 15% 85%, rgba(205, 145, 85, 0.45) 0%, transparent 70%),
-    #ebc899;
-  box-shadow: inset 0 0 120px rgba(74, 45, 18, 0.1);
-}
-
-/* Smooth opacity fade-in on section hover */
-.lp-hero-section:hover::before,
-.lp-hero-section.is-hovered::before,
-.lp-search:hover::before,
-.lp-search.is-hovered::before,
-.lp-track-section:hover::before,
-.lp-track-section.is-hovered::before,
-.lp-history:hover::before,
-.lp-history.is-hovered::before,
-.lp-contact:hover::before,
-.lp-contact.is-hovered::before {
-  opacity: 1;
-}
-
-/* Inside hovered section: the section eyebrow pill smoothly transitions to a darker accent tone */
+/* ===================== Nav Pills & Section Eyebrow Interactions ===================== */
+/* Inside active/hovered section: the section eyebrow pill smoothly transitions to a darker accent tone */
 .lp-search:hover .lp-eyebrow,
 .lp-search.is-hovered .lp-eyebrow,
 .lp-history:hover .lp-eyebrow,
@@ -1139,7 +1068,7 @@
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Nav Pills: When a section is hovered, its navigation pill stands out darker than the others with silky smooth easing */
+/* Nav Pills: When a section is in view, its navigation pill stands out darker than the others with silky smooth easing */
 .lp-nav-links a.is-section-hovered {
   color: #2b1705 !important;
   background: rgba(181, 101, 26, 0.28) !important;
@@ -1149,7 +1078,7 @@
   transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* When a section is hovered, other nav pills soften so the active hovered pill is darker than the others */
+/* When a section is hovered, other nav pills soften so the active pill is darker than the others */
 .lp-nav.has-hovered-section .lp-nav-links a:not(.is-section-hovered) {
   opacity: 0.65;
   background: transparent;

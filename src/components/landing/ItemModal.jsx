@@ -51,7 +51,7 @@ export default function ItemModal({ itemId, onClose, requireLogin }) {
               Mark as {next}
             </button>
           ) : (
-            <p className="im-done">This item has been returned to its owner. 🎉</p>
+            <p className="im-done">This item has been returned to its owner.</p>
           )}
         </div>
       </div>
