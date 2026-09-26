@@ -3,10 +3,11 @@ import { useEffect, useRef } from "react";
 /**
  * SearchDissolveLoader
  *
- * A stationary, floating luminous oval bubble animation.
- * The bubble stays centered in place and performs an ultra-smooth organic float
- * (gentle vertical zero-gravity bob, soft surface breathing pulse, refractive rim,
- * and ambient aura bloom) in the site's warm amber, cream, and terracotta theme.
+ * An organic "flow state" fluid orb animation inspired by high-end AI product loading
+ * motions (Dribbble reference: afroman AI technology loading animation).
+ * Features an undulating, morphing liquid blob with internal chromatic flow,
+ * graded in rich warm cocoa, mocha, caramel, and terracotta tones that seamlessly
+ * match the website's warm palette without being overly yellow/golden.
  */
 export default function SearchDissolveLoader({
   label = "Searching campus records…",
@@ -30,7 +31,7 @@ export default function SearchDissolveLoader({
     function resize() {
       if (!container) return;
       width = container.clientWidth;
-      height = 150; // ample, elegant stage for the centered floating bubble
+      height = 160; // generous canvas height for the flow state fluid orb
       dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       canvas.width = Math.round(width * dpr);
@@ -52,137 +53,176 @@ export default function SearchDissolveLoader({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Sleek warm dark cocoa stage with soft rounded corners
+      // 1. Stage container: deep roasted espresso / dark cocoa plate with rounded corners
       const r = 26;
       ctx.save();
       roundRect(ctx, 0, 0, width, height, r);
       ctx.clip();
 
       const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-      bgGrad.addColorStop(0, "#23140a");
-      bgGrad.addColorStop(0.5, "#1c0f07");
-      bgGrad.addColorStop(1, "#150a04");
+      bgGrad.addColorStop(0, "#20120a");
+      bgGrad.addColorStop(0.5, "#180c06");
+      bgGrad.addColorStop(1, "#120803");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // 2. Centered position with pure vertical floating physics (no horizontal movement)
-      const bubbleX = width / 2;
-      const floatY = Math.sin(t * 1.8) * 8.5; // gentle, relaxing zero-g vertical bob
-      const bubbleY = height * 0.42 + floatY;
+      // 2. Physics & Center of the Flow State Orb
+      const cx = width / 2;
+      // Gentle floating zero-g vertical drift
+      const cy = height * 0.43 + Math.sin(t * 1.5) * 6;
 
-      // Soft organic breathing undulation
-      const breatheX = Math.sin(t * 2.2) * 4.5;
-      const breatheY = Math.cos(t * 2.0) * 3.5;
-      const radiusX = 74 + breatheX; // ~148px wide oval bubble
-      const radiusY = 40 + breatheY; // ~80px high oval bubble
+      const baseR = Math.min(48, width * 0.1);
+      const aspectX = 1.48; // elongated horizontal flow shape
+      const aspectY = 0.88;
 
-      // Ambient warm radial glow centered behind the floating bubble
-      const ambientGrad = ctx.createRadialGradient(
-        bubbleX,
-        bubbleY,
-        15,
-        bubbleX,
-        bubbleY,
-        radiusX * 2.2
-      );
-      ambientGrad.addColorStop(0, "rgba(217, 130, 43, 0.18)");
-      ambientGrad.addColorStop(0.5, "rgba(217, 130, 43, 0.06)");
-      ambientGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-      ctx.fillStyle = ambientGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      // 3. Ethereal outer aura bloom around the floating bubble
-      const auraScale = 1.6 + 0.08 * Math.sin(t * 2.4);
+      // 3. Ambient warm mocha/caramel backlight aura bloom
+      const auraPulse = Math.sin(t * 2.0) * 4;
       const auraGrad = ctx.createRadialGradient(
-        bubbleX,
-        bubbleY,
-        radiusY * 0.4,
-        bubbleX,
-        bubbleY,
-        radiusX * auraScale
+        cx,
+        cy,
+        baseR * 0.3,
+        cx,
+        cy,
+        baseR * aspectX * 1.8 + auraPulse
       );
-      auraGrad.addColorStop(0, "rgba(245, 197, 66, 0.35)");
-      auraGrad.addColorStop(0.35, "rgba(217, 130, 43, 0.18)");
-      auraGrad.addColorStop(0.7, "rgba(181, 101, 26, 0.05)");
+      auraGrad.addColorStop(0, "rgba(184, 106, 52, 0.28)"); // warm caramel
+      auraGrad.addColorStop(0.45, "rgba(115, 70, 43, 0.15)"); // mocha
+      auraGrad.addColorStop(0.75, "rgba(74, 40, 20, 0.05)"); // deep cocoa
       auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
 
       ctx.fillStyle = auraGrad;
       ctx.beginPath();
-      ctx.ellipse(bubbleX, bubbleY, radiusX * auraScale, radiusY * auraScale, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx, cy, baseR * aspectX * 1.8 + auraPulse, baseR * aspectY * 1.8 + auraPulse, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // 4. Large floating oval bubble body with multi-stop volumetric radial gradient
-      // Offset light source top-left for organic sphere depth
-      const lightOffX = bubbleX - radiusX * 0.22;
-      const lightOffY = bubbleY - radiusY * 0.28;
+      // 4. Trace the organic undulating fluid boundary (harmonic bezier points)
+      // Generates a soft, breathing, continuous flow-state morph
+      const points = [];
+      const numSteps = 72;
+      for (let i = 0; i < numSteps; i++) {
+        const theta = (i / numSteps) * Math.PI * 2;
+        // Fluid harmonic wave frequencies
+        const w1 = Math.sin(theta * 2 + t * 1.6) * 6.5;
+        const w2 = Math.cos(theta * 3 - t * 1.3) * 4.2;
+        const w3 = Math.sin(theta * 4 + t * 2.1) * 2.8;
+        const radius = baseR + w1 + w2 + w3;
 
-      const bodyGrad = ctx.createRadialGradient(
-        lightOffX,
-        lightOffY,
-        radiusY * 0.14,
-        bubbleX,
-        bubbleY,
-        radiusX * 1.05
-      );
-      bodyGrad.addColorStop(0, "rgba(255, 252, 242, 0.96)"); // incandescent warm core
-      bodyGrad.addColorStop(0.24, "rgba(250, 222, 126, 0.88)"); // luminous sunburst amber
-      bodyGrad.addColorStop(0.55, "rgba(224, 134, 42, 0.65)"); // rich warm peach-terracotta
-      bodyGrad.addColorStop(0.85, "rgba(181, 95, 22, 0.42)"); // deep amber rim
-      bodyGrad.addColorStop(1, "rgba(148, 68, 14, 0.12)"); // soft transparent perimeter
+        const px = cx + Math.cos(theta) * (radius * aspectX);
+        const py = cy + Math.sin(theta) * (radius * aspectY);
+        points.push({ x: px, y: py });
+      }
 
-      ctx.fillStyle = bodyGrad;
-      ctx.beginPath();
-      ctx.ellipse(bubbleX, bubbleY, radiusX, radiusY, 0, 0, Math.PI * 2);
-      ctx.fill();
+      function drawFluidPath() {
+        ctx.beginPath();
+        const len = points.length;
+        ctx.moveTo((points[0].x + points[len - 1].x) / 2, (points[0].y + points[len - 1].y) / 2);
+        for (let i = 0; i < len; i++) {
+          const next = points[(i + 1) % len];
+          const midX = (points[i].x + next.x) / 2;
+          const midY = (points[i].y + next.y) / 2;
+          ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+        }
+        ctx.closePath();
+      }
 
-      // 5. Delicately rounded glowing rim of the bubble
-      ctx.strokeStyle = "rgba(255, 250, 235, 0.68)";
+      // 5. Flowing internal color gradient (Brown-Graded & On-Theme)
+      // Rotates and morphs slowly between rich cocoa, warm caramel, mocha, and cream
+      ctx.save();
+      drawFluidPath();
+      ctx.clip();
+
+      // Primary internal body gradient: warm mocha -> caramel -> roasted espresso
+      const flowAngle = t * 0.9;
+      const gradX0 = cx + Math.cos(flowAngle) * (baseR * 0.9);
+      const gradY0 = cy + Math.sin(flowAngle) * (baseR * 0.6);
+      const gradX1 = cx - Math.cos(flowAngle) * (baseR * 0.9);
+      const gradY1 = cy - Math.sin(flowAngle) * (baseR * 0.6);
+
+      const flowGrad = ctx.createLinearGradient(gradX0, gradY0, gradX1, gradY1);
+      flowGrad.addColorStop(0, "#c97a44"); // warm caramel terracotta
+      flowGrad.addColorStop(0.3, "#944e26"); // rich spiced mocha
+      flowGrad.addColorStop(0.65, "#5a2d16"); // deep roasted cocoa brown
+      flowGrad.addColorStop(1, "#36180a"); // dark espresso base
+      ctx.fillStyle = flowGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Secondary internal fluid swirl (dynamic rotating light current)
+      const swirlX = cx + Math.sin(t * 1.4) * (baseR * 0.45);
+      const swirlY = cy + Math.cos(t * 1.8) * (baseR * 0.3);
+      const swirlGrad = ctx.createRadialGradient(swirlX, swirlY, 2, swirlX, swirlY, baseR * 1.2);
+      swirlGrad.addColorStop(0, "rgba(242, 206, 178, 0.75)"); // soft cream highlight
+      swirlGrad.addColorStop(0.35, "rgba(212, 125, 62, 0.55)"); // warm caramel amber
+      swirlGrad.addColorStop(0.7, "rgba(148, 78, 38, 0.25)"); // mocha
+      swirlGrad.addColorStop(1, "rgba(54, 24, 10, 0)");
+      ctx.fillStyle = swirlGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Tertiary deep shadow pocket for 3D liquid depth
+      const shadowX = cx - Math.sin(t * 1.3) * (baseR * 0.5);
+      const shadowY = cy - Math.cos(t * 1.5) * (baseR * 0.35);
+      const shadowGrad = ctx.createRadialGradient(shadowX, shadowY, 5, shadowX, shadowY, baseR * 0.95);
+      shadowGrad.addColorStop(0, "rgba(30, 14, 6, 0.85)"); // deep cocoa shadow
+      shadowGrad.addColorStop(0.6, "rgba(50, 24, 10, 0.3)");
+      shadowGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = shadowGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Subtle warm incandescent core light
+      const coreX = cx + Math.sin(t * 2.2) * 10;
+      const coreY = cy + Math.cos(t * 2.0) * 6;
+      const coreGrad = ctx.createRadialGradient(coreX, coreY, 0, coreX, coreY, baseR * 0.55);
+      coreGrad.addColorStop(0, "rgba(255, 238, 222, 0.8)"); // warm cream pearl
+      coreGrad.addColorStop(0.5, "rgba(224, 142, 85, 0.35)"); // caramel
+      coreGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = coreGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.restore();
+
+      // 6. Translucent glowing glass perimeter rim (soft caramel-cream stroke)
+      ctx.save();
+      drawFluidPath();
+      ctx.strokeStyle = "rgba(240, 205, 175, 0.55)";
       ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.ellipse(bubbleX, bubbleY, radiusX, radiusY, 0, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 6. Floating glassy specular reflection (crescent gloss highlight)
-      const specX = bubbleX - radiusX * 0.28 + Math.sin(t * 1.5) * 1.8;
-      const specY = bubbleY - radiusY * 0.32 + floatY * 0.2;
-      const specRx = radiusX * 0.42;
-      const specRy = radiusY * 0.24;
+      // Delicate outer rim glow
+      ctx.strokeStyle = "rgba(184, 106, 52, 0.25)";
+      ctx.lineWidth = 3.5;
+      ctx.stroke();
+      ctx.restore();
 
-      const specGrad = ctx.createRadialGradient(specX, specY, 1, specX, specY, specRx);
-      specGrad.addColorStop(0, "rgba(255, 255, 255, 0.88)");
-      specGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.35)");
-      specGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-      ctx.fillStyle = specGrad;
+      // 7. Organic fluid specular highlight (curves along top surface)
+      ctx.save();
       ctx.beginPath();
-      ctx.ellipse(specX, specY, specRx, specRy, (-12 * Math.PI) / 180, 0, Math.PI * 2);
-      ctx.fill();
+      const specStart = Math.floor(numSteps * 0.65);
+      const specEnd = Math.floor(numSteps * 0.88);
+      ctx.moveTo(points[specStart].x, points[specStart].y);
+      for (let i = specStart; i <= specEnd; i++) {
+        const pt = points[i];
+        ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.strokeStyle = "rgba(255, 245, 235, 0.72)";
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = "round";
+      ctx.stroke();
+      ctx.restore();
 
-      // 7. Subtle inner floating light core inside the bubble
-      const innerGlow = ctx.createRadialGradient(bubbleX, bubbleY, 0, bubbleX, bubbleY, radiusY * 0.65);
-      innerGlow.addColorStop(0, "rgba(255, 255, 255, 0.8)");
-      innerGlow.addColorStop(0.5, "rgba(245, 197, 66, 0.35)");
-      innerGlow.addColorStop(1, "rgba(217, 130, 43, 0)");
-      ctx.fillStyle = innerGlow;
-      ctx.beginPath();
-      ctx.ellipse(bubbleX, bubbleY, radiusX * 0.5, radiusY * 0.5, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 8. "Searching..." text centered below the floating bubble
+      // 8. "Searching..." typography centered below the flow state orb
       const textY = height - 24;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.font = '600 14px "Sora", sans-serif';
 
-      const textAlpha = 0.85 + 0.15 * Math.sin(t * 2.5);
+      const textAlpha = 0.85 + 0.15 * Math.sin(t * 2.4);
       ctx.fillStyle = `rgba(251, 243, 228, ${textAlpha})`;
       ctx.letterSpacing = "0.03em";
 
       const displayText = query ? `Searching for "${query}"…` : label;
       ctx.fillText(displayText, width / 2, textY);
 
-      // 9. Delicate warm amber outer border of the stage
-      ctx.strokeStyle = "rgba(217, 130, 43, 0.22)";
+      // 9. Subtle outer border around the stage plate
+      ctx.strokeStyle = "rgba(184, 106, 52, 0.22)";
       ctx.lineWidth = 1;
       roundRect(ctx, 0.5, 0.5, width - 1, height - 1, r);
       ctx.stroke();
