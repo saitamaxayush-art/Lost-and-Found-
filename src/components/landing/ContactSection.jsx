@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function ContactSection({ onMouseEnter, onMouseLeave, isHovered }) {
   const [sent, setSent] = useState(false);
@@ -72,7 +73,25 @@ export default function ContactSection({ onMouseEnter, onMouseLeave, isHovered }
           </form>
         </div>
 
-        <footer className="lp-footer">FindBack — a sample frontend for the S4i Hackathon Lost &amp; Found Portal</footer>
+        <footer className="lp-footer">
+          <div className="lp-footer-inner">
+            <div className="lp-footer-brand">
+              <strong>FindBack</strong> — Campus Lost &amp; Found Portal
+            </div>
+            <div className="lp-footer-links">
+              <Link to="/terms" className="lp-footer-link" id="footer-terms-link">
+                Terms &amp; Conditions
+              </Link>
+              <span className="lp-footer-sep" aria-hidden="true">•</span>
+              <Link to="/privacy" className="lp-footer-link" id="footer-policy-link">
+                Privacy Policy
+              </Link>
+            </div>
+            <div className="lp-footer-copy">
+              &copy; {new Date().getFullYear()} FindBack. All rights reserved.
+            </div>
+          </div>
+        </footer>
       </div>
     </section>
   );

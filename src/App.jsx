@@ -1,12 +1,16 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Landing from "./pages/Landing";
+import TermsAndPolicy from "./pages/TermsAndPolicy";
 
-// The landing page IS the whole product: search, reporting, how it works,
-// history and contact all live on this one page.
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/terms" element={<TermsAndPolicy initialTab="terms" />} />
+      <Route path="/terms-and-conditions" element={<TermsAndPolicy initialTab="terms" />} />
+      <Route path="/privacy" element={<TermsAndPolicy initialTab="policy" />} />
+      <Route path="/privacy-policy" element={<TermsAndPolicy initialTab="policy" />} />
+      <Route path="/policy" element={<TermsAndPolicy initialTab="policy" />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
