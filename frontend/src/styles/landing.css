@@ -78,25 +78,59 @@
   border-radius: 999px;
   padding: 14px 28px;
   cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              background 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.3s ease;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.35s ease;
   will-change: transform, box-shadow;
 }
+.lp-btn-primary::before, .lp-btn-secondary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 46%);
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 1;
+}
+.lp-btn-primary > *, .lp-btn-secondary > * { position: relative; z-index: 2; }
 .lp-btn-primary {
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   color: #fffaf0;
-  background: linear-gradient(135deg, var(--peach-accent) 0%, var(--peach-accent-dark) 100%);
-  box-shadow: 0 12px 30px rgba(181, 101, 26, 0.32);
+  background: linear-gradient(135deg, rgba(217, 130, 43, 0.82) 0%, rgba(181, 101, 26, 0.82) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
+              inset 0 -10px 18px rgba(120, 60, 10, 0.18),
+              0 12px 30px rgba(181, 101, 26, 0.32);
 }
-.lp-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(181, 101, 26, 0.4); }
+.lp-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5),
+              inset 0 -10px 18px rgba(120, 60, 10, 0.2),
+              0 16px 36px rgba(181, 101, 26, 0.4);
+}
+.lp-btn-primary:active { transform: translateY(0) scale(0.97); }
 .lp-btn-secondary {
-  border: 1.5px solid rgba(74, 52, 32, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   color: var(--peach-ink);
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.32);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65),
+              0 8px 22px rgba(120, 80, 30, 0.1);
 }
-.lp-btn-secondary:hover { border-color: var(--peach-accent); background: rgba(255, 255, 255, 0.8); transform: translateY(-2px); }
+.lp-btn-secondary:hover {
+  border-color: var(--peach-accent);
+  background: rgba(255, 255, 255, 0.55);
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 12px 28px rgba(120, 80, 30, 0.14);
+}
+.lp-btn-secondary:active { transform: translateY(0) scale(0.97); }
 
 /* ---------- how it works: heading above the animated stage ---------- */
 .lp-track-section { position: relative; background: var(--peach-2); }
@@ -252,30 +286,45 @@
 /* ===================== Login modal ===================== */
 .lm-backdrop {
   position: fixed; inset: 0; z-index: 100;
-  background: rgba(15, 9, 4, .62); backdrop-filter: blur(8px);
+  background: rgba(15, 9, 4, .62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   display: grid; place-items: center; padding: 20px;
-  animation: lm-fade 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: lm-fade 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .lm-dialog {
   position: relative; width: min(440px, 100%); max-height: calc(100svh - 40px); overflow: auto;
   background: #fffaf0; color: var(--ink); border-radius: 22px; padding: 28px 26px 26px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
-  animation: lm-pop 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: lm-pop 0.55s cubic-bezier(0.19, 1, 0.22, 1) both;
   will-change: transform, opacity;
 }
 .lm-dialog h2, .lm-dialog h3 { color: var(--navy); font-family: "Sora", "Inter", sans-serif; }
 .lm-dialog h2 { font-size: 24px; margin: 14px 0 6px; letter-spacing: -.01em; }
-.lm-brand { display: flex; align-items: center; gap: 10px; font-family: "Sora", sans-serif; font-weight: 700; color: var(--navy); }
 .lm-sub { margin: 0 0 18px; color: #6b6558; font-size: 14.5px; line-height: 1.5; }
 .lm-close {
   position: absolute; top: 14px; right: 14px; width: 36px; height: 36px;
-  border: 0; border-radius: 10px; background: #f1e8d3; color: #4a4638;
+  border: 1px solid rgba(74, 52, 32, 0.14); border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45); color: #4a4638;
+  backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 14px rgba(74, 52, 32, 0.1);
   display: grid; place-items: center; cursor: pointer;
-  transition: background-color 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.lm-close:hover { background: #e8dcc0; transform: scale(1.05); }
-@keyframes lm-fade { from { opacity: 0; } }
-@keyframes lm-pop { from { opacity: 0; transform: translateY(16px) scale(.95); } }
+.lm-close:hover { background: rgba(255, 255, 255, 0.7); transform: scale(1.06); box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 6px 18px rgba(74, 52, 32, 0.16); }
+.lm-close:active { transform: scale(0.94); }
+@keyframes lm-fade {
+  from { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+}
+@keyframes lm-pop {
+  from { opacity: 0; transform: translateY(22px) scale(.94); }
+  60% { opacity: 1; }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lm-backdrop, .lm-dialog { animation: none; }
+}
 
 .lf-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .lf-row label { font-size: 13px; font-weight: 600; color: #3b352e; }
@@ -299,25 +348,42 @@
   width: 100%;
   margin-top: 8px;
   padding: 14px;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 12px;
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.85) 0%, rgba(180, 83, 9, 0.85) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   color: #fffaf0;
   font-family: "Sora", sans-serif;
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(180, 83, 9, 0.32);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
+              inset 0 -10px 16px rgba(120, 50, 5, 0.2),
+              0 8px 24px rgba(180, 83, 9, 0.32);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              background 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform, box-shadow;
 }
-.lf-submit:hover:not(:disabled) {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(180, 83, 9, 0.42);
+.lf-submit::before {
+  content: "";
+  position: absolute; inset: 0; border-radius: inherit; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 50%);
+  opacity: 0.65;
 }
+.lf-submit > * { position: relative; z-index: 2; }
+.lf-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(217, 119, 6, 0.9) 100%);
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5),
+              inset 0 -10px 16px rgba(120, 50, 5, 0.22),
+              0 12px 30px rgba(180, 83, 9, 0.42);
+}
+.lf-submit:active:not(:disabled) { transform: translateY(0) scale(0.98); }
 .lf-submit:disabled { opacity: .7; cursor: progress; }
 .lf-done { text-align: center; padding: 14px 4px 4px; }
 .lf-done h3 { font-size: 22px; margin: 14px 0 6px; color: #2a1c12; }

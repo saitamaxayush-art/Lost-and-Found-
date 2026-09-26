@@ -158,9 +158,16 @@ export default function SearchSection({ onOpenItem, onReport }) {
             <input
               id="search-input"
               type="text"
+              name="lostfound-search-query"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Describe it — e.g. black leather wallet, AirPods near library, blue bottle…"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
             />
 
             {query && (
