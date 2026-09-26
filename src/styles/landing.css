@@ -11,27 +11,9 @@
   --peach-ink-soft: #7a6148;
   --peach-accent: #d9822b;
   --peach-accent-dark: #b5651a;
-  background:
-    radial-gradient(85% 45% at 50% 4%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 248, 239, 0) 60%),
-    radial-gradient(70% 40% at 85% 22%, rgba(246, 215, 172, 0.32) 0%, rgba(251, 233, 211, 0) 70%),
-    radial-gradient(65% 40% at 15% 42%, rgba(251, 233, 211, 0.35) 0%, rgba(255, 248, 239, 0) 70%),
-    radial-gradient(75% 45% at 80% 78%, rgba(246, 215, 172, 0.35) 0%, rgba(251, 233, 211, 0) 70%),
-    radial-gradient(70% 45% at 20% 94%, rgba(251, 233, 211, 0.4) 0%, rgba(255, 248, 239, 0) 70%),
-    linear-gradient(
-      180deg,
-      #fff8ef 0%,
-      #fef4e6 12%,
-      #fdf0dc 24%,
-      #fbead4 38%,
-      #f9e3c8 52%,
-      #fbebd7 70%,
-      #fae4c9 86%,
-      #fae8d2 100%
-    );
+  background: var(--peach-2);
   color: var(--cream);
   width: 100%;
-  min-height: 100vh;
-  position: relative;
 }
 .lp-track { position: relative; }
 .lp-stage {
@@ -108,7 +90,7 @@
   justify-content: center;
   padding: 140px 24px 90px;
   text-align: center;
-  background: transparent;
+  background: radial-gradient(120% 85% at 50% 8%, var(--peach-1) 0%, var(--peach-2) 48%, var(--peach-3) 100%);
 }
 .lp-hero-content { max-width: 720px; }
 .lp-hero-content h1 {
@@ -191,13 +173,13 @@
 .lp-btn-secondary:active { transform: translateY(0) scale(0.97); }
 
 /* ---------- how it works: heading above the animated stage ---------- */
-.lp-track-section { position: relative; z-index: 1; background: transparent; }
+.lp-track-section { position: relative; z-index: 1; background: var(--peach-2); }
 .lp-track-heading {
   position: relative;
   z-index: 2;
   text-align: center;
   padding: 96px 24px 44px;
-  background: transparent;
+  background: var(--peach-2);
 }
 .lp-track-heading h2 {
   font-family: "Sora", "Inter", sans-serif;

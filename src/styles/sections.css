@@ -277,7 +277,9 @@
 /* ===================== Shared section styling ===================== */
 .lp-hero-section {
   position: relative;
-  background: transparent;
+  background:
+    radial-gradient(100% 75% at 50% 18%, var(--peach-1) 0%, rgba(255, 248, 239, 0) 70%),
+    linear-gradient(180deg, var(--peach-2) 0%, var(--peach-3) 50%, var(--peach-1) 100%);
 }
 .lp-section { position: relative; padding: 110px 24px; color: var(--peach-ink); }
 .lp-wrap { max-width: 1140px; margin: 0 auto; }
@@ -297,7 +299,10 @@
 .lp-search {
   position: relative;
   z-index: 40;
-  background: transparent;
+  background:
+    radial-gradient(65% 55% at 85% 20%, rgba(246, 215, 172, 0.35) 0%, transparent 70%),
+    radial-gradient(55% 65% at 15% 75%, rgba(251, 233, 211, 0.45) 0%, transparent 70%),
+    linear-gradient(180deg, var(--peach-1) 0%, var(--peach-1) 68%, var(--peach-2) 100%);
 }
 .sr-panel {
   position: relative;
@@ -637,7 +642,10 @@
 /* ===================== History ===================== */
 .lp-history {
   position: relative;
-  background: transparent;
+  background:
+    radial-gradient(65% 55% at 20% 30%, rgba(246, 215, 172, 0.45) 0%, transparent 70%),
+    radial-gradient(55% 55% at 80% 80%, rgba(251, 233, 211, 0.5) 0%, transparent 70%),
+    linear-gradient(180deg, var(--peach-1) 0%, var(--peach-1) 70%, var(--peach-2) 100%);
 }
 .hs-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
 .hs-stat {
@@ -748,12 +756,15 @@
 .rv-card figcaption small { color: var(--peach-ink-soft); font-size: 12.5px; }
 
 /* ===================== How it works: seamless edges ===================== */
-.lp-track-outro { height: 60px; background: transparent; }
+.lp-track-outro { height: 160px; background: linear-gradient(180deg, var(--peach-2) 0%, var(--peach-1) 100%); }
 
 /* ===================== Contact ===================== */
 .lp-contact {
   position: relative;
-  background: transparent;
+  background:
+    radial-gradient(60% 60% at 75% 25%, rgba(255, 248, 239, 0.6) 0%, transparent 70%),
+    radial-gradient(50% 50% at 15% 85%, rgba(246, 215, 172, 0.35) 0%, transparent 70%),
+    var(--peach-2);
   padding-bottom: 40px;
 }
 .ct-layout { display: grid; grid-template-columns: 1fr 1.25fr; gap: 24px; align-items: start; }
