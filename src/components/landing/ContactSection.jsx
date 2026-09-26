@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function ContactSection() {
+export default function ContactSection({ onMouseEnter, onMouseLeave, isHovered }) {
   const [sent, setSent] = useState(false);
   const [v, setV] = useState({ name: "", email: "", message: "" });
   const set = (k) => (e) => setV((s) => ({ ...s, [k]: e.target.value }));
@@ -12,7 +12,12 @@ export default function ContactSection() {
   }
 
   return (
-    <section id="contact" className="lp-section lp-contact">
+    <section
+      id="contact"
+      className={`lp-section lp-contact ${isHovered ? "is-hovered" : ""}`}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       <div className="lp-wrap">
         <div className="lp-head reveal">
           <span className="lp-eyebrow">Get in Touch</span>

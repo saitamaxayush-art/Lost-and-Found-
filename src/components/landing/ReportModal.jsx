@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CATEGORIES } from "../../data/mockItems";
 import { useApp } from "../../context/AppContext";
 import Modal from "./Modal";
+import ThemeDropdown, { CATEGORY_ICONS } from "./ThemeDropdown";
 
 export default function ReportModal({ type, onClose, onViewItem }) {
   const { addItem } = useApp();
@@ -76,12 +77,21 @@ export default function ReportModal({ type, onClose, onViewItem }) {
 
         <div className="lf-two">
           <div className="lf-row">
-            <label htmlFor="rp-cat">Category</label>
-            <select id="rp-cat" value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+            <label id="rp-cat-label">Category</label>
+            <ThemeDropdown
+              id="rp-cat"
+              value={category}
+              onChange={setCategory}
+              options={CATEGORIES.map((c) => ({
+                value: c,
+                label: c,
+                icon: CATEGORY_ICONS[c],
+              }))}
+              placeholder="Select category"
+              ariaLabel="Select category"
+              icons={CATEGORY_ICONS}
+              className="lf-dropdown-theme"
+            />
           </div>
           <div className="lf-row">
             <label htmlFor="rp-date">Date {verb}</label>

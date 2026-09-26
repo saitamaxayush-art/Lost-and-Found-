@@ -47,7 +47,7 @@ function Stars() {
   );
 }
 
-export default function HistorySection() {
+export default function HistorySection({ onMouseEnter, onMouseLeave, isHovered }) {
   const max = Math.max(...MONTHLY.map((m) => m.reported));
   const statsRef = useRef(null);
   const chartRef = useRef(null);
@@ -79,7 +79,12 @@ export default function HistorySection() {
   }, []);
 
   return (
-    <section id="history" className="lp-section lp-history">
+    <section
+      id="history"
+      className={`lp-section lp-history ${isHovered ? "is-hovered" : ""}`}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       <div className="lp-wrap">
         <div className="lp-head reveal">
           <span className="lp-eyebrow">History</span>

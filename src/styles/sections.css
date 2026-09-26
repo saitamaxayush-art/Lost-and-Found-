@@ -833,3 +833,289 @@
 }
 
 .im-body .sr-tag { align-self: flex-start; }
+
+/* ===================== Custom Theme Dropdown ===================== */
+.theme-dropdown-root {
+  position: relative;
+  display: inline-block;
+  font-family: inherit;
+}
+
+.theme-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 2px 8px rgba(120, 80, 30, 0.05);
+  color: var(--peach-ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-dropdown-trigger:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(217, 130, 43, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 14px rgba(120, 80, 30, 0.09);
+  transform: translateY(-1px);
+}
+
+.theme-dropdown-root.is-open .theme-dropdown-trigger,
+.theme-dropdown-trigger:focus-visible {
+  outline: none;
+  background: rgba(255, 255, 255, 0.82);
+  border-color: var(--peach-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 0 0 3.5px rgba(217, 130, 43, 0.18);
+}
+
+.theme-dropdown-root.is-filtered .theme-dropdown-trigger {
+  background: rgba(255, 246, 233, 0.88);
+  border-color: rgba(217, 130, 43, 0.5);
+  color: var(--peach-accent-dark);
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 2px 8px rgba(217, 130, 43, 0.12);
+}
+
+.theme-dropdown-label-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.theme-dropdown-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.theme-dropdown-label {
+  font-size: 13.5px;
+  letter-spacing: -0.01em;
+}
+
+.theme-dropdown-chevron {
+  color: var(--peach-accent-dark);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.theme-dropdown-root.is-open .theme-dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu Box */
+.theme-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 200px;
+  max-width: 280px;
+  z-index: 140;
+  background: rgba(255, 250, 242, 0.94);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95),
+              0 20px 48px rgba(74, 52, 32, 0.18),
+              0 4px 14px rgba(74, 52, 32, 0.08);
+  padding: 6px;
+  animation: theme-dd-in 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top center;
+}
+
+@keyframes theme-dd-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.theme-dropdown-options-scroll {
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px;
+}
+
+.theme-dropdown-options-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.theme-dropdown-options-scroll::-webkit-scrollbar-thumb {
+  background: rgba(217, 130, 43, 0.25);
+  border-radius: 999px;
+}
+
+.theme-dropdown-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--peach-ink);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-dropdown-option:hover,
+.theme-dropdown-option.is-highlighted {
+  background: rgba(217, 130, 43, 0.12);
+  color: var(--peach-accent-dark);
+  transform: translateX(2px);
+}
+
+.theme-dropdown-option.is-selected {
+  background: rgba(217, 130, 43, 0.18);
+  color: var(--peach-accent-dark);
+  font-weight: 700;
+}
+
+.theme-dropdown-option-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.theme-dropdown-option-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.theme-dropdown-option-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theme-dropdown-check {
+  color: var(--peach-accent-dark);
+  flex-shrink: 0;
+}
+
+/* Modal variant of dropdown */
+.lf-dropdown-theme {
+  width: 100%;
+}
+.lf-dropdown-theme .theme-dropdown-trigger {
+  width: 100%;
+  border-radius: 12px;
+  border: 1.5px solid rgba(223, 212, 190, 0.65);
+  background: rgba(255, 255, 255, 0.6);
+  height: 44px;
+}
+.lf-dropdown-theme .theme-dropdown-panel {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ===================== Section Hover Darkening & Pill Highlight Interactions ===================== */
+.lp-hero-section,
+.lp-search,
+.lp-track-section,
+.lp-history,
+.lp-contact {
+  position: relative;
+  transition: background 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* When a section is hovered, it animates to a richer, darker warm background tone with deeper depth */
+.lp-search:hover,
+.lp-search.is-hovered {
+  background:
+    radial-gradient(70% 60% at 85% 20%, rgba(200, 140, 75, 0.45) 0%, transparent 70%),
+    radial-gradient(65% 75% at 15% 75%, rgba(215, 155, 95, 0.5) 0%, transparent 70%),
+    #edd5b6;
+  box-shadow: inset 0 0 120px rgba(74, 45, 18, 0.09);
+}
+
+.lp-history:hover,
+.lp-history.is-hovered {
+  background:
+    radial-gradient(70% 60% at 20% 30%, rgba(200, 140, 75, 0.45) 0%, transparent 70%),
+    radial-gradient(65% 65% at 80% 80%, rgba(215, 155, 95, 0.5) 0%, transparent 70%),
+    #edd5b6;
+  box-shadow: inset 0 0 120px rgba(74, 45, 18, 0.09);
+}
+
+.lp-contact:hover,
+.lp-contact.is-hovered {
+  background:
+    radial-gradient(65% 65% at 75% 25%, rgba(240, 190, 140, 0.5) 0%, transparent 70%),
+    radial-gradient(55% 55% at 15% 85%, rgba(205, 145, 85, 0.45) 0%, transparent 70%),
+    #ebc899;
+  box-shadow: inset 0 0 120px rgba(74, 45, 18, 0.1);
+}
+
+.lp-hero-section:hover,
+.lp-hero-section.is-hovered {
+  background:
+    radial-gradient(110% 85% at 50% 8%, #f8ddbc 0%, #f0c99e 48%, #e8ba84 100%);
+  box-shadow: inset 0 0 120px rgba(74, 45, 18, 0.08);
+}
+
+.lp-track-section:hover,
+.lp-track-section.is-hovered {
+  background: #ecd3b3;
+  box-shadow: inset 0 0 120px rgba(74, 45, 18, 0.08);
+}
+
+/* Inside hovered section: the section eyebrow pill becomes noticeably darker */
+.lp-search:hover .lp-eyebrow,
+.lp-search.is-hovered .lp-eyebrow,
+.lp-history:hover .lp-eyebrow,
+.lp-history.is-hovered .lp-eyebrow,
+.lp-contact:hover .lp-eyebrow,
+.lp-contact.is-hovered .lp-eyebrow,
+.lp-hero-section:hover .lp-eyebrow,
+.lp-hero-section.is-hovered .lp-eyebrow,
+.lp-track-section:hover .lp-eyebrow,
+.lp-track-section.is-hovered .lp-eyebrow {
+  background: rgba(181, 101, 26, 0.22);
+  border: 1px solid rgba(181, 101, 26, 0.42);
+  color: #7b3904;
+  padding: 4px 14px;
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(181, 101, 26, 0.14);
+  transition: all 0.4s ease;
+}
+
+/* Nav Pills: When a section is hovered, its navigation pill stands out darker than the others */
+.lp-nav-links a.is-section-hovered {
+  color: #2b1705 !important;
+  background: rgba(181, 101, 26, 0.28) !important;
+  box-shadow: inset 0 0 0 1.5px rgba(181, 101, 26, 0.48), 0 4px 14px rgba(181, 101, 26, 0.18) !important;
+  font-weight: 700 !important;
+  transform: translateY(-1.5px);
+}
+
+/* When a section is hovered, other nav pills soften so the active hovered pill is darker than the others */
+.lp-nav.has-hovered-section .lp-nav-links a:not(.is-section-hovered) {
+  opacity: 0.65;
+  background: transparent;
+  box-shadow: none;
+}
+.lp-nav.has-hovered-section .lp-nav-links a:not(.is-section-hovered):hover {
+  opacity: 1;
+  background: rgba(217, 130, 43, 0.14);
+}

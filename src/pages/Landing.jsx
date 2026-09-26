@@ -34,6 +34,7 @@ export default function Landing() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [reportType, setReportType] = useState(null); // "lost" | "found" | null
   const [itemId, setItemId] = useState(null);
+  const [hoveredSection, setHoveredSection] = useState(null);
 
   useReveal(rootRef);
 
@@ -207,11 +208,16 @@ export default function Landing() {
   return (
     <div className="lp-root" ref={rootRef}>
       <CustomCursor subscribe={subscribe} />
-      <Nav goTo={goTo} onLogin={openLogin} />
+      <Nav goTo={goTo} onLogin={openLogin} hoveredSection={hoveredSection} />
       <div className="lp-veil" ref={veilRef} aria-hidden="true" />
 
       {/* ---------- Hero ---------- */}
-      <section id="top" className="lp-hero-section">
+      <section
+        id="top"
+        className={`lp-hero-section ${hoveredSection === "top" ? "is-hovered" : ""}`}
+        onMouseEnter={() => setHoveredSection("top")}
+        onMouseLeave={() => setHoveredSection((prev) => (prev === "top" ? null : prev))}
+      >
         <div className="lp-hero-content">
           <span className="lp-eyebrow">Campus Lost &amp; Found</span>
           <h1>Everything lost on campus ends up in one box.</h1>
@@ -231,10 +237,21 @@ export default function Landing() {
       </section>
 
       {/* ---------- Search ---------- */}
-      <SearchSection onOpenItem={setItemId} onReport={openReport} />
+      <SearchSection
+        onOpenItem={setItemId}
+        onReport={openReport}
+        isHovered={hoveredSection === "search"}
+        onMouseEnter={() => setHoveredSection("search")}
+        onMouseLeave={() => setHoveredSection((prev) => (prev === "search" ? null : prev))}
+      />
 
       {/* ---------- How it works (the scroll-driven animation lives here) ---------- */}
-      <section id="how-it-works" className="lp-track-section">
+      <section
+        id="how-it-works"
+        className={`lp-track-section ${hoveredSection === "how-it-works" ? "is-hovered" : ""}`}
+        onMouseEnter={() => setHoveredSection("how-it-works")}
+        onMouseLeave={() => setHoveredSection((prev) => (prev === "how-it-works" ? null : prev))}
+      >
         <div className="lp-track-heading">
           <span className="lp-eyebrow">How it Works</span>
           <h2>Keep scrolling to watch a lost item find its way home.</h2>
@@ -265,10 +282,18 @@ export default function Landing() {
       </section>
 
       {/* ---------- History + reviews ---------- */}
-      <HistorySection />
+      <HistorySection
+        isHovered={hoveredSection === "history"}
+        onMouseEnter={() => setHoveredSection("history")}
+        onMouseLeave={() => setHoveredSection((prev) => (prev === "history" ? null : prev))}
+      />
 
       {/* ---------- Contact ---------- */}
-      <ContactSection />
+      <ContactSection
+        isHovered={hoveredSection === "contact"}
+        onMouseEnter={() => setHoveredSection("contact")}
+        onMouseLeave={() => setHoveredSection((prev) => (prev === "contact" ? null : prev))}
+      />
 
       <LoginModal open={loginOpen} onClose={closeLogin} onSuccess={afterLogin} />
       {reportType && <ReportModal type={reportType} onClose={closeReport} onViewItem={viewItem} />}

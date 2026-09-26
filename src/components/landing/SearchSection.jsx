@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useApp } from "../../context/AppContext";
 import { CATEGORIES, STATUSES } from "../../data/mockItems";
 import SearchDissolveLoader from "./SearchDissolveLoader";
+import ThemeDropdown, { CATEGORY_ICONS, STATUS_ICONS } from "./ThemeDropdown";
 
 const PAGE = 6;
 
@@ -53,7 +54,7 @@ export function ItemCard({ item, onOpen, tokens = [] }) {
   );
 }
 
-export default function SearchSection({ onOpenItem, onReport }) {
+export default function SearchSection({ onOpenItem, onReport, onMouseEnter, onMouseLeave, isHovered }) {
   const { items } = useApp();
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
@@ -128,7 +129,12 @@ export default function SearchSection({ onOpenItem, onReport }) {
   const filtersOn = query.trim() !== "" || type !== "all" || category !== "all" || status !== "all";
 
   return (
-    <section id="search" className="lp-section lp-search">
+    <section
+      id="search"
+      className={`lp-section lp-search ${isHovered ? "is-hovered" : ""}`}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       <div className="lp-wrap">
         <div className="lp-head reveal">
           <span className="lp-eyebrow">Search a Lost Item</span>
@@ -205,31 +211,39 @@ export default function SearchSection({ onOpenItem, onReport }) {
               ))}
             </div>
 
-            <select
+            <ThemeDropdown
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              aria-label="Category"
-            >
-              <option value="all">All categories</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+              onChange={setCategory}
+              options={[
+                { value: "all", label: "All categories", icon: CATEGORY_ICONS.all },
+                ...CATEGORIES.map((c) => ({
+                  value: c,
+                  label: c,
+                  icon: CATEGORY_ICONS[c],
+                })),
+              ]}
+              placeholder="All categories"
+              ariaLabel="Category filter"
+              icons={CATEGORY_ICONS}
+              className="sr-theme-select-category"
+            />
 
-            <select
+            <ThemeDropdown
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              aria-label="Status"
-            >
-              <option value="all">All statuses</option>
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              onChange={setStatus}
+              options={[
+                { value: "all", label: "All statuses", icon: STATUS_ICONS.all },
+                ...STATUSES.map((s) => ({
+                  value: s,
+                  label: s,
+                  icon: STATUS_ICONS[s],
+                })),
+              ]}
+              placeholder="All statuses"
+              ariaLabel="Status filter"
+              icons={STATUS_ICONS}
+              className="sr-theme-select-status"
+            />
 
             {filtersOn && (
               <button type="button" className="sr-reset" onClick={resetAllFilters}>

@@ -93,7 +93,7 @@ export async function playBellChime() {
   }
 }
 
-export default function Nav({ goTo, onLogin }) {
+export default function Nav({ goTo, onLogin, hoveredSection }) {
   const { user, logout, notifications, dismissNotifications } = useApp();
   const rootRef = useRef(null);
   const ringTimerRef = useRef(null);
@@ -179,24 +179,28 @@ export default function Nav({ goTo, onLogin }) {
   };
 
   return (
-    <header className="lp-nav" ref={rootRef}>
+    <header className={`lp-nav ${hoveredSection ? "has-hovered-section" : ""}`} ref={rootRef}>
       <div className="lp-nav-container">
         <div className="lp-nav-center">
           <nav className="lp-nav-links" aria-label="Sections">
-            {NAV_LINKS.map((l) => (
-              <a
-                key={l.id}
-                href={`#${l.id}`}
-                className={active === l.id ? "is-active" : ""}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setActive(l.id);
-                  goTo(l.id);
-                }}
-              >
-                {l.label}
-              </a>
-            ))}
+            {NAV_LINKS.map((l) => {
+              const isSectionHovered = hoveredSection === l.id;
+              const isActive = active === l.id;
+              return (
+                <a
+                  key={l.id}
+                  href={`#${l.id}`}
+                  className={`${isActive ? "is-active" : ""} ${isSectionHovered ? "is-section-hovered" : ""}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActive(l.id);
+                    goTo(l.id);
+                  }}
+                >
+                  {l.label}
+                </a>
+              );
+            })}
           </nav>
         </div>
 
