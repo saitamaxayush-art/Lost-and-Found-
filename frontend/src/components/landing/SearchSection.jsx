@@ -1,20 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useApp } from "../../context/AppContext";
 import { CATEGORIES, STATUSES } from "../../data/mockItems";
 import SearchDissolveLoader from "./SearchDissolveLoader";
 
 const PAGE = 6;
-
-// Popular items frequently reported on campus
-const QUICK_SUGGESTIONS = [
-  "AirPods",
-  "ID Card",
-  "Keys",
-  "Water Bottle",
-  "Backpack",
-  "Glasses",
-  "Wallet",
-];
 
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -72,44 +61,54 @@ export default function SearchSection({ onOpenItem, onReport }) {
   const [status, setStatus] = useState("all");
   const [showAll, setShowAll] = useState(false);
 
-  // Managed smooth search state
+  // Managed search execution state (triggered only on search button click or Enter)
   const [isSearching, setIsSearching] = useState(false);
   const [activeQuery, setActiveQuery] = useState("");
   const [activeTokens, setActiveTokens] = useState([]);
 
-  useEffect(() => {
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
     const trimmed = query.trim();
 
-    // If query is cleared, reset immediately without showing any items
     if (!trimmed) {
-      setIsSearching(false);
       setActiveQuery("");
       setActiveTokens([]);
+      setIsSearching(false);
       return;
     }
 
-    // When query is non-empty, initiate smooth searching state
     setIsSearching(true);
-    const startTime = Date.now();
-    const MIN_LOAD_TIME = 750; // smooth, steady animation duration
+    setShowAll(false);
 
-    const debounceTimer = setTimeout(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, MIN_LOAD_TIME - elapsed);
+    // Let the smooth floating oval bubble animation play for a satisfying duration
+    const SEARCH_DURATION = 1100;
+    setTimeout(() => {
+      setActiveQuery(trimmed);
+      setActiveTokens(trimmed.toLowerCase().split(/\s+/).filter(Boolean));
+      setIsSearching(false);
+    }, SEARCH_DURATION);
+  };
 
-      const finishTimer = setTimeout(() => {
-        setActiveQuery(trimmed);
-        setActiveTokens(trimmed.toLowerCase().split(/\s+/).filter(Boolean));
-        setIsSearching(false);
-      }, remaining);
+  const handleClear = () => {
+    setQuery("");
+    setActiveQuery("");
+    setActiveTokens([]);
+    setIsSearching(false);
+    setShowAll(false);
+  };
 
-      return () => clearTimeout(finishTimer);
-    }, 380);
+  const resetAllFilters = () => {
+    setQuery("");
+    setActiveQuery("");
+    setActiveTokens([]);
+    setIsSearching(false);
+    setType("all");
+    setCategory("all");
+    setStatus("all");
+    setShowAll(false);
+  };
 
-    return () => clearTimeout(debounceTimer);
-  }, [query]);
-
-  // Results are only computed when an active search query has been entered
+  // Only display search results when an explicit search has occurred
   const hasSearched = activeQuery.length > 0 || isSearching;
 
   const results = useMemo(() => {
@@ -128,37 +127,18 @@ export default function SearchSection({ onOpenItem, onReport }) {
   const visible = showAll ? results : results.slice(0, PAGE);
   const filtersOn = query.trim() !== "" || type !== "all" || category !== "all" || status !== "all";
 
-  const reset = () => {
-    setQuery("");
-    setActiveQuery("");
-    setActiveTokens([]);
-    setIsSearching(false);
-    setType("all");
-    setCategory("all");
-    setStatus("all");
-    setShowAll(false);
-  };
-
-  const handleChipClick = (suggestion) => {
-    if (query.toLowerCase() === suggestion.toLowerCase()) {
-      setQuery("");
-    } else {
-      setQuery(suggestion);
-    }
-    setShowAll(false);
-  };
-
   return (
     <section id="search" className="lp-section lp-search">
       <div className="lp-wrap">
         <div className="lp-head reveal">
           <span className="lp-eyebrow">Search a Lost Item</span>
           <h2>Look through everything reported on campus.</h2>
-          <p>Type what you lost — colour, brand, where you last had it — and we'll match it for you.</p>
+          <p>Type what you lost — colour, brand, where you last had it — or browse what people have handed in.</p>
         </div>
 
         <div className="sr-panel reveal">
-          <label className="sr-search">
+          {/* Integrated search bar with explicit Search button */}
+          <form className="sr-search" onSubmit={handleSearchSubmit}>
             <svg
               viewBox="0 0 24 24"
               width="20"
@@ -167,53 +147,37 @@ export default function SearchSection({ onOpenItem, onReport }) {
               stroke="currentColor"
               strokeWidth="2.2"
               strokeLinecap="round"
+              className="sr-search-icon"
               aria-hidden="true"
             >
               <circle cx="11" cy="11" r="7" />
               <path d="M20 20l-3.5-3.5" />
             </svg>
+
             <span className="sr-sr">Search reported items</span>
             <input
               id="search-input"
-              type="search"
+              type="text"
               value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setShowAll(false);
-              }}
-              placeholder="e.g. black leather wallet, AirPods near library, blue Hydroflask…"
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Describe it — e.g. black leather wallet, AirPods near library, blue bottle…"
             />
+
             {query && (
               <button
                 type="button"
                 className="sr-input-clear"
-                onClick={() => setQuery("")}
-                aria-label="Clear search input"
+                onClick={handleClear}
+                aria-label="Clear search text"
               >
                 ✕
               </button>
             )}
-          </label>
 
-          {/* Quick suggestions: popular search chips */}
-          <div className="sr-quick-tags">
-            <span className="sr-quick-label">Popular:</span>
-            <div className="sr-quick-list">
-              {QUICK_SUGGESTIONS.map((tag) => {
-                const isSelected = query.toLowerCase() === tag.toLowerCase();
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    className={`sr-chip ${isSelected ? "active" : ""}`}
-                    onClick={() => handleChipClick(tag)}
-                  >
-                    {tag}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+            <button type="submit" className="sr-search-submit-btn">
+              <span>Search</span>
+            </button>
+          </form>
 
           <div className="sr-filters">
             <div className="sr-seg" role="group" aria-label="Type">
@@ -261,7 +225,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
             </select>
 
             {filtersOn && (
-              <button type="button" className="sr-reset" onClick={reset}>
+              <button type="button" className="sr-reset" onClick={resetAllFilters}>
                 Clear
               </button>
             )}
@@ -287,7 +251,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
         </div>
 
         {/* Search Results / Loading State:
-            Only display when the user has typed keywords or clicked a quick chip */}
+            Only rendered when the user has clicked Search */}
         {isSearching ? (
           <div className="sr-loader-slot">
             <SearchDissolveLoader query={query.trim()} />
@@ -315,7 +279,7 @@ export default function SearchSection({ onOpenItem, onReport }) {
                   >
                     Report it as lost
                   </button>
-                  <button type="button" className="lp-btn-secondary sm" onClick={reset}>
+                  <button type="button" className="lp-btn-secondary sm" onClick={resetAllFilters}>
                     Clear search
                   </button>
                 </div>

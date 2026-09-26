@@ -3,9 +3,10 @@ import { useEffect, useRef } from "react";
 /**
  * SearchDissolveLoader
  *
- * A bespoke, ultra-smooth light-streak search animation inspired by the
- * high-end Dribbble reference (horizontal luminous beam with anamorphic lens flare).
- * Rendered at 60/120fps on canvas with the site's warm cream, amber, and terracotta theme.
+ * A buttery-smooth, ethereal search animation featuring a large, glowing
+ * floating oval bubble that moves to-and-fro horizontally with a gentle
+ * zero-gravity float. Designed specifically in the website's warm amber,
+ * cream, and terracotta theme with soft, rounded edges and no sharp lines.
  */
 export default function SearchDissolveLoader({
   label = "Searching campus records…",
@@ -29,7 +30,7 @@ export default function SearchDissolveLoader({
     function resize() {
       if (!container) return;
       width = container.clientWidth;
-      height = 140; // compact, sleek stage height
+      height = 150; // generous, smooth stage for the floating oval bubble
       dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       canvas.width = Math.round(width * dpr);
@@ -51,171 +52,143 @@ export default function SearchDissolveLoader({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Dark warm espresso/cocoa background plate with rounded corners
-      const r = 22;
+      // 1. Sleek warm dark cocoa stage with soft, rounded corners (26px)
+      const r = 26;
       ctx.save();
       roundRect(ctx, 0, 0, width, height, r);
       ctx.clip();
 
       const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-      bgGrad.addColorStop(0, "#26150c");
-      bgGrad.addColorStop(0.5, "#1f1008");
-      bgGrad.addColorStop(1, "#180c06");
+      bgGrad.addColorStop(0, "#23140a");
+      bgGrad.addColorStop(0.5, "#1c0f07");
+      bgGrad.addColorStop(1, "#150a04");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // Subtle warm ambient radial back-glow
+      // Ambient warm radial backlight in the center
       const ambientGrad = ctx.createRadialGradient(
         width / 2,
-        height * 0.45,
-        10,
+        height * 0.42,
+        15,
         width / 2,
-        height * 0.45,
-        width * 0.6
+        height * 0.42,
+        width * 0.65
       );
-      ambientGrad.addColorStop(0, "rgba(217, 130, 43, 0.12)");
+      ambientGrad.addColorStop(0, "rgba(217, 130, 43, 0.14)");
       ambientGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx.fillStyle = ambientGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // 2. Physics & trajectory of the glowing light beam
-      // Smooth sinusoidal back-and-forth travel
-      const speed = 2.4; // smooth, steady cadence
+      // 2. Physics of the large floating oval bubble:
+      // Smooth sinusoidal to-and-fro horizontal motion
+      const speed = 1.7; // calm, luxurious, ultra-smooth cadence
       const phase = t * speed - Math.PI / 2;
       const progress = (Math.sin(phase) + 1) / 2; // 0 to 1
-      const velocity = Math.cos(phase); // -1 to +1
 
-      const margin = Math.min(90, width * 0.16);
+      // Gentle floating vertical oscillation (zero-g float)
+      const floatY = Math.sin(t * 2.2) * 5.5;
+
+      const margin = Math.min(110, width * 0.2);
       const travelW = width - margin * 2;
-      const beamX = margin + progress * travelW;
-      const beamY = height * 0.44;
+      const bubbleX = margin + progress * travelW;
+      const bubbleY = height * 0.42 + floatY;
 
-      // 3. Horizontal laser guide line (faint across stage, intense near beam)
-      const guideGrad = ctx.createLinearGradient(0, 0, width, 0);
-      guideGrad.addColorStop(0, "rgba(217, 130, 43, 0.04)");
-      guideGrad.addColorStop(Math.max(0, (beamX - 160) / width), "rgba(217, 130, 43, 0.15)");
-      guideGrad.addColorStop(beamX / width, "rgba(245, 197, 66, 0.85)");
-      guideGrad.addColorStop(Math.min(1, (beamX + 160) / width), "rgba(217, 130, 43, 0.15)");
-      guideGrad.addColorStop(1, "rgba(217, 130, 43, 0.04)");
+      // Large oval dimensions with a soft breathing pulse
+      const pulse = Math.sin(t * 3.0) * 2.5;
+      const radiusX = 66 + pulse; // ~132px wide oval
+      const radiusY = 36 + pulse * 0.6; // ~72px high oval
 
-      ctx.fillStyle = guideGrad;
-      ctx.fillRect(0, beamY - 0.75, width, 1.5);
-
-      // 4. Anamorphic lens flare petals (angled glowing wings inspired by reference)
-      const petalW = 100 + Math.abs(velocity) * 50;
-      const petalH = 34 + Math.abs(velocity) * 16;
-
-      ctx.save();
-      ctx.translate(beamX, beamY);
-
-      // Petal 1 (+26 deg)
-      ctx.save();
-      ctx.rotate((26 * Math.PI) / 180);
-      const petalGrad1 = ctx.createRadialGradient(0, 0, 4, 0, 0, petalW);
-      petalGrad1.addColorStop(0, "rgba(245, 197, 66, 0.22)");
-      petalGrad1.addColorStop(0.4, "rgba(217, 130, 43, 0.09)");
-      petalGrad1.addColorStop(1, "rgba(217, 130, 43, 0)");
-      ctx.fillStyle = petalGrad1;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, petalW, petalH, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // Petal 2 (-26 deg)
-      ctx.save();
-      ctx.rotate((-26 * Math.PI) / 180);
-      const petalGrad2 = ctx.createRadialGradient(0, 0, 4, 0, 0, petalW);
-      petalGrad2.addColorStop(0, "rgba(245, 197, 66, 0.22)");
-      petalGrad2.addColorStop(0.4, "rgba(217, 130, 43, 0.09)");
-      petalGrad2.addColorStop(1, "rgba(217, 130, 43, 0)");
-      ctx.fillStyle = petalGrad2;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, petalW, petalH, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      ctx.restore();
-
-      // 5. Large spherical outer aura bloom
-      const auraR = 65 + Math.abs(velocity) * 20;
-      const auraGrad = ctx.createRadialGradient(beamX, beamY, 4, beamX, beamY, auraR);
-      auraGrad.addColorStop(0, "rgba(245, 197, 66, 0.45)");
-      auraGrad.addColorStop(0.35, "rgba(217, 130, 43, 0.22)");
-      auraGrad.addColorStop(0.7, "rgba(181, 101, 26, 0.08)");
+      // 3. Ethereal outer aura bloom around the oval bubble
+      const auraGrad = ctx.createRadialGradient(
+        bubbleX,
+        bubbleY,
+        radiusY * 0.4,
+        bubbleX,
+        bubbleY,
+        radiusX * 1.55
+      );
+      auraGrad.addColorStop(0, "rgba(245, 197, 66, 0.32)");
+      auraGrad.addColorStop(0.4, "rgba(217, 130, 43, 0.16)");
+      auraGrad.addColorStop(0.8, "rgba(181, 101, 26, 0.05)");
       auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+
       ctx.fillStyle = auraGrad;
       ctx.beginPath();
-      ctx.arc(beamX, beamY, auraR, 0, Math.PI * 2);
+      ctx.ellipse(bubbleX, bubbleY, radiusX * 1.55, radiusY * 1.55, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // 6. Elongated luminous streak (head + trailing comet tail)
-      // Tail stretches behind the direction of motion
-      const streakLen = 70 + Math.abs(velocity) * 80;
-      const tailX = velocity >= 0 ? beamX - streakLen : beamX + streakLen;
+      // 4. Large floating oval bubble body with multi-stop radial gradient
+      // Offset the gradient light source slightly top-left for organic volume
+      const lightOffX = bubbleX - radiusX * 0.22;
+      const lightOffY = bubbleY - radiusY * 0.28;
 
-      const streakGrad = ctx.createLinearGradient(beamX, 0, tailX, 0);
-      streakGrad.addColorStop(0, "rgba(255, 255, 255, 0.98)");
-      streakGrad.addColorStop(0.18, "rgba(245, 215, 110, 0.95)");
-      streakGrad.addColorStop(0.5, "rgba(224, 132, 40, 0.55)");
-      streakGrad.addColorStop(0.82, "rgba(181, 101, 26, 0.18)");
-      streakGrad.addColorStop(1, "rgba(181, 101, 26, 0)");
+      const bodyGrad = ctx.createRadialGradient(
+        lightOffX,
+        lightOffY,
+        radiusY * 0.12,
+        bubbleX,
+        bubbleY,
+        radiusX * 1.05
+      );
+      bodyGrad.addColorStop(0, "rgba(255, 252, 242, 0.96)"); // warm incandescent core
+      bodyGrad.addColorStop(0.25, "rgba(250, 222, 126, 0.88)"); // luminous sunburst amber
+      bodyGrad.addColorStop(0.55, "rgba(224, 134, 42, 0.65)"); // rich warm peach-terracotta
+      bodyGrad.addColorStop(0.85, "rgba(181, 95, 22, 0.42)"); // deep amber rim
+      bodyGrad.addColorStop(1, "rgba(148, 68, 14, 0.15)"); // soft transparent perimeter
 
-      ctx.fillStyle = streakGrad;
+      ctx.fillStyle = bodyGrad;
       ctx.beginPath();
-      const headH = 8.5;
-      const tailH = 3;
-      if (velocity >= 0) {
-        ctx.moveTo(beamX, beamY - headH / 2);
-        ctx.arc(beamX, beamY, headH / 2, -Math.PI / 2, Math.PI / 2, false);
-        ctx.lineTo(tailX, beamY + tailH / 2);
-        ctx.lineTo(tailX, beamY - tailH / 2);
-      } else {
-        ctx.moveTo(beamX, beamY - headH / 2);
-        ctx.arc(beamX, beamY, headH / 2, Math.PI / 2, -Math.PI / 2, false);
-        ctx.lineTo(tailX, beamY - tailH / 2);
-        ctx.lineTo(tailX, beamY + tailH / 2);
-      }
-      ctx.closePath();
+      ctx.ellipse(bubbleX, bubbleY, radiusX, radiusY, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // 7. Hot white-hot laser filament at the center core
-      const coreW = 28 + Math.abs(velocity) * 16;
-      const coreH = 3.5;
-      const coreGrad = ctx.createRadialGradient(beamX, beamY, 1, beamX, beamY, coreW);
-      coreGrad.addColorStop(0, "#ffffff");
-      coreGrad.addColorStop(0.4, "rgba(255, 250, 220, 0.95)");
-      coreGrad.addColorStop(1, "rgba(245, 197, 66, 0)");
-      ctx.fillStyle = coreGrad;
+      // 5. Delicately rounded glowing rim of the bubble
+      ctx.strokeStyle = "rgba(255, 250, 235, 0.65)";
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
-      ctx.ellipse(beamX, beamY, coreW, coreH, 0, 0, Math.PI * 2);
+      ctx.ellipse(bubbleX, bubbleY, radiusX, radiusY, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 6. Floating glassy specular reflection (crescent gloss highlight)
+      const specX = bubbleX - radiusX * 0.28;
+      const specY = bubbleY - radiusY * 0.32;
+      const specRx = radiusX * 0.42;
+      const specRy = radiusY * 0.24;
+
+      const specGrad = ctx.createRadialGradient(specX, specY, 1, specX, specY, specRx);
+      specGrad.addColorStop(0, "rgba(255, 255, 255, 0.85)");
+      specGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.35)");
+      specGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+      ctx.fillStyle = specGrad;
+      ctx.beginPath();
+      ctx.ellipse(specX, specY, specRx, specRy, (-12 * Math.PI) / 180, 0, Math.PI * 2);
       ctx.fill();
 
-      // Horizontal bright flare spikes
-      const spikeW = 120 + Math.abs(velocity) * 60;
-      const spikeGrad = ctx.createLinearGradient(beamX - spikeW, 0, beamX + spikeW, 0);
-      spikeGrad.addColorStop(0, "rgba(245, 197, 66, 0)");
-      spikeGrad.addColorStop(0.4, "rgba(255, 255, 255, 0.6)");
-      spikeGrad.addColorStop(0.5, "rgba(255, 255, 255, 1.0)");
-      spikeGrad.addColorStop(0.6, "rgba(255, 255, 255, 0.6)");
-      spikeGrad.addColorStop(1, "rgba(245, 197, 66, 0)");
-      ctx.fillStyle = spikeGrad;
-      ctx.fillRect(beamX - spikeW, beamY - 1, spikeW * 2, 2);
+      // 7. Subtle inner floating light bead inside the bubble
+      const innerGlow = ctx.createRadialGradient(bubbleX, bubbleY, 0, bubbleX, bubbleY, radiusY * 0.6);
+      innerGlow.addColorStop(0, "rgba(255, 255, 255, 0.75)");
+      innerGlow.addColorStop(0.5, "rgba(245, 197, 66, 0.3)");
+      innerGlow.addColorStop(1, "rgba(217, 130, 43, 0)");
+      ctx.fillStyle = innerGlow;
+      ctx.beginPath();
+      ctx.ellipse(bubbleX, bubbleY, radiusX * 0.5, radiusY * 0.5, 0, 0, Math.PI * 2);
+      ctx.fill();
 
-      // 8. "Searching..." text underneath with gentle breathing glow
-      const textY = height - 26;
+      // 8. "Searching..." text centered below the floating bubble
+      const textY = height - 24;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = '600 13.5px "Sora", sans-serif';
+      ctx.font = '600 14px "Sora", sans-serif';
 
-      const textAlpha = 0.82 + 0.18 * Math.sin(t * 3);
+      const textAlpha = 0.85 + 0.15 * Math.sin(t * 2.5);
       ctx.fillStyle = `rgba(251, 243, 228, ${textAlpha})`;
-      ctx.letterSpacing = "0.04em";
+      ctx.letterSpacing = "0.03em";
 
       const displayText = query ? `Searching for "${query}"…` : label;
       ctx.fillText(displayText, width / 2, textY);
 
-      // 9. Delicate amber inner card border
-      ctx.strokeStyle = "rgba(217, 130, 43, 0.25)";
+      // 9. Delicate warm amber outer border of the stage
+      ctx.strokeStyle = "rgba(217, 130, 43, 0.22)";
       ctx.lineWidth = 1;
       roundRect(ctx, 0.5, 0.5, width - 1, height - 1, r);
       ctx.stroke();
@@ -240,7 +213,7 @@ export default function SearchDissolveLoader({
         <canvas ref={canvasRef} aria-hidden="true" />
       </div>
       <p className="sr-streak-caption">
-        Matching keywords across reported campus items, descriptions & categories…
+        Scanning reported campus items, descriptions & categories…
       </p>
       <span className="sr-sr">Searching reported items, please wait</span>
     </div>
