@@ -1,20 +1,29 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useApp } from "../../context/AppContext";
 import { CATEGORIES, STATUSES } from "../../data/mockItems";
-import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import SearchDissolveLoader from "./SearchDissolveLoader";
 
 const PAGE = 6;
-const SEARCH_DELAY = 700; // ms of typing-pause before a search actually runs
+
+// Popular item suggestions frequently searched by campus students
+const QUICK_SUGGESTIONS = [
+  "AirPods",
+  "ID Card",
+  "Keys",
+  "Water Bottle",
+  "Backpack",
+  "Glasses",
+  "Wallet",
+];
 
 function escapeRegExp(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 // Wraps every occurrence of any search token inside `text` in a <mark>,
-// so the words the user searched for are visibly highlighted in results.
+// so matched words are visibly and tastefully highlighted on-theme.
 function highlightText(text, tokens) {
-  if (!tokens.length) return text;
+  if (!tokens || !tokens.length) return text;
   const pattern = tokens
     .map(escapeRegExp)
     .filter(Boolean)
@@ -23,7 +32,15 @@ function highlightText(text, tokens) {
   if (!pattern) return text;
   const re = new RegExp(`(${pattern})`, "gi");
   const parts = String(text).split(re);
-  return parts.map((part, i) => (i % 2 === 1 ? <mark key={i} className="sr-hl">{part}</mark> : part));
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <mark key={i} className="sr-hl">
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  );
 }
 
 export function ItemCard({ item, onOpen, tokens = [] }) {
@@ -55,39 +72,77 @@ export default function SearchSection({ onOpenItem, onReport }) {
   const [status, setStatus] = useState("all");
   const [showAll, setShowAll] = useState(false);
 
-  // The query only "commits" (and triggers a search) once the user pauses
-  // typing for SEARCH_DELAY — clearing the box is the one thing that's instant.
-  const settledQuery = useDebouncedValue(query, SEARCH_DELAY);
-  const debouncedQuery = query.trim() === "" ? "" : settledQuery;
-  const searching = query.trim() !== "" && query.trim().toLowerCase() !== debouncedQuery.trim().toLowerCase();
-  const hasSearched = debouncedQuery.trim().length > 0;
+  // Managed smooth search state with comfortable minimum animation time so it never flashes or jitters
+  const [isSearching, setIsSearching] = useState(false);
+  const [activeQuery, setActiveQuery] = useState("");
+  const [activeTokens, setActiveTokens] = useState([]);
 
-  const tokens = useMemo(
-    () => debouncedQuery.trim().toLowerCase().split(/\s+/).filter(Boolean),
-    [debouncedQuery]
-  );
+  useEffect(() => {
+    const trimmed = query.trim();
 
+    // If query is cleared, reset immediately without artificial delay
+    if (!trimmed) {
+      setIsSearching(false);
+      setActiveQuery("");
+      setActiveTokens([]);
+      return;
+    }
+
+    // When query is non-empty, initiate smooth searching state
+    setIsSearching(true);
+    const startTime = Date.now();
+    const MIN_LOAD_TIME = 750; // smooth, clear minimum animation duration
+
+    const debounceTimer = setTimeout(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, MIN_LOAD_TIME - elapsed);
+
+      const finishTimer = setTimeout(() => {
+        setActiveQuery(trimmed);
+        setActiveTokens(trimmed.toLowerCase().split(/\s+/).filter(Boolean));
+        setIsSearching(false);
+      }, remaining);
+
+      return () => clearTimeout(finishTimer);
+    }, 380); // gentle pause after user stops typing
+
+    return () => clearTimeout(debounceTimer);
+  }, [query]);
+
+  // Results computed from active tokens and active filters
   const results = useMemo(() => {
-    if (!tokens.length) return [];
     return items
       .filter((i) => (type === "all" ? true : i.type === type))
       .filter((i) => (category === "all" ? true : i.category === category))
       .filter((i) => (status === "all" ? true : i.status === status))
       .filter((i) => {
+        if (!activeTokens.length) return true;
         const haystack = `${i.description} ${i.category} ${i.type} ${i.status}`.toLowerCase();
-        return tokens.every((t) => haystack.includes(t));
+        return activeTokens.every((t) => haystack.includes(t));
       })
       .sort((a, b) => b.createdAt - a.createdAt);
-  }, [items, tokens, type, category, status]);
+  }, [items, activeTokens, type, category, status]);
 
   const visible = showAll ? results : results.slice(0, PAGE);
-  const filtersOn = query || type !== "all" || category !== "all" || status !== "all";
+  const filtersOn = query.trim() !== "" || type !== "all" || category !== "all" || status !== "all";
 
   const reset = () => {
     setQuery("");
+    setActiveQuery("");
+    setActiveTokens([]);
+    setIsSearching(false);
     setType("all");
     setCategory("all");
     setStatus("all");
+    setShowAll(false);
+  };
+
+  const handleChipClick = (suggestion) => {
+    if (query.toLowerCase() === suggestion.toLowerCase()) {
+      setQuery("");
+    } else {
+      setQuery(suggestion);
+    }
     setShowAll(false);
   };
 
@@ -97,12 +152,21 @@ export default function SearchSection({ onOpenItem, onReport }) {
         <div className="lp-head reveal">
           <span className="lp-eyebrow">Search a Lost Item</span>
           <h2>Look through everything reported on campus.</h2>
-          <p>Type the full description — colour, brand, where you last had it — and we'll match it for you.</p>
+          <p>Type what you lost — colour, brand, where you last had it — or browse what people have handed in.</p>
         </div>
 
         <div className="sr-panel reveal">
           <label className="sr-search">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
               <circle cx="11" cy="11" r="7" />
               <path d="M20 20l-3.5-3.5" />
             </svg>
@@ -115,9 +179,39 @@ export default function SearchSection({ onOpenItem, onReport }) {
                 setQuery(e.target.value);
                 setShowAll(false);
               }}
-              placeholder="Describe it fully — e.g. black leather wallet lost near the library…"
+              placeholder="e.g. black leather wallet, AirPods near library, blue Hydroflask…"
             />
+            {query && (
+              <button
+                type="button"
+                className="sr-input-clear"
+                onClick={() => setQuery("")}
+                aria-label="Clear search input"
+              >
+                ✕
+              </button>
+            )}
           </label>
+
+          {/* Quick suggestions: practical popular lost items */}
+          <div className="sr-quick-tags">
+            <span className="sr-quick-label">Popular:</span>
+            <div className="sr-quick-list">
+              {QUICK_SUGGESTIONS.map((tag) => {
+                const isSelected = query.toLowerCase() === tag.toLowerCase();
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`sr-chip ${isSelected ? "active" : ""}`}
+                    onClick={() => handleChipClick(tag)}
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="sr-filters">
             <div className="sr-seg" role="group" aria-label="Type">
@@ -126,69 +220,140 @@ export default function SearchSection({ onOpenItem, onReport }) {
                 ["lost", "Lost"],
                 ["found", "Found"],
               ].map(([v, l]) => (
-                <button key={v} type="button" className={type === v ? "on" : ""} aria-pressed={type === v} onClick={() => setType(v)}>
+                <button
+                  key={v}
+                  type="button"
+                  className={type === v ? "on" : ""}
+                  aria-pressed={type === v}
+                  onClick={() => setType(v)}
+                >
                   {l}
                 </button>
               ))}
             </div>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Category">
+
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              aria-label="Category"
+            >
               <option value="all">All categories</option>
               {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
-            <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Status">
+
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              aria-label="Status"
+            >
               <option value="all">All statuses</option>
               {STATUSES.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
+
             {filtersOn && (
-              <button type="button" className="sr-reset" onClick={reset}>Clear</button>
+              <button type="button" className="sr-reset" onClick={reset}>
+                Clear
+              </button>
             )}
           </div>
 
           <div className="sr-report">
             <span>Can't find it?</span>
-            <button type="button" className="lp-btn-primary sm" onClick={() => onReport("lost")}>Report a lost item</button>
-            <button type="button" className="lp-btn-secondary sm" onClick={() => onReport("found")}>I found something</button>
+            <button
+              type="button"
+              className="lp-btn-primary sm"
+              onClick={() => onReport("lost")}
+            >
+              Report a lost item
+            </button>
+            <button
+              type="button"
+              className="lp-btn-secondary sm"
+              onClick={() => onReport("found")}
+            >
+              I found something
+            </button>
           </div>
         </div>
 
-        {searching ? (
+        {/* Search Results / Loading State */}
+        {isSearching ? (
           <div className="sr-loader-slot">
-            <SearchDissolveLoader />
-          </div>
-        ) : !hasSearched ? (
-          <div className="sr-empty sr-prompt">
-            Start typing the full description above — we'll search everything reported once you pause.
+            <SearchDissolveLoader
+              label={`Searching for "${query.trim()}"…`}
+              caption="Scanning campus reports, matching descriptions & locations…"
+            />
           </div>
         ) : (
-          <>
+          <div className="sr-results-container">
             <p className="sr-count" aria-live="polite">
-              {results.length} {results.length === 1 ? "item" : "items"} match "{debouncedQuery.trim()}"
+              {results.length} {results.length === 1 ? "item" : "items"}{" "}
+              {activeQuery
+                ? `matching "${activeQuery}"`
+                : filtersOn
+                ? "matching selected filters"
+                : "reported across campus"}
             </p>
 
             {results.length === 0 ? (
               <div className="sr-empty">
-                Nothing matches that yet. Try fewer or different words, or report it so we can watch for a match.
+                <div className="sr-empty-icon" aria-hidden="true">
+                  🔍
+                </div>
+                <h3>No matching items found</h3>
+                <p>
+                  {activeQuery
+                    ? `We couldn't find any reports matching "${activeQuery}". Try different keywords or check back soon.`
+                    : "No items match your filter criteria. Try broadening your selection or clearing filters."}
+                </p>
+                <div className="sr-empty-actions">
+                  <button
+                    type="button"
+                    className="lp-btn-primary sm"
+                    onClick={() => onReport("lost")}
+                  >
+                    Report it as lost
+                  </button>
+                  {filtersOn && (
+                    <button type="button" className="lp-btn-secondary sm" onClick={reset}>
+                      Reset search
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="sr-grid">
                 {visible.map((item) => (
-                  <ItemCard key={item.id} item={item} onOpen={onOpenItem} tokens={tokens} />
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    onOpen={onOpenItem}
+                    tokens={activeTokens}
+                  />
                 ))}
               </div>
             )}
 
             {results.length > PAGE && (
               <div className="sr-more">
-                <button type="button" className="lp-btn-secondary sm" onClick={() => setShowAll((s) => !s)}>
+                <button
+                  type="button"
+                  className="lp-btn-secondary sm"
+                  onClick={() => setShowAll((s) => !s)}
+                >
                   {showAll ? "Show fewer" : `Show all ${results.length} items`}
                 </button>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </section>
