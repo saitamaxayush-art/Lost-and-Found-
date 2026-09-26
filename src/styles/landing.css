@@ -71,15 +71,33 @@
   background: linear-gradient(90deg, rgba(20, 12, 6, .82) 0%, rgba(20, 12, 6, .6) 34%, rgba(20, 12, 6, 0) 62%);
 }
 
-/* ---------- shared "light" section styling (hero / history / contact) ---------- */
 .lp-eyebrow {
-  display: inline-block;
-  font-size: 12.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--peach-accent-dark);
   margin-bottom: 14px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(217, 130, 43, 0.24);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 8px rgba(120, 80, 30, 0.05);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lp-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--peach-accent);
+  box-shadow: 0 0 6px rgba(217, 130, 43, 0.6);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
 }
 
 .lp-hero-section {
@@ -173,7 +191,7 @@
 .lp-btn-secondary:active { transform: translateY(0) scale(0.97); }
 
 /* ---------- how it works: heading above the animated stage ---------- */
-.lp-track-section { position: relative; background: transparent; }
+.lp-track-section { position: relative; z-index: 1; background: transparent; }
 .lp-track-heading {
   position: relative;
   z-index: 2;

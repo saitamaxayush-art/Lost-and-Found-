@@ -261,7 +261,16 @@ export default function ThemeDropdown({
                   className={`theme-dropdown-option ${isSelected ? "is-selected" : ""} ${
                     isHighlighted ? "is-highlighted" : ""
                   }`}
-                  onClick={() => handleSelect(opt.value)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSelect(opt.value);
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSelect(opt.value);
+                  }}
                   onMouseEnter={() => setHighlightedIndex(index)}
                 >
                   <span className="theme-dropdown-option-left">

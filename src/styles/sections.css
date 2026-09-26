@@ -61,28 +61,64 @@
 .lp-nav-links a,
 .lp-nav-menu a {
   position: relative;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--peach-ink-soft);
   text-decoration: none;
   white-space: nowrap;
   padding: 8px 18px;
   border-radius: 999px;
-  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.25s ease;
+  border: 1px solid transparent;
+  transition: color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+.lp-nav-links a::after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--peach-accent);
+  opacity: 0;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
+}
+
 .lp-nav-links a:hover,
 .lp-nav-menu a:hover {
-  color: var(--peach-accent-dark);
-  background: rgba(217, 130, 43, 0.09);
+  color: #2b1705;
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(217, 130, 43, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 14px rgba(217, 130, 43, 0.14);
+  transform: translateY(-2px);
 }
+
+.lp-nav-links a:hover::after,
+.lp-nav-menu a:hover::after {
+  transform: translateX(-50%) scaleX(1);
+  opacity: 1;
+}
+
 .lp-nav-links a.is-active,
 .lp-nav-menu a.is-active {
-  color: var(--peach-accent-dark);
-  background: rgba(217, 130, 43, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(217, 130, 43, 0.22);
+  color: #1a0d03;
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(217, 130, 43, 0.42);
+  box-shadow: inset 0 1px 0 #ffffff, 0 4px 14px rgba(181, 101, 26, 0.18);
+  font-weight: 700;
+  transform: translateY(-1.5px);
+}
+
+.lp-nav-links a.is-active::after,
+.lp-nav-menu a.is-active::after {
+  transform: translateX(-50%) scaleX(1);
+  opacity: 1;
 }
 .lp-nav a:focus-visible,
 .lp-nav button:focus-visible { outline: 2.5px solid var(--peach-accent); outline-offset: 2px; }
@@ -260,13 +296,16 @@
 /* ===================== Search ===================== */
 .lp-search {
   position: relative;
+  z-index: 40;
   background: transparent;
 }
 .sr-panel {
+  position: relative;
+  z-index: 41;
   background: rgba(255, 252, 247, 0.54);
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 28px;
-  padding: 22px;
+  padding: 24px;
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95),
@@ -357,13 +396,13 @@
   gap: 12px;
   align-items: center;
   position: relative;
-  z-index: 30;
+  z-index: 50;
 }
 .sr-theme-select-category .theme-dropdown-trigger {
-  min-width: 185px;
+  min-width: 165px;
 }
 .sr-theme-select-status .theme-dropdown-trigger {
-  min-width: 165px;
+  min-width: 150px;
 }
 .sr-seg {
   display: inline-flex; padding: 4px; border-radius: 999px;
@@ -373,17 +412,23 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 .sr-seg button {
-  border: 0; background: transparent; padding: 8px 18px; border-radius: 999px;
+  border: 0; background: transparent; padding: 7px 18px; border-radius: 999px;
   font-weight: 700; font-size: 13.5px; color: var(--peach-ink-soft); cursor: pointer;
-  transition: background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-              color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sr-seg button:hover:not(.on) {
+  color: #2b1705;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 2px 8px rgba(120, 80, 30, 0.08);
+  transform: translateY(-1px);
 }
 .sr-seg button.on {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%);
-  color: var(--peach-ink);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 10px rgba(74, 52, 32, 0.1);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%);
+  color: #261505;
+  border: 1px solid rgba(217, 130, 43, 0.28);
+  box-shadow: inset 0 1px 0 #ffffff, 0 3px 12px rgba(120, 80, 30, 0.12);
+  transform: translateY(-1px);
 }
 .sr-filters select {
   height: 42px; padding: 0 14px; border-radius: 12px;
@@ -1106,19 +1151,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  height: 44px;
-  padding: 0 18px;
+  gap: 10px;
+  height: 40px;
+  padding: 0 16px;
   border-radius: 999px;
-  border: 1.5px solid rgba(217, 130, 43, 0.35);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid rgba(217, 130, 43, 0.32);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 2px 10px rgba(120, 80, 30, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 2px 10px rgba(120, 80, 30, 0.06);
   color: #382413;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
-  min-width: 175px;
+  min-width: 155px;
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
@@ -1128,8 +1173,13 @@
 .theme-dropdown-trigger:hover {
   background: #ffffff;
   border-color: var(--peach-accent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 16px rgba(217, 130, 43, 0.16);
-  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 16px rgba(217, 130, 43, 0.18);
+  transform: translateY(-1.5px);
+  color: #261505;
+}
+
+.theme-dropdown-trigger:hover .theme-dropdown-chevron {
+  transform: translateY(1.5px);
 }
 
 .theme-dropdown-root.is-open .theme-dropdown-trigger,
@@ -1141,7 +1191,7 @@
 }
 
 .theme-dropdown-root.is-filtered .theme-dropdown-trigger {
-  background: rgba(255, 246, 233, 0.96);
+  background: rgba(255, 246, 233, 0.98);
   border-color: var(--peach-accent);
   color: var(--peach-accent-dark);
   font-weight: 700;
@@ -1159,49 +1209,51 @@
   align-items: center;
   justify-content: center;
   color: var(--peach-accent-dark);
+  font-size: 14px;
 }
 
 .theme-dropdown-label {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .theme-dropdown-chevron {
   color: var(--peach-accent-dark);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
 }
 
 .theme-dropdown-root.is-open .theme-dropdown-chevron {
-  transform: rotate(180deg);
+  transform: rotate(180deg) !important;
 }
 
-/* Dropdown Menu Box */
+/* Compact Dropdown Menu Panel */
 .theme-dropdown-panel {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 6px);
   left: 0;
-  min-width: 220px;
-  max-width: 290px;
+  min-width: 185px;
+  max-width: 235px;
   z-index: 1001;
   background: rgba(255, 254, 251, 0.98);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1.5px solid rgba(217, 130, 43, 0.28);
-  border-radius: 18px;
+  border: 1.5px solid rgba(217, 130, 43, 0.3);
+  border-radius: 16px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95),
-              0 20px 48px rgba(74, 45, 18, 0.18),
-              0 4px 14px rgba(74, 45, 18, 0.08);
-  padding: 6px;
-  animation: theme-dd-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+              0 18px 40px rgba(74, 45, 18, 0.16),
+              0 3px 10px rgba(74, 45, 18, 0.06);
+  padding: 5px;
+  animation: theme-dd-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
   transform-origin: top center;
+  pointer-events: auto;
 }
 
 @keyframes theme-dd-in {
   from {
     opacity: 0;
-    transform: translateY(-8px) scale(0.96);
+    transform: translateY(-6px) scale(0.97);
   }
   to {
     opacity: 1;
@@ -1210,33 +1262,37 @@
 }
 
 .theme-dropdown-options-scroll {
-  max-height: 270px;
+  max-height: 185px; /* Compact height: comfortably fits without overflowing or coinciding with how-it-works! */
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 3px;
+  padding: 2px;
 }
 
 .theme-dropdown-options-scroll::-webkit-scrollbar {
-  width: 5px;
+  width: 4px;
 }
 .theme-dropdown-options-scroll::-webkit-scrollbar-thumb {
-  background: rgba(217, 130, 43, 0.3);
+  background: rgba(217, 130, 43, 0.35);
   border-radius: 999px;
+}
+.theme-dropdown-options-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 130, 43, 0.6);
 }
 
 .theme-dropdown-option {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 14px;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  font-size: 13px;
   font-weight: 500;
   color: #382413;
   cursor: pointer;
   user-select: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
 }
 
 .theme-dropdown-option:hover,
@@ -1256,7 +1312,7 @@
 .theme-dropdown-option-left {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -1288,53 +1344,125 @@
   border-radius: 12px;
   border: 1.5px solid rgba(223, 212, 190, 0.65);
   background: rgba(255, 255, 255, 0.6);
-  height: 44px;
+  height: 42px;
 }
 .lf-dropdown-theme .theme-dropdown-panel {
   width: 100%;
   max-width: 100%;
 }
 
-/* ===================== Nav Pills & Section Eyebrow Interactions ===================== */
-/* Inside active/hovered section: the section eyebrow pill smoothly transitions to a darker accent tone */
-.lp-search:hover .lp-eyebrow,
-.lp-search.is-hovered .lp-eyebrow,
-.lp-history:hover .lp-eyebrow,
-.lp-history.is-hovered .lp-eyebrow,
-.lp-contact:hover .lp-eyebrow,
-.lp-contact.is-hovered .lp-eyebrow,
-.lp-hero-section:hover .lp-eyebrow,
-.lp-hero-section.is-hovered .lp-eyebrow,
-.lp-track-section:hover .lp-eyebrow,
-.lp-track-section.is-hovered .lp-eyebrow {
-  background: rgba(181, 101, 26, 0.22);
-  border: 1px solid rgba(181, 101, 26, 0.42);
-  color: #7b3904;
-  padding: 4px 14px;
-  border-radius: 999px;
-  box-shadow: 0 2px 10px rgba(181, 101, 26, 0.14);
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+/* ===================== Creative & Minimalist Section & Pill Hover Effects ===================== */
+
+/* Ambient Warm Vignette on Section Hover */
+.lp-hero-section,
+.lp-search,
+.lp-history,
+.lp-contact {
+  position: relative;
+  transition: transform 0.4s ease;
+}
+
+.lp-hero-section::before,
+.lp-search::before,
+.lp-history::before,
+.lp-contact::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 70% 55% at 50% 50%, rgba(217, 130, 43, 0.045) 0%, rgba(246, 215, 172, 0.015) 50%, transparent 75%);
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+
+.lp-hero-section:is(:hover, .is-hovered)::before,
+.lp-search:is(:hover, .is-hovered)::before,
+.lp-history:is(:hover, .is-hovered)::before,
+.lp-contact:is(:hover, .is-hovered)::before {
+  opacity: 1;
+}
+
+/* Section Headings subtly deepen to rich dark ink with warm ambient glow */
+:is(.lp-section, .lp-hero-section, .lp-track-section):is(:hover, .is-hovered) :is(h1, h2) {
+  color: #241405;
+  text-shadow: 0 2px 20px rgba(217, 130, 43, 0.1);
+  transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+
+/* Section Eyebrow Pill interactive elevation & glow on section hover */
+:is(.lp-section, .lp-hero-section, .lp-track-section):is(:hover, .is-hovered) .lp-eyebrow {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(217, 130, 43, 0.45);
+  color: #6d3303;
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 #ffffff, 0 4px 14px rgba(217, 130, 43, 0.16);
+}
+:is(.lp-section, .lp-hero-section, .lp-track-section):is(:hover, .is-hovered) .lp-eyebrow::before {
+  transform: scale(1.35);
+  box-shadow: 0 0 10px rgba(217, 130, 43, 0.9);
+}
+
+/* Glassmorphic panels/cards focus subtly when section is hovered */
+.lp-search:is(:hover, .is-hovered) .sr-panel {
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 24px 55px rgba(120, 80, 30, 0.11);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.lp-history:is(:hover, .is-hovered) .hs-item {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 32px rgba(120, 80, 30, 0.09);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.lp-contact:is(:hover, .is-hovered) :is(.co-card, .co-info) {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 20px 48px rgba(120, 80, 30, 0.1);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 /* Nav Pills: When a section is in view, its navigation pill stands out darker than the others with silky smooth easing */
 .lp-nav-links a.is-section-hovered {
-  color: #2b1705 !important;
-  background: rgba(181, 101, 26, 0.28) !important;
-  box-shadow: inset 0 0 0 1.5px rgba(181, 101, 26, 0.48), 0 4px 14px rgba(181, 101, 26, 0.18) !important;
+  color: #1a0d03 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(217, 130, 43, 0.42) !important;
+  box-shadow: inset 0 1px 0 #ffffff, 0 4px 16px rgba(181, 101, 26, 0.2) !important;
   font-weight: 700 !important;
-  transform: translateY(-1.5px);
-  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transform: translateY(-2px);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* When a section is hovered, other nav pills soften so the active pill is darker than the others */
+.lp-nav-links a.is-section-hovered::after {
+  transform: translateX(-50%) scaleX(1);
+  opacity: 1;
+}
+
+/* When a section is hovered, other nav pills gently soften so the active pill is darker than the others */
 .lp-nav.has-hovered-section .lp-nav-links a:not(.is-section-hovered) {
   opacity: 0.65;
   background: transparent;
   box-shadow: none;
-  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  border-color: transparent;
+  transform: none;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.35s ease;
 }
 .lp-nav.has-hovered-section .lp-nav-links a:not(.is-section-hovered):hover {
   opacity: 1;
-  background: rgba(217, 130, 43, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(217, 130, 43, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 14px rgba(217, 130, 43, 0.14);
+  transform: translateY(-2px);
+}
+
+/* Footer Legal Link Pills */
+.lp-footer-legal a {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lp-footer-legal a:hover {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: var(--peach-accent);
+  color: var(--peach-accent-dark);
+  box-shadow: inset 0 1px 0 #fff, 0 4px 12px rgba(217, 130, 43, 0.16);
+  transform: translateY(-1.5px);
 }
