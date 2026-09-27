@@ -30,7 +30,17 @@ const CLUSTER_KEYS = [
   },
 ];
 
+function shuffleKeys(keys) {
+  const arr = [...keys];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export default function GateIntro({ onComplete }) {
+  const [shuffledKeys] = useState(() => shuffleKeys(CLUSTER_KEYS));
   const [phase, setPhase] = useState("ready");
   // phases: "ready" | "inserted" | "turning" | "door_opening" | "door_held" | "zooming" | "complete"
   const [isFadingOut, setIsFadingOut] = useState(false);
@@ -194,7 +204,7 @@ export default function GateIntro({ onComplete }) {
 
   const handlePointerUp = (e) => {
     if (!activeKeyId) return;
-    const key = CLUSTER_KEYS.find((k) => k.id === activeKeyId);
+    const key = shuffledKeys.find((k) => k.id === activeKeyId);
     keyRefs.current[activeKeyId]?.releasePointerCapture?.(e.pointerId);
 
     // Proximity check on release
@@ -401,7 +411,7 @@ export default function GateIntro({ onComplete }) {
         </p>
 
         <div className="gate-key-cluster" role="group" aria-label="Key selection cluster">
-          {CLUSTER_KEYS.map((key) => {
+          {shuffledKeys.map((key) => {
             const isBeingDragged = activeKeyId === key.id;
             const isInserted = insertedKey?.id === key.id;
             const isRecoiling = recoilingKeyId === key.id;

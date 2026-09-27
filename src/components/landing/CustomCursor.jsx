@@ -1,24 +1,23 @@
 import { useEffect, useRef } from "react";
-import { WALLET_STORY } from "./timeline";
 
-/**
- * Cursor = a small yellow dot with a black ring trailing a little behind it.
- * While the visitor is inside the pinned "how it works" story (subscribe's p
- * between FREEZE_FROM and RELEASE_AT) it stops chasing the mouse and instead
- * tracks the wallet's real golden knob element (#walletKnob in Scene.jsx) —
- * whatever that element's live on-screen position actually is, at that exact
- * moment, at this viewport size — shrinking the ring down to hug the dot and
- * then hiding both. Once the wallet finishes gliding to centre screen
- * (WALLET_STORY.centerEnd) it reappears right there and flies back out to
- * wherever the real pointer is, reading as the cursor detaching from the knob.
- */
-const FREEZE_FROM = 0.035;
-const RELEASE_AT = WALLET_STORY.centerEnd;
-
-// Ring shrinks to roughly the dot's own size while docked (dot ~10px / ring ~22px)
-const RING_FIT_SCALE = 0.46;
-
-const HOVER_SELECTOR = "a, button, input, select, textarea, label, [role='button'], .sr-card";
+const HOVER_SELECTOR = [
+  "a",
+  "button",
+  "input",
+  "select",
+  "textarea",
+  "label",
+  "[role='button']",
+  ".sr-card",
+  ".gate-cluster-item",
+  ".gate-skip-btn",
+  ".gate-prompt-btn",
+  ".lp-btn-primary",
+  ".lp-btn-secondary",
+  ".lp-report-trigger",
+  ".lp-nav-pill a",
+  ".lp-nav-pill button",
+].join(", ");
 
 export default function CustomCursor({ subscribe }) {
   const rootRef = useRef(null);
@@ -28,51 +27,63 @@ export default function CustomCursor({ subscribe }) {
   useEffect(() => {
     const isFine = window.matchMedia("(pointer: fine)").matches;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!isFine || reduce) return; // touch / reduced-motion visitors keep the native cursor
+    if (!isFine || reduce) return;
 
     const root = rootRef.current;
     document.documentElement.classList.add("cc-on");
 
     const mid = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     const s = {
-      mx: mid.x, my: mid.y, // real pointer position
-      x: mid.x, y: mid.y, // smoothed dot position
-      rx: mid.x, ry: mid.y, // smoothed ring position (trails a touch more)
+      mx: mid.x,
+      my: mid.y,
+      x: mid.x,
+      y: mid.y,
+      rx: mid.x,
+      ry: mid.y,
       dotScale: 1,
       ringScale: 1,
-      docked: false,
-      dockX: mid.x,
-      dockY: mid.y,
       hover: false,
+      down: false,
       raf: 0,
-    };
-
-    // Live centre of the wallet's actual golden knob, in real screen pixels —
-    // accurate at any scroll position / viewport size, since it just reads
-    // the element's current transformed bounding box straight off the DOM.
-    const knobPoint = () => {
-      const el = document.getElementById("walletKnob");
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      if (!r.width || !r.height) return null;
-      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      hasMoved: false,
     };
 
     const onMove = (e) => {
       s.mx = e.clientX;
       s.my = e.clientY;
+      if (!s.hasMoved) {
+        s.hasMoved = true;
+        s.x = s.mx;
+        s.y = s.my;
+        s.rx = s.mx;
+        s.ry = s.my;
+      }
+      root?.classList.remove("is-hidden");
     };
+
     const onOver = (e) => {
-      // The bell has its own hover animation — an oversized cursor on top of it
-      // hides that, so the cursor stays at its normal size there on purpose.
       const overBell = !!e.target.closest?.(".lp-bell-btn");
-      s.hover = !overBell && !!e.target.closest?.(HOVER_SELECTOR);
+      const isInteractive = !overBell && !!e.target.closest?.(HOVER_SELECTOR);
+      s.hover = isInteractive;
     };
+
+    const onDown = () => {
+      s.down = true;
+      root?.classList.add("is-down");
+    };
+
+    const onUp = () => {
+      s.down = false;
+      root?.classList.remove("is-down");
+    };
+
     const onLeaveDoc = () => root?.classList.add("is-hidden");
     const onEnterDoc = () => root?.classList.remove("is-hidden");
 
-    window.addEventListener("mousemove", onMove, { passive: true });
-    document.addEventListener("mouseover", onOver);
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerdown", onDown, { passive: true });
+    window.addEventListener("pointerup", onUp, { passive: true });
+    document.addEventListener("mouseover", onOver, { passive: true });
     document.addEventListener("mouseleave", onLeaveDoc);
     document.addEventListener("mouseenter", onEnterDoc);
 
@@ -81,28 +92,18 @@ export default function CustomCursor({ subscribe }) {
       const dt = Math.min(0.064, (now - lastTime) / 1000 || 0.016);
       lastTime = now;
 
-      if (s.docked) {
-        const k = knobPoint();
-        if (k) {
-          s.dockX = k.x;
-          s.dockY = k.y;
-        }
-      }
+      const targetDotScale = s.down ? 0.75 : s.hover ? 1.4 : 1;
+      const targetRingScale = s.down ? 0.85 : s.hover ? 1.8 : 1;
 
-      const tx = s.docked ? s.dockX : s.mx;
-      const ty = s.docked ? s.dockY : s.my;
-      const targetDotScale = s.hover && !s.docked ? 1.3 : 1;
-      const targetRingScale = s.docked ? RING_FIT_SCALE : s.hover ? 1.7 : 1;
+      // Exponential damping for organic responsiveness
+      const fDot = 1 - Math.exp(-32 * dt);
+      const fRing = 1 - Math.exp(-18 * dt);
+      const fScale = 1 - Math.exp(-22 * dt);
 
-      // Delta-time based exponential damping for organic fluidity
-      const fDot = 1 - Math.exp(-28 * dt);
-      const fRing = 1 - Math.exp(-14 * dt);
-      const fScale = 1 - Math.exp(-20 * dt);
-
-      s.x += (tx - s.x) * fDot;
-      s.y += (ty - s.y) * fDot;
-      s.rx += (tx - s.rx) * fRing;
-      s.ry += (ty - s.ry) * fRing;
+      s.x += (s.mx - s.x) * fDot;
+      s.y += (s.my - s.y) * fDot;
+      s.rx += (s.mx - s.rx) * fRing;
+      s.ry += (s.my - s.ry) * fRing;
       s.dotScale += (targetDotScale - s.dotScale) * fScale;
       s.ringScale += (targetRingScale - s.ringScale) * fScale;
 
@@ -117,22 +118,17 @@ export default function CustomCursor({ subscribe }) {
     };
     s.raf = requestAnimationFrame(tick);
 
-    const unsub = subscribe?.((p) => {
-      const shouldDock = p > FREEZE_FROM && p < RELEASE_AT;
-      s.docked = shouldDock;
-      root?.classList.toggle("is-docked", shouldDock);
-    });
-
     return () => {
       document.documentElement.classList.remove("cc-on");
-      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
       document.removeEventListener("mouseover", onOver);
       document.removeEventListener("mouseleave", onLeaveDoc);
       document.removeEventListener("mouseenter", onEnterDoc);
       cancelAnimationFrame(s.raf);
-      unsub?.();
     };
-  }, [subscribe]);
+  }, []);
 
   return (
     <div className="cc-root" ref={rootRef} aria-hidden="true">
