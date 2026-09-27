@@ -1,22 +1,53 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "../../styles/gateIntro.css";
 
-const SNAP_RADIUS = 72;
+const SNAP_RADIUS = 76;
+
+const CLUSTER_KEYS = [
+  {
+    id: "key-1",
+    img: "/gate/key_1.png",
+    label: "Antique brass key",
+    isCorrect: false,
+    width: 32,
+    height: 95,
+  },
+  {
+    id: "key-3",
+    img: "/gate/key_3.png",
+    label: "Ornate skeleton key",
+    isCorrect: true,
+    width: 38,
+    height: 93,
+  },
+  {
+    id: "key-2",
+    img: "/gate/key_2.png",
+    label: "Ring handle brass key",
+    isCorrect: false,
+    width: 36,
+    height: 92,
+  },
+];
 
 export default function GateIntro({ onComplete }) {
-  const [phase, setPhase] = useState("rain");
-  // phases: "rain" | "hero_descending" | "hero_hover" | "unlocking" | "door_opening" | "door_held" | "zooming" | "complete"
+  const [phase, setPhase] = useState("ready");
+  // phases: "ready" | "inserted" | "turning" | "door_opening" | "door_held" | "zooming" | "complete"
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [activeKeyId, setActiveKeyId] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
   const [isNearKeyhole, setIsNearKeyhole] = useState(false);
-  const [doorAngle, setDoorAngle] = useState(0); // in degrees
+  const [insertedKey, setInsertedKey] = useState(null);
+  const [keyTwisted, setKeyTwisted] = useState(false);
+  const [rejectMessage, setRejectMessage] = useState(null);
+  const [recoilingKeyId, setRecoilingKeyId] = useState(null);
+  const [doorAngle, setDoorAngle] = useState(0);
   const [cameraZoom, setCameraZoom] = useState({ scale: 1, x: 0, y: 0 });
+  const [isBloomWashActive, setIsBloomWashActive] = useState(false);
 
   const rootRef = useRef(null);
   const keyholeRef = useRef(null);
-  const heroKeyRef = useRef(null);
-  const stageRef = useRef(null);
+  const keyRefs = useRef({});
   const timersRef = useRef([]);
   const dragStartRef = useRef({ pointerX: 0, pointerY: 0, initialOffsetX: 0, initialOffsetY: 0 });
 
@@ -33,194 +64,196 @@ export default function GateIntro({ onComplete }) {
     }
   }, [onComplete]);
 
-  // Rain particle configuration
-  const rainKeys = useMemo(() => {
-    const keyImages = ["/gate/key_1.png", "/gate/key_2.png", "/gate/key_3.png"];
-    const count = 30;
-    const items = [];
-    for (let i = 0; i < count; i++) {
-      const img = keyImages[i % keyImages.length];
-      const left = (i / count) * 94 + (Math.random() * 4 + 2);
-      const duration = 5.2 + (i % 5) * 0.9;
-      const delay = -((i * 1.3) % duration);
-      const steps = 10 + (i % 4) * 2;
-      const width = 28 + (i % 6) * 6;
-      const rotStart = -40 + ((i * 37) % 80);
-      const rotEnd = rotStart + 180 + ((i * 23) % 90);
-      const drift = -25 + ((i * 17) % 50);
-      const opacity = 0.35 + ((i % 4) * 0.12);
-
-      items.push({
-        id: i,
-        img,
-        left: `${left}%`,
-        duration: `${duration.toFixed(2)}s`,
-        delay: `${delay.toFixed(2)}s`,
-        steps,
-        width: `${width}px`,
-        rotStart: `${rotStart}deg`,
-        rotEnd: `${rotEnd}deg`,
-        drift: `${drift}px`,
-        opacity,
-      });
-    }
-    return items;
-  }, []);
-
-  // Sequence beat timers
+  // Clean timers on unmount
   useEffect(() => {
-    // Beat 2: After ~2.6s, call out the Correct Key
-    const t1 = setTimeout(() => {
-      setPhase("hero_descending");
-    }, 2600);
-    timersRef.current.push(t1);
-
-    // After descent completes (~1.2s), settle into hover position
-    const t2 = setTimeout(() => {
-      setPhase("hero_hover");
-    }, 3850);
-    timersRef.current.push(t2);
-
     return clearAllTimers;
   }, [clearAllTimers]);
 
-  // Trigger unlock sequence
-  const startUnlockSequence = useCallback(() => {
-    if (phase === "unlocking" || phase === "door_opening" || phase === "door_held" || phase === "zooming" || phase === "complete") {
-      return;
-    }
-
-    setPhase("unlocking");
-    setIsDragging(false);
-    setIsNearKeyhole(false);
-
-    // Key slides in and twists over ~340ms
-    const t1 = setTimeout(() => {
-      // Knob glows and ripple emits
-    }, 320);
-    timersRef.current.push(t1);
-
-    // Beat 4: Door swings open in true 3D (~1.08s, matching reference deliberate timing)
-    const t2 = setTimeout(() => {
-      setPhase("door_opening");
-      setDoorAngle(-58);
-    }, 580);
-    timersRef.current.push(t2);
-
-    // Hold door open for ~450ms
-    const t3 = setTimeout(() => {
-      setPhase("door_held");
-    }, 1750);
-    timersRef.current.push(t3);
-
-    // Beat 5: Camera dolly zoom-through
-    const t4 = setTimeout(() => {
-      setPhase("zooming");
-      setCameraZoom({ scale: 6.2, x: 18, y: -8 });
-    }, 2200);
-    timersRef.current.push(t4);
-
-    // Cross-fade into real site at zoom peak
-    const t5 = setTimeout(() => {
-      setIsFadingOut(true);
-    }, 3050);
-    timersRef.current.push(t5);
-
-    // Complete and unmount
-    const t6 = setTimeout(() => {
-      setPhase("complete");
-      onComplete?.();
-    }, 3500);
-    timersRef.current.push(t6);
-  }, [phase, onComplete]);
-
-  // Skip button handler
+  // Skip handler
   const handleSkip = useCallback(() => {
     clearAllTimers();
     setIsFadingOut(true);
-    setTimeout(() => {
+    const t = setTimeout(() => {
       setPhase("complete");
       onComplete?.();
     }, 180);
+    timersRef.current.push(t);
   }, [clearAllTimers, onComplete]);
 
-  // Keyboard navigation: Enter or Space triggers auto-insert
+  // Trigger door opening once correct key is inserted
+  const triggerDoorOpen = useCallback(() => {
+    if (phase !== "inserted" || keyTwisted) return;
+
+    setPhase("turning");
+    setKeyTwisted(true);
+
+    // Knob glows and ripple emits
+    const t1 = setTimeout(() => {
+      setPhase("door_opening");
+      setDoorAngle(-58);
+    }, 280);
+    timersRef.current.push(t1);
+
+    // Light expands until it washes over the entire screen
+    const t2 = setTimeout(() => {
+      setIsBloomWashActive(true);
+    }, 850);
+    timersRef.current.push(t2);
+
+    // Camera dollys forward through the doorway
+    const t3 = setTimeout(() => {
+      setPhase("zooming");
+      setCameraZoom({ scale: 6.5, x: 18, y: -8 });
+    }, 1450);
+    timersRef.current.push(t3);
+
+    // Cross-fade into real site at peak of light wash
+    const t4 = setTimeout(() => {
+      setIsFadingOut(true);
+    }, 2350);
+    timersRef.current.push(t4);
+
+    // Complete intro
+    const t5 = setTimeout(() => {
+      setPhase("complete");
+      onComplete?.();
+    }, 2850);
+    timersRef.current.push(t5);
+  }, [phase, keyTwisted, onComplete]);
+
+  // Keyboard navigation
   useEffect(() => {
     function onKeyDown(e) {
-      if (e.key === " " || e.key === "Enter") {
-        e.preventDefault();
-        startUnlockSequence();
-      } else if (e.key === "Escape") {
+      if (e.key === "Escape") {
         handleSkip();
+        return;
+      }
+      if (phase === "inserted") {
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          triggerDoorOpen();
+        }
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [startUnlockSequence, handleSkip]);
+  }, [phase, triggerDoorOpen, handleSkip]);
 
-  // Pointer drag handling for Beat 3
-  const handlePointerDown = (e) => {
-    if (phase !== "hero_hover") return;
+  // Drag interaction for keys
+  const handlePointerDown = (e, key) => {
+    if (phase !== "ready" || insertedKey) return;
     e.preventDefault();
-    setIsDragging(true);
+    setActiveKeyId(key.id);
+    setRejectMessage(null);
     dragStartRef.current = {
       pointerX: e.clientX,
       pointerY: e.clientY,
-      initialOffsetX: dragOffset.x,
-      initialOffsetY: dragOffset.y,
+      initialOffsetX: 0,
+      initialOffsetY: 0,
     };
-    heroKeyRef.current?.setPointerCapture?.(e.pointerId);
+    keyRefs.current[key.id]?.setPointerCapture?.(e.pointerId);
   };
 
   const handlePointerMove = (e) => {
-    if (!isDragging || phase !== "hero_hover") return;
+    if (!activeKeyId || phase !== "ready") return;
     const deltaX = e.clientX - dragStartRef.current.pointerX;
     const deltaY = e.clientY - dragStartRef.current.pointerY;
-    const nextX = dragStartRef.current.initialOffsetX + deltaX;
-    const nextY = dragStartRef.current.initialOffsetY + deltaY;
 
     // Check proximity to keyhole target
-    if (keyholeRef.current && heroKeyRef.current) {
-      const keyRect = heroKeyRef.current.getBoundingClientRect();
+    if (keyholeRef.current && keyRefs.current[activeKeyId]) {
+      const activeEl = keyRefs.current[activeKeyId];
+      const keyRect = activeEl.getBoundingClientRect();
       const holeRect = keyholeRef.current.getBoundingClientRect();
 
-      // Compare key tip (bottom center of key) to keyhole center
       const keyTipX = keyRect.left + keyRect.width * 0.5;
       const keyTipY = keyRect.top + keyRect.height * 0.82;
       const holeCenterX = holeRect.left + holeRect.width * 0.5;
       const holeCenterY = holeRect.top + holeRect.height * 0.5;
 
       const dist = Math.hypot(keyTipX - holeCenterX, keyTipY - holeCenterY);
-      const inSnapRadius = dist < SNAP_RADIUS;
-      setIsNearKeyhole(inSnapRadius);
+      const isTargetKey = activeKeyId === "key-3";
+      const inRadius = dist < SNAP_RADIUS;
 
-      if (inSnapRadius) {
-        // Magnetic pull toward keyhole
+      setIsNearKeyhole(inRadius && isTargetKey);
+
+      if (inRadius && isTargetKey) {
+        // Magnetic snap towards keyhole
         const magneticFactor = 0.55;
         const snapDeltaX = holeCenterX - keyTipX;
         const snapDeltaY = holeCenterY - keyTipY;
         setDragOffset({
-          x: nextX + snapDeltaX * magneticFactor,
-          y: nextY + snapDeltaY * magneticFactor,
+          x: deltaX + snapDeltaX * magneticFactor,
+          y: deltaY + snapDeltaY * magneticFactor,
         });
         return;
       }
     }
 
-    setDragOffset({ x: nextX, y: nextY });
+    setDragOffset({ x: deltaX, y: deltaY });
   };
 
   const handlePointerUp = (e) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    heroKeyRef.current?.releasePointerCapture?.(e.pointerId);
+    if (!activeKeyId) return;
+    const key = CLUSTER_KEYS.find((k) => k.id === activeKeyId);
+    keyRefs.current[activeKeyId]?.releasePointerCapture?.(e.pointerId);
 
-    if (isNearKeyhole) {
-      startUnlockSequence();
-    } else {
-      // Ease back smoothly to hover position
+    // Proximity check on release
+    let nearHole = false;
+    if (keyholeRef.current && keyRefs.current[activeKeyId]) {
+      const activeEl = keyRefs.current[activeKeyId];
+      const keyRect = activeEl.getBoundingClientRect();
+      const holeRect = keyholeRef.current.getBoundingClientRect();
+      const keyTipX = keyRect.left + keyRect.width * 0.5;
+      const keyTipY = keyRect.top + keyRect.height * 0.82;
+      const holeCenterX = holeRect.left + holeRect.width * 0.5;
+      const holeCenterY = holeRect.top + holeRect.height * 0.5;
+      nearHole = Math.hypot(keyTipX - holeCenterX, keyTipY - holeCenterY) < SNAP_RADIUS + 20;
+    }
+
+    if (key?.isCorrect && (isNearKeyhole || nearHole)) {
+      // Correct key inserted into lock
+      setInsertedKey(key);
+      setPhase("inserted");
+      setActiveKeyId(null);
       setDragOffset({ x: 0, y: 0 });
       setIsNearKeyhole(false);
+      setRejectMessage(null);
+    } else if (nearHole && !key?.isCorrect) {
+      // Incorrect key rejected
+      setRejectMessage("That's not the right key");
+      setRecoilingKeyId(key.id);
+      setActiveKeyId(null);
+      setDragOffset({ x: 0, y: 0 });
+      setIsNearKeyhole(false);
+
+      const t1 = setTimeout(() => {
+        setRecoilingKeyId(null);
+      }, 500);
+      const t2 = setTimeout(() => {
+        setRejectMessage(null);
+      }, 3500);
+      timersRef.current.push(t1, t2);
+    } else {
+      // Released away from lock; ease back to cluster
+      setActiveKeyId(null);
+      setDragOffset({ x: 0, y: 0 });
+      setIsNearKeyhole(false);
+    }
+  };
+
+  // Direct click/tap fallback for touch or accessibility users
+  const handleKeyClick = (key) => {
+    if (phase !== "ready" || insertedKey) return;
+    if (key.isCorrect) {
+      setInsertedKey(key);
+      setPhase("inserted");
+      setRejectMessage(null);
+    } else {
+      setRejectMessage("That's not the right key");
+      setRecoilingKeyId(key.id);
+      const t1 = setTimeout(() => setRecoilingKeyId(null), 500);
+      const t2 = setTimeout(() => setRejectMessage(null), 3500);
+      timersRef.current.push(t1, t2);
     }
   };
 
@@ -228,38 +261,7 @@ export default function GateIntro({ onComplete }) {
     return null;
   }
 
-  // Background rain is dimmed once the correct key appears
-  const isRainDimmed = phase !== "rain";
-  const isKeyHovering = phase === "hero_hover";
-  const isDoorOpen = phase === "door_opening" || phase === "door_held" || phase === "zooming";
-  const isLightVisible = isDoorOpen;
-
-  // Compute hero key dynamic style
-  const getHeroKeyTransform = () => {
-    if (phase === "rain") {
-      return "translate3d(0, -120vh, 0)";
-    }
-    if (phase === "hero_descending") {
-      return "translate3d(0, 0, 0)";
-    }
-    if (phase === "unlocking") {
-      // Key snaps to keyhole, aligns upright, slides in and twists
-      return "translate3d(62px, -18px, -24px) scale(0.68) rotate(78deg)";
-    }
-    if (isDoorOpen || phase === "zooming") {
-      return "translate3d(62px, -18px, -40px) scale(0.6) rotate(78deg) opacity(0)";
-    }
-    // phase === "hero_hover"
-    return `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)`;
-  };
-
-  const heroKeyTransition = isDragging
-    ? "none"
-    : phase === "hero_descending"
-    ? "transform 1.25s cubic-bezier(0.22, 1, 0.36, 1)"
-    : phase === "unlocking"
-    ? "transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.3s ease"
-    : "transform 0.42s cubic-bezier(0.25, 1, 0.5, 1)";
+  const isDoorOpen = phase === "door_opening" || phase === "zooming";
 
   return (
     <div
@@ -286,33 +288,19 @@ export default function GateIntro({ onComplete }) {
         </div>
       </div>
 
-      {/* Beat 1: Key Rain Layer */}
-      <div className={`gate-rain-field ${isRainDimmed ? "is-dimmed" : ""}`} aria-hidden="true">
-        {rainKeys.map((k) => (
-          <div
-            key={k.id}
-            className="gate-rain-key"
-            style={{
-              left: k.left,
-              width: k.width,
-              animationDuration: k.duration,
-              animationDelay: k.delay,
-              animationTimingFunction: `steps(${k.steps}, end)`,
-              "--rot-start": k.rotStart,
-              "--rot-end": k.rotEnd,
-              "--drift-x": k.drift,
-              "--base-opacity": k.opacity,
-            }}
-          >
-            <img src={k.img} alt="" loading="eager" decoding="async" />
-          </div>
-        ))}
+      {/* Opening Tagline */}
+      <div className="gate-header">
+        <h1 className="gate-tagline">
+          Nothing is truly lost when someone is looking for it.
+        </h1>
       </div>
 
+      {/* Full-screen Bloom Wash */}
+      <div className={`gate-bloom-wash ${isBloomWashActive ? "is-active" : ""}`} aria-hidden="true" />
+
       {/* 3D Camera Rig & Door Stage */}
-      <div className="gate-camera-rig">
+      <div className="gate-scene-container">
         <div
-          ref={stageRef}
           className="gate-stage"
           style={{
             transform: `scale(${cameraZoom.scale}) translate3d(${cameraZoom.x}%, ${cameraZoom.y}%, 0)`,
@@ -324,7 +312,7 @@ export default function GateIntro({ onComplete }) {
           {/* Aperture behind door leaf */}
           <div className="gate-door-portal">
             {/* Static warm gold/cream light panel */}
-            <div className={`gate-light-source ${isLightVisible ? "is-visible" : ""}`}>
+            <div className={`gate-light-source ${isDoorOpen ? "is-visible" : ""}`}>
               <div className="gate-bloom-core" />
               <div className="gate-bloom-outer" />
               <div className="gate-bloom-wide" />
@@ -347,7 +335,7 @@ export default function GateIntro({ onComplete }) {
             {/* Brass Door Hardware */}
             <div
               className={`gate-door-hardware ${
-                isNearKeyhole || phase === "unlocking" || isDoorOpen ? "is-glowing" : ""
+                isNearKeyhole || phase === "turning" || isDoorOpen ? "is-glowing" : ""
               }`}
             >
               {/* Knob Specular Glow */}
@@ -362,84 +350,105 @@ export default function GateIntro({ onComplete }) {
                 />
               </div>
 
+              {/* Inserted Key inside lock cylinder */}
+              {insertedKey && (
+                <div
+                  className={`gate-inserted-key ${keyTwisted ? "is-twisted" : ""}`}
+                >
+                  <img src={insertedKey.img} alt="" draggable={false} />
+                </div>
+              )}
+
               {/* Soft unlock ripple emitted on key turn */}
               <div
                 className={`gate-unlock-ripple ${
-                  phase === "unlocking" ? "is-firing" : ""
+                  phase === "turning" ? "is-firing" : ""
                 }`}
               />
             </div>
           </div>
 
-          {/* Beats 2 & 3: The Correct Key */}
-          {phase !== "complete" && (
-            <div
-              ref={heroKeyRef}
-              className={`gate-hero-key-rig ${isDragging ? "is-dragging" : ""} ${
-                phase !== "hero_hover" ? "is-locked" : ""
-              }`}
-              style={{
-                top: "47%",
-                left: "calc(50% - 105px)",
-                transform: getHeroKeyTransform(),
-                transition: heroKeyTransition,
-                zIndex: isDragging ? 100 : 50,
-              }}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerUp}
-              role="button"
-              tabIndex={isKeyHovering ? 0 : -1}
-              aria-label="Draggable key to unlock door. Press Enter or Space to auto-unlock."
-            >
-              {/* Soft spotlight following the correct key */}
-              <div
-                className={`gate-key-spotlight ${
-                  phase !== "rain" ? "is-active" : ""
-                }`}
-              />
-
-              {/* Shimmer particle trail */}
-              <div
-                className={`gate-key-particles ${
-                  phase !== "rain" && !isDoorOpen ? "is-active" : ""
-                }`}
-              >
-                <div className="gate-particle" />
-                <div className="gate-particle" />
-                <div className="gate-particle" />
-                <div className="gate-particle" />
-              </div>
-
-              {/* Hero Key Item */}
-              <div
-                className={`gate-hero-key-inner ${
-                  isKeyHovering && !isDragging ? "is-hovering" : ""
-                }`}
-              >
-                <img src="/gate/key_3.png" alt="" draggable={false} />
-
-                {/* Bow affordance pulse ring */}
-                <div
-                  className={`gate-key-affordance-pulse ${
-                    isKeyHovering && !isDragging ? "is-visible" : ""
-                  }`}
-                />
-              </div>
-
-              {/* Hint badge */}
-              <div
-                className={`gate-affordance-hint ${
-                  isKeyHovering && !isDragging ? "is-visible" : ""
-                }`}
-                aria-live="polite"
-              >
-                <span>Drag key to keyhole</span>
+          {/* Lock Action Prompt: "Press space to open" + Touch button */}
+          {phase === "inserted" && (
+            <div className="gate-lock-prompt" aria-live="polite">
+              <div className="gate-prompt-badge">
+                <span>Press space to open</span>
                 <span className="gate-hint-kbd">Space</span>
               </div>
+              <button
+                type="button"
+                className="gate-prompt-btn"
+                onClick={triggerDoorOpen}
+              >
+                Open Door
+              </button>
             </div>
           )}
+
+          {/* Inline Rejection Feedback for Incorrect Keys */}
+          {rejectMessage && (
+            <div className="gate-reject-feedback" role="alert">
+              {rejectMessage}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Static Key Cluster Tray (Smooth idle floating, drag-to-lock) */}
+      <div className="gate-tray">
+        <p className="gate-instruction">
+          Find your lost key to open the door
+        </p>
+
+        <div className="gate-key-cluster" role="group" aria-label="Key selection cluster">
+          {CLUSTER_KEYS.map((key) => {
+            const isBeingDragged = activeKeyId === key.id;
+            const isInserted = insertedKey?.id === key.id;
+            const isRecoiling = recoilingKeyId === key.id;
+
+            return (
+              <div
+                key={key.id}
+                ref={(el) => (keyRefs.current[key.id] = el)}
+                className={`gate-cluster-item ${key.isCorrect ? "is-highlighted" : ""} ${
+                  isBeingDragged ? "is-dragging" : ""
+                }`}
+                style={{
+                  visibility: isInserted ? "hidden" : "visible",
+                  zIndex: isBeingDragged ? 100 : 2,
+                }}
+                onPointerDown={(e) => handlePointerDown(e, key)}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                onClick={() => handleKeyClick(key)}
+                role="button"
+                tabIndex={0}
+                aria-label={`${key.label}. Drag to keyhole or tap to select.`}
+              >
+                {/* Ambient contact shadow on surface */}
+                <div className="gate-key-shadow" />
+
+                {/* Soft spotlight behind the highlighted correct key */}
+                {key.isCorrect && <div className="gate-cluster-spotlight" />}
+
+                {/* Key Graphic with 60fps Smooth Idle Floating Drift */}
+                <div
+                  className={`gate-key-graphic ${
+                    !isBeingDragged && !isRecoiling ? "is-idle" : ""
+                  } ${isRecoiling ? "is-recoiling" : ""}`}
+                  style={{
+                    transform: isBeingDragged
+                      ? `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0) scale(1.12)`
+                      : undefined,
+                    transition: isBeingDragged ? "none" : "transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)",
+                  }}
+                >
+                  <img src={key.img} alt="" draggable={false} />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
