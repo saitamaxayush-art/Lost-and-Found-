@@ -12,6 +12,7 @@ import ContactSection from "../components/landing/ContactSection";
 import LoginModal from "../components/landing/LoginModal";
 import ReportModal from "../components/landing/ReportModal";
 import ItemModal from "../components/landing/ItemModal";
+import GateIntro from "../components/landing/GateIntro";
 import Lenis from "lenis";
 import { TRACK_VH } from "../components/landing/timeline";
 import "../styles/landing.css";
@@ -31,6 +32,7 @@ export default function Landing() {
   const { subscribe, snap } = useScrollProgress(trackRef);
   const { user } = useApp();
 
+  const [introActive, setIntroActive] = useState(true);
   const [loginOpen, setLoginOpen] = useState(false);
   const [reportType, setReportType] = useState(null); // "lost" | "found" | null
   const [itemId, setItemId] = useState(null);
@@ -73,9 +75,9 @@ export default function Landing() {
     };
   }, []);
 
-  // Pause Lenis and lock document scroll while modals are open
+  // Pause Lenis and lock document scroll while modals or gate intro are open
   useEffect(() => {
-    const isModalOpen = loginOpen || !!reportType || !!itemId;
+    const isModalOpen = loginOpen || !!reportType || !!itemId || introActive;
     if (isModalOpen) {
       lenisRef.current?.stop();
       document.documentElement.style.overflow = "hidden";
@@ -83,7 +85,7 @@ export default function Landing() {
       lenisRef.current?.start();
       document.documentElement.style.overflow = "";
     }
-  }, [loginOpen, reportType, itemId]);
+  }, [loginOpen, reportType, itemId, introActive]);
 
   // Fade the "scroll" hint out once the visitor is a little way into the animation track.
   useEffect(() => {
@@ -207,6 +209,7 @@ export default function Landing() {
 
   return (
     <div className="lp-root" ref={rootRef}>
+      {introActive && <GateIntro onComplete={() => setIntroActive(false)} />}
       <CustomCursor subscribe={subscribe} />
       <Nav goTo={goTo} onLogin={openLogin} hoveredSection={hoveredSection} />
       <div className="lp-veil" ref={veilRef} aria-hidden="true" />
