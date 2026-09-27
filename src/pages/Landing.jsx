@@ -2,8 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useApp } from "../context/AppContext";
 import { useScrollProgress } from "../hooks/useScrollProgress";
 import { useReveal } from "../hooks/useReveal";
-import Scene from "../components/landing/Scene";
-import Steps from "../components/landing/Steps";
+import HowItWorksSection from "../components/landing/HowItWorksSection";
 import Nav from "../components/landing/Nav";
 import CustomCursor from "../components/landing/CustomCursor";
 import SearchSection from "../components/landing/SearchSection";
@@ -15,7 +14,6 @@ import ItemModal from "../components/landing/ItemModal";
 import GateIntro from "../components/landing/GateIntro";
 import HeroSection from "../components/landing/HeroSection";
 import Lenis from "lenis";
-import { TRACK_VH } from "../components/landing/timeline";
 import "../styles/landing.css";
 import "../styles/sections.css";
 import "../styles/cursor.css";
@@ -28,7 +26,6 @@ export default function Landing() {
   const veilRef = useRef(null);
   const jumping = useRef(false);
   const pending = useRef(null);
-  const hintRef = useRef(null);
   const lenisRef = useRef(null);
   const { subscribe, snap } = useScrollProgress(trackRef);
   const { user } = useApp();
@@ -88,12 +85,6 @@ export default function Landing() {
     }
   }, [loginOpen, reportType, itemId, introActive]);
 
-  // Fade the "scroll" hint out once the visitor is a little way into the animation track.
-  useEffect(() => {
-    return subscribe((p) => {
-      if (hintRef.current) hintRef.current.style.opacity = String(Math.max(0, 1 - p / 0.05));
-    });
-  }, [subscribe]);
 
   /* ---------------------------------------------------------------- *
    *  Section navigation.                                              *
@@ -232,41 +223,14 @@ export default function Landing() {
         onMouseLeave={() => setHoveredSection((prev) => (prev === "search" ? null : prev))}
       />
 
-      {/* ---------- How it works (the scroll-driven animation lives here) ---------- */}
-      <section
-        id="how-it-works"
-        className={`lp-track-section ${hoveredSection === "how-it-works" ? "is-hovered" : ""}`}
+      {/* ---------- How it works (Pinned Scrollytelling Sequence) ---------- */}
+      <HowItWorksSection
+        ref={trackRef}
+        subscribe={subscribe}
+        isHovered={hoveredSection === "how-it-works"}
         onMouseEnter={() => setHoveredSection("how-it-works")}
         onMouseLeave={() => setHoveredSection((prev) => (prev === "how-it-works" ? null : prev))}
-      >
-        <div className="lp-track-heading">
-          <span className="lp-eyebrow">How it Works</span>
-          <h2>Keep scrolling to watch a lost item find its way home.</h2>
-        </div>
-
-        <div className="lp-track" ref={trackRef} style={{ height: `${TRACK_VH}vh` }}>
-          <div className="lp-stage">
-            <Scene subscribe={subscribe} />
-            <Steps subscribe={subscribe} />
-            <div className="lp-hint" ref={hintRef} aria-hidden="true">
-              <span>Scroll</span>
-              <div className="lp-vert-wave-indicator" aria-hidden="true">
-                <svg width="20" height="38" viewBox="0 0 20 38" fill="none">
-                  <path
-                    className="lp-vert-wave-line"
-                    d="M 10 -24 Q 16 -18 10 -12 T 10 0 T 10 12 T 10 24 T 10 36 T 10 48 T 10 64"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="lp-track-outro" aria-hidden="true" />
-      </section>
+      />
 
       {/* ---------- History + reviews ---------- */}
       <HistorySection
