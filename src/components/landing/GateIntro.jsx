@@ -90,44 +90,45 @@ export default function GateIntro({ onComplete }) {
     timersRef.current.push(t);
   }, [clearAllTimers, onComplete]);
 
-  // Trigger door opening once correct key is inserted
+  // Trigger lock turn and door opening once correct key is inserted
   const triggerDoorOpen = useCallback(() => {
     if (phase !== "inserted" || keyTwisted) return;
 
+    // Step 1: Turn the lock and key around 90 degrees
     setPhase("turning");
     setKeyTwisted(true);
 
-    // Knob glows and ripple emits
+    // Step 2: Once the lock has turned around completely (~440ms), then swing open the door
     const t1 = setTimeout(() => {
       setPhase("door_opening");
       setDoorAngle(-58);
-    }, 280);
+    }, 440);
     timersRef.current.push(t1);
 
-    // Light expands until it washes over the entire screen
+    // Step 3: Warm golden bloom expands until it washes over the entire screen
     const t2 = setTimeout(() => {
       setIsBloomWashActive(true);
-    }, 850);
+    }, 1150);
     timersRef.current.push(t2);
 
-    // Camera dollys forward through the doorway
+    // Step 4: Camera pushes forward through the doorway
     const t3 = setTimeout(() => {
       setPhase("zooming");
       setCameraZoom({ scale: 6.5, x: 18, y: -8 });
-    }, 1450);
+    }, 1750);
     timersRef.current.push(t3);
 
-    // Cross-fade into real site at peak of light wash
+    // Step 5: Cross-fade into real site at peak of light wash
     const t4 = setTimeout(() => {
       setIsFadingOut(true);
-    }, 2350);
+    }, 2650);
     timersRef.current.push(t4);
 
-    // Complete intro
+    // Step 6: Complete intro
     const t5 = setTimeout(() => {
       setPhase("complete");
       onComplete?.();
-    }, 2850);
+    }, 3150);
     timersRef.current.push(t5);
   }, [phase, keyTwisted, onComplete]);
 
@@ -360,10 +361,15 @@ export default function GateIntro({ onComplete }) {
                 />
               </div>
 
-              {/* Inserted Key inside lock cylinder */}
+              {/* Inserted Key inside lock cylinder - fits cleanly and turns on command */}
               {insertedKey && (
                 <div
                   className={`gate-inserted-key ${keyTwisted ? "is-twisted" : ""}`}
+                  onClick={triggerDoorOpen}
+                  title="Click or press Space to turn lock and open"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Inserted key. Press Space or click to turn lock."
                 >
                   <img src={insertedKey.img} alt="" draggable={false} />
                 </div>
@@ -390,7 +396,7 @@ export default function GateIntro({ onComplete }) {
                 className="gate-prompt-btn"
                 onClick={triggerDoorOpen}
               >
-                Open Door
+                Turn &amp; Open
               </button>
             </div>
           )}

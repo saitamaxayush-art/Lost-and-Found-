@@ -17,6 +17,7 @@ const HOVER_SELECTOR = [
   ".lp-report-trigger",
   ".lp-nav-pill a",
   ".lp-nav-pill button",
+  ".gate-inserted-key",
 ].join(", ");
 
 export default function CustomCursor({ subscribe }) {
@@ -62,9 +63,11 @@ export default function CustomCursor({ subscribe }) {
     };
 
     const onOver = (e) => {
-      const overBell = !!e.target.closest?.(".lp-bell-btn");
-      const isInteractive = !overBell && !!e.target.closest?.(HOVER_SELECTOR);
-      s.hover = isInteractive;
+      const isInteractive = !!e.target.closest?.(HOVER_SELECTOR);
+      if (s.hover !== isInteractive) {
+        s.hover = isInteractive;
+        root?.classList.toggle("is-hover", isInteractive);
+      }
     };
 
     const onDown = () => {
@@ -92,11 +95,11 @@ export default function CustomCursor({ subscribe }) {
       const dt = Math.min(0.064, (now - lastTime) / 1000 || 0.016);
       lastTime = now;
 
-      const targetDotScale = s.down ? 0.75 : s.hover ? 1.4 : 1;
-      const targetRingScale = s.down ? 0.85 : s.hover ? 1.8 : 1;
+      const targetDotScale = s.down ? 0.8 : s.hover ? 1.35 : 1;
+      const targetRingScale = s.down ? 0.88 : s.hover ? 1.65 : 1;
 
-      // Exponential damping for organic responsiveness
-      const fDot = 1 - Math.exp(-32 * dt);
+      // Silky-smooth responsive tracking physics
+      const fDot = 1 - Math.exp(-36 * dt);
       const fRing = 1 - Math.exp(-18 * dt);
       const fScale = 1 - Math.exp(-22 * dt);
 
