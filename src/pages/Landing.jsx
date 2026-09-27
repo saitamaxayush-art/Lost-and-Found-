@@ -13,6 +13,7 @@ import LoginModal from "../components/landing/LoginModal";
 import ReportModal from "../components/landing/ReportModal";
 import ItemModal from "../components/landing/ItemModal";
 import GateIntro from "../components/landing/GateIntro";
+import HeroSection from "../components/landing/HeroSection";
 import Lenis from "lenis";
 import { TRACK_VH } from "../components/landing/timeline";
 import "../styles/landing.css";
@@ -214,30 +215,13 @@ export default function Landing() {
       <Nav goTo={goTo} onLogin={openLogin} hoveredSection={hoveredSection} />
       <div className="lp-veil" ref={veilRef} aria-hidden="true" />
 
-      {/* ---------- Hero ---------- */}
-      <section
-        id="top"
-        className={`lp-hero-section ${hoveredSection === "top" ? "is-hovered" : ""}`}
+      {/* ---------- Hero (Editorial Redesign) ---------- */}
+      <HeroSection
+        goTo={goTo}
+        isHovered={hoveredSection === "top"}
         onMouseEnter={() => setHoveredSection("top")}
         onMouseLeave={() => setHoveredSection((prev) => (prev === "top" ? null : prev))}
-      >
-        <div className="lp-hero-content">
-          <span className="lp-eyebrow">Campus Lost &amp; Found</span>
-          <h1>Everything lost on campus ends up in one box.</h1>
-          <p>
-            Report what you've lost or found, and let smart matching quietly do the searching — so things make
-            their way back to the people they belong to.
-          </p>
-          <div className="lp-hero-actions">
-            <button type="button" className="lp-btn-primary" onClick={() => goTo("search")}>
-              Search a lost item
-            </button>
-            <button type="button" className="lp-btn-secondary" onClick={() => goTo("how-it-works")}>
-              See how it works
-            </button>
-          </div>
-        </div>
-      </section>
+      />
 
       {/* ---------- Search ---------- */}
       <SearchSection

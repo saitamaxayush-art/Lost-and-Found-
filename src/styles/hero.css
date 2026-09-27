@@ -1,0 +1,504 @@
+/* ==========================================================================
+   FindBack — Editorial Hero Section Redesign
+   Two-column layout, Fraunces serif display, overlapping photography,
+   staggered match chips, count-up stats, subtle grain, and scroll prompt.
+   ========================================================================== */
+
+.hero-editorial-section {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 130px 32px 80px;
+  background-color: #fff8ef;
+  background-image:
+    radial-gradient(ellipse 90% 70% at 50% 12%, #fffdf8 0%, #fff8ef 50%, #fbe9d3 100%);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Subtle grain/noise overlay (2-4% opacity) across hero */
+.hero-grain-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Two-column container */
+.hero-editorial-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1240px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.95fr;
+  align-items: center;
+  gap: clamp(36px, 5vw, 84px);
+  margin: auto 0;
+}
+
+/* --------------------------------------------------------------------------
+   Left Column: Copy, CTAs, and Stat Row
+   -------------------------------------------------------------------------- */
+.hero-copy-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.hero-kicker-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #d9822b;
+  margin-bottom: 18px;
+  background: rgba(217, 130, 43, 0.08);
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(217, 130, 43, 0.18);
+}
+
+.hero-kicker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d9822b;
+  box-shadow: 0 0 6px rgba(217, 130, 43, 0.8);
+}
+
+/* Headline in Serif Display Face (Fraunces/Playfair Display, 400 weight, ~64px) */
+.hero-headline {
+  margin: 0 0 20px;
+  font-family: "Fraunces", "Playfair Display", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(38px, 4.8vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: #4a3420;
+}
+
+.hero-headline em {
+  font-family: inherit;
+  font-style: italic;
+  font-weight: 400;
+  color: #d9822b;
+}
+
+/* One-line subhead */
+.hero-subhead {
+  margin: 0 0 32px;
+  font-size: clamp(16px, 1.35vw, 19px);
+  line-height: 1.55;
+  color: #7a5a3a;
+  max-width: 48ch;
+}
+
+/* Action Group */
+.hero-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  margin-bottom: 46px;
+  flex-wrap: wrap;
+}
+
+/* Primary Pill Button */
+.hero-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 999px;
+  background-color: #1f2430;
+  color: #fff8ef;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(31, 36, 48, 0.22), 0 2px 6px rgba(31, 36, 48, 0.12);
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+              background-color 0.25s ease;
+  white-space: nowrap;
+}
+
+.hero-primary-btn:hover {
+  transform: translateY(-2px);
+  background-color: #151922;
+  box-shadow: 0 12px 28px rgba(31, 36, 48, 0.3), 0 0 16px rgba(217, 130, 43, 0.25);
+}
+
+.hero-primary-btn:active {
+  transform: translateY(0);
+}
+
+/* Ghost text link with animated underline extending on hover */
+.hero-ghost-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a3420;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 8px 0;
+  transition: color 0.25s ease;
+}
+
+.hero-ghost-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  width: 0;
+  height: 1.5px;
+  background-color: #d9822b;
+  transition: width 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.hero-ghost-link:hover {
+  color: #d9822b;
+}
+
+.hero-ghost-link:hover::after {
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Stat Row (Directly under CTAs)
+   -------------------------------------------------------------------------- */
+.hero-stats-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 3.2vw, 42px);
+  padding-top: 28px;
+  border-top: 1px solid rgba(122, 90, 58, 0.15);
+  width: 100%;
+}
+
+.hero-stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hero-stat-value {
+  font-family: "Fraunces", "Playfair Display", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(26px, 2.6vw, 34px);
+  line-height: 1.1;
+  color: #4a3420;
+  letter-spacing: -0.01em;
+}
+
+.hero-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7a5a3a;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   Right Column: Overlapping Real Object Photographs
+   -------------------------------------------------------------------------- */
+.hero-visual-col {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 480px;
+}
+
+.hero-cards-cluster {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  height: 420px;
+}
+
+/* Base Photo Frame (20px border radius, soft layered shadows) */
+.hero-photo-frame {
+  position: absolute;
+  border-radius: 20px;
+  overflow: hidden;
+  background-color: #fff8ef;
+  border: 4px solid #ffffff;
+  will-change: transform;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.hero-photo-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Photo 1: Distressed Black Leather Wallet with Key Fob (-6deg) */
+.hero-photo-wallet {
+  top: 18px;
+  left: 12px;
+  width: min(320px, 72vw);
+  height: 240px;
+  transform: rotate(-6deg);
+  box-shadow:
+    0 24px 50px rgba(74, 52, 32, 0.16),
+    0 8px 18px rgba(74, 52, 32, 0.08);
+  z-index: 2;
+}
+
+.hero-photo-wallet:hover {
+  transform: rotate(-4deg) translateY(-4px) scale(1.02);
+  box-shadow:
+    0 30px 60px rgba(74, 52, 32, 0.22),
+    0 10px 22px rgba(74, 52, 32, 0.12);
+  z-index: 4;
+}
+
+/* Photo 2: Canvas Tote Bag, Notebook, Glasses (+4deg) */
+.hero-photo-tote {
+  bottom: 22px;
+  right: 14px;
+  width: min(330px, 74vw);
+  height: 248px;
+  transform: rotate(4deg);
+  box-shadow:
+    0 28px 60px rgba(74, 52, 32, 0.2),
+    0 10px 20px rgba(74, 52, 32, 0.1);
+  z-index: 3;
+}
+
+.hero-photo-tote:hover {
+  transform: rotate(2deg) translateY(-4px) scale(1.02);
+  box-shadow:
+    0 34px 68px rgba(74, 52, 32, 0.24),
+    0 12px 24px rgba(74, 52, 32, 0.14);
+  z-index: 4;
+}
+
+/* Floating "Match" Notification Chips (White pill, colored dot, 13px text) */
+.hero-match-chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(217, 130, 43, 0.2);
+  color: #4a3420;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 10px 26px rgba(74, 52, 32, 0.12), 0 2px 6px rgba(74, 52, 32, 0.06);
+  pointer-events: none;
+  z-index: 5;
+  white-space: nowrap;
+  animation: heroChipEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-chip-wallet {
+  top: 0px;
+  right: 28px;
+  animation-delay: 0.35s;
+}
+
+.hero-chip-tote {
+  bottom: 6px;
+  left: 18px;
+  animation-delay: 0.65s;
+}
+
+.hero-chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hero-chip-dot.is-amber {
+  background-color: #d9822b;
+  box-shadow: 0 0 8px rgba(217, 130, 43, 0.7);
+}
+
+.hero-chip-dot.is-green {
+  background-color: #2f9e63;
+  box-shadow: 0 0 8px rgba(47, 158, 99, 0.65);
+}
+
+@keyframes heroChipEntrance {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Scroll Indicator (Bottom Center, Fades out past 10% scroll)
+   -------------------------------------------------------------------------- */
+.hero-scroll-indicator {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 3;
+  pointer-events: auto;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 8px;
+  color: #7a5a3a;
+  transition: opacity 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.hero-scroll-indicator.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hero-scroll-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.hero-scroll-line-wrap {
+  width: 1.5px;
+  height: 34px;
+  background: linear-gradient(180deg, #7a5a3a 0%, rgba(122, 90, 58, 0.2) 65%, transparent 100%);
+  border-radius: 2px;
+  animation: heroScrollBob 2.2s ease-in-out infinite;
+  transform-origin: 50% 0%;
+}
+
+@keyframes heroScrollBob {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Layout (Mobile & Tablet)
+   -------------------------------------------------------------------------- */
+@media (max-width: 980px) {
+  .hero-editorial-section {
+    padding: 115px 24px 70px;
+    min-height: auto;
+  }
+
+  .hero-editorial-container {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    text-align: center;
+  }
+
+  .hero-copy-col {
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero-subhead {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-actions-row {
+    justify-content: center;
+  }
+
+  .hero-stats-row {
+    justify-content: center;
+    gap: 28px;
+  }
+
+  .hero-visual-col {
+    min-height: 400px;
+  }
+
+  .hero-cards-cluster {
+    height: 380px;
+  }
+
+  .hero-photo-wallet {
+    width: 270px;
+    height: 200px;
+    left: 10px;
+  }
+
+  .hero-photo-tote {
+    width: 280px;
+    height: 210px;
+    right: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-headline {
+    font-size: 34px;
+  }
+
+  .hero-stats-row {
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 20px;
+  }
+
+  .hero-stat-col {
+    align-items: center;
+  }
+
+  .hero-chip-wallet {
+    right: 0;
+  }
+
+  .hero-chip-tote {
+    left: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced Motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .hero-match-chip,
+  .hero-scroll-line-wrap {
+    animation: none !important;
+  }
+}
