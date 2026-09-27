@@ -8,6 +8,12 @@ export const STATS = [
   { value: 2.6, decimals: 1, suffix: " days", label: "Average time to match", note: "from report to possible match" },
 ];
 
+export const EDITORIAL_STATS = [
+  { value: 11375, suffix: "", caption: "Items reported across all campuses" },
+  { value: 9412, suffix: "", caption: "Reunited with rightful owners" },
+  { value: 84, suffix: "%", caption: "Recovery and match rate" },
+];
+
 // Reported vs reunited, last 8 months
 export const MONTHLY = [
   { m: "Feb", reported: 980, reunited: 720 },
