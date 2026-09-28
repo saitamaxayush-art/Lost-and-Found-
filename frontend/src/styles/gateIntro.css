@@ -159,9 +159,14 @@
 
 .gate-tagline-word {
   display: inline-block;
+  margin-right: 0.32em;
   opacity: 0;
   transform: translateY(8px);
   animation: gateWordReveal 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.gate-tagline-word:last-child {
+  margin-right: 0;
 }
 
 @keyframes gateWordReveal {

@@ -233,6 +233,11 @@ export default function GateIntro({ onComplete, heroRef }) {
     };
   }, [phase, dismissIdleHint]);
 
+  // Preload sound buffers on mount
+  useEffect(() => {
+    sound.init();
+  }, []);
+
   // Clean timers and rAF on unmount
   useEffect(() => {
     return () => {
@@ -877,7 +882,7 @@ export default function GateIntro({ onComplete, heroRef }) {
               className="gate-tagline-word"
               style={{ animationDelay: `${i * 60}ms` }}
             >
-              {word}{" "}
+              {word}
             </span>
           ))}
         </h1>
