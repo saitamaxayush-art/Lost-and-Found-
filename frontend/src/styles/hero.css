@@ -17,6 +17,7 @@
     radial-gradient(ellipse 90% 70% at 50% 12%, #fffdf8 0%, #fff8ef 50%, #fbe9d3 100%);
   overflow: hidden;
   box-sizing: border-box;
+  transform-origin: center center;
 }
 
 /* Subtle grain/noise overlay (2-4% opacity) across hero */

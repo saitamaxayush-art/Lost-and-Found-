@@ -30,6 +30,7 @@ export default function Landing() {
   const pending = useRef(null);
   const hintRef = useRef(null);
   const lenisRef = useRef(null);
+  const heroRef = useRef(null);
   const { subscribe, snap } = useScrollProgress(trackRef);
   const { user } = useApp();
 
@@ -210,13 +211,19 @@ export default function Landing() {
 
   return (
     <div className="lp-root" ref={rootRef}>
-      {introActive && <GateIntro onComplete={() => setIntroActive(false)} />}
+      {introActive && (
+        <GateIntro
+          heroRef={heroRef}
+          onComplete={() => setIntroActive(false)}
+        />
+      )}
       <CustomCursor subscribe={subscribe} />
       <Nav goTo={goTo} onLogin={openLogin} hoveredSection={hoveredSection} />
       <div className="lp-veil" ref={veilRef} aria-hidden="true" />
 
       {/* ---------- Hero (Editorial Redesign) ---------- */}
       <HeroSection
+        ref={heroRef}
         goTo={goTo}
         isHovered={hoveredSection === "top"}
         onMouseEnter={() => setHoveredSection("top")}

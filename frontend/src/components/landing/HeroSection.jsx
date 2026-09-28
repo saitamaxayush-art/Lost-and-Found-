@@ -1,11 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import "../../styles/hero.css";
 
 function easeOutExpo(t) {
   return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
 }
 
-export default function HeroSection({ goTo, isHovered, onMouseEnter, onMouseLeave }) {
+const HeroSection = forwardRef(function HeroSection(
+  { goTo, isHovered, onMouseEnter, onMouseLeave },
+  ref
+) {
   const statRef = useRef(null);
   const [hasAnimatedStats, setHasAnimatedStats] = useState(false);
   const [stat1, setStat1] = useState(0);
@@ -75,6 +78,7 @@ export default function HeroSection({ goTo, isHovered, onMouseEnter, onMouseLeav
 
   return (
     <section
+      ref={ref}
       id="top"
       className={`hero-editorial-section ${isHovered ? "is-hovered" : ""}`}
       onMouseEnter={onMouseEnter}
@@ -194,4 +198,6 @@ export default function HeroSection({ goTo, isHovered, onMouseEnter, onMouseLeav
       </button>
     </section>
   );
-}
+});
+
+export default HeroSection;
