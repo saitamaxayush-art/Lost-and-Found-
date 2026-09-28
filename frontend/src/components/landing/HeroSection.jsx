@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
+import { sound } from "../../utils/sound";
 import "../../styles/hero.css";
 
 function easeOutExpo(t) {
@@ -109,7 +110,10 @@ const HeroSection = forwardRef(function HeroSection(
             <button
               type="button"
               className="hero-primary-btn"
-              onClick={() => goTo?.("search")}
+              onClick={() => {
+                sound.playUiClick();
+                goTo?.("search");
+              }}
             >
               Search a lost item
             </button>
@@ -117,7 +121,10 @@ const HeroSection = forwardRef(function HeroSection(
             <button
               type="button"
               className="hero-ghost-link"
-              onClick={() => goTo?.("how-it-works")}
+              onClick={() => {
+                sound.playUiClick();
+                goTo?.("how-it-works");
+              }}
             >
               See how it works
             </button>
@@ -190,7 +197,10 @@ const HeroSection = forwardRef(function HeroSection(
       <button
         type="button"
         className={`hero-scroll-indicator ${isScrolledPast ? "is-hidden" : ""}`}
-        onClick={() => goTo?.("search")}
+        onClick={() => {
+          sound.playUiClick();
+          goTo?.("search");
+        }}
         aria-label="Scroll down to search board"
       >
         <span className="hero-scroll-label">Scroll</span>

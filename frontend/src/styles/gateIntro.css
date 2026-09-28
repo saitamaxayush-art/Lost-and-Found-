@@ -130,7 +130,7 @@
    -------------------------------------------------------------------------- */
 .gate-header {
   position: absolute;
-  top: 36px;
+  top: clamp(28px, 4.5vh, 48px);
   left: 24px;
   right: 24px;
   text-align: center;
@@ -139,19 +139,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  padding: 0 16px;
 }
 
 .gate-tagline {
   margin: 0;
   font-family: "Fraunces", "Playfair Display", Georgia, serif;
   font-style: italic;
-  font-size: clamp(16px, 2.3vw, 22px);
+  font-size: clamp(17px, 2.2vw, 24px);
   font-weight: 400;
-  line-height: 1.4;
-  letter-spacing: 0.015em;
+  line-height: 1.55;
+  letter-spacing: 0.035em;
+  word-spacing: 0.16em;
   color: #fff8ef;
-  text-shadow: 0 2px 16px rgba(255, 223, 148, 0.22), 0 1px 3px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 2px 20px rgba(255, 223, 148, 0.25), 0 1px 4px rgba(0, 0, 0, 0.95);
+  max-width: 36ch;
 }
 
 .gate-tagline-word {
@@ -173,9 +176,10 @@
   margin: 4px 0 0;
   font-family: "Fraunces", "Playfair Display", Georgia, serif;
   font-style: italic;
-  font-size: clamp(13px, 1.55vw, 15px);
-  color: #dfaa6a;
-  letter-spacing: 0.02em;
+  font-size: clamp(13px, 1.4vw, 15px);
+  color: #e5b275;
+  letter-spacing: 0.035em;
+  word-spacing: 0.08em;
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -207,12 +211,12 @@
 
 .gate-stage {
   position: relative;
-  width: min(270px, 66vw);
+  width: min(260px, 62vw);
   aspect-ratio: 1 / 1.94;
   transform-style: preserve-3d;
   will-change: transform;
   transform-origin: 50% 50%;
-  margin-top: -24px;
+  margin-top: clamp(26px, 4.5vh, 48px);
 }
 
 /* Outer architectural door frame / casing */
@@ -925,14 +929,21 @@
    -------------------------------------------------------------------------- */
 @media (max-width: 640px) {
   .gate-stage {
-    width: min(230px, 64vw);
-    margin-top: -36px;
+    width: min(220px, 60vw);
+    margin-top: 18px;
   }
 
   .gate-header {
     top: 24px;
-    left: 18px;
-    right: 18px;
+    left: 16px;
+    right: 16px;
+    gap: 6px;
+  }
+
+  .gate-tagline {
+    font-size: 15.5px;
+    line-height: 1.45;
+    max-width: 28ch;
   }
 
   .gate-controls-bar {

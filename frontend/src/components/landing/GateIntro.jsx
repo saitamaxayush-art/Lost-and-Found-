@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "../../styles/gateIntro.css";
+import { sound } from "../../utils/sound";
 
 const SNAP_RADIUS = 76;
 
@@ -66,133 +67,6 @@ function easeInOutQuartic(x) {
   return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
 }
 
-/* ==========================================================================
-   Self-Contained Web Audio Synthesizer (Zero asset dependencies, instant response)
-   ========================================================================== */
-class WebAudioEngine {
-  constructor() {
-    this.ctx = null;
-  }
-
-  init() {
-    if (!this.ctx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (AC) this.ctx = new AC();
-    }
-    if (this.ctx && this.ctx.state === "suspended") {
-      this.ctx.resume().catch(() => {});
-    }
-  }
-
-  playKeySlide() {
-    if (!this.ctx) return;
-    this.init();
-    const t = this.ctx.currentTime;
-    const len = Math.floor(this.ctx.sampleRate * 0.18);
-    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
-    const src = this.ctx.createBufferSource();
-    src.buffer = buf;
-    const flt = this.ctx.createBiquadFilter();
-    flt.type = "bandpass";
-    flt.frequency.setValueAtTime(2200, t);
-    flt.frequency.exponentialRampToValueAtTime(1200, t + 0.18);
-    flt.Q.value = 5.0;
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.001, t);
-    gain.gain.linearRampToValueAtTime(0.07, t + 0.03);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-    src.connect(flt);
-    flt.connect(gain);
-    gain.connect(this.ctx.destination);
-    src.start(t);
-  }
-
-  playKeySeat() {
-    if (!this.ctx) return;
-    this.init();
-    const t = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(1600, t);
-    osc.frequency.exponentialRampToValueAtTime(450, t + 0.06);
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.09, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(t);
-    osc.stop(t + 0.065);
-  }
-
-  playLockClick() {
-    if (!this.ctx) return;
-    this.init();
-    const t = this.ctx.currentTime;
-    [0, 0.022].forEach((offset, idx) => {
-      const osc = this.ctx.createOscillator();
-      osc.type = idx === 0 ? "sawtooth" : "square";
-      osc.frequency.setValueAtTime(idx === 0 ? 760 : 1300, t + offset);
-      osc.frequency.exponentialRampToValueAtTime(180, t + offset + 0.045);
-      const flt = this.ctx.createBiquadFilter();
-      flt.type = "bandpass";
-      flt.frequency.value = idx === 0 ? 1150 : 2200;
-      flt.Q.value = 6;
-      const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.14, t + offset);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + offset + 0.05);
-      osc.connect(flt);
-      flt.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(t + offset);
-      osc.stop(t + offset + 0.06);
-    });
-  }
-
-  playDoorCreak() {
-    if (!this.ctx) return;
-    this.init();
-    const t = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(90, t);
-    osc.frequency.linearRampToValueAtTime(65, t + 0.45);
-    const flt = this.ctx.createBiquadFilter();
-    flt.type = "lowpass";
-    flt.frequency.setValueAtTime(300, t);
-    flt.frequency.linearRampToValueAtTime(160, t + 0.45);
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.001, t);
-    gain.gain.linearRampToValueAtTime(0.05, t + 0.08);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
-    osc.connect(flt);
-    flt.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(t);
-    osc.stop(t + 0.48);
-  }
-
-  playLightSwell() {
-    if (!this.ctx) return;
-    this.init();
-    const t = this.ctx.currentTime;
-    [130.81, 196.0, 261.63, 329.63].forEach((f) => {
-      const osc = this.ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(f, t);
-      const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.linearRampToValueAtTime(0.03, t + 1.2);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(t);
-      osc.stop(t + 3.0);
-    });
-  }
-}
-
 export default function GateIntro({ onComplete, heroRef }) {
   const [shuffledKeys] = useState(() => shuffleKeys(CLUSTER_KEYS));
   const [phase, setPhase] = useState("ready");
@@ -205,7 +79,7 @@ export default function GateIntro({ onComplete, heroRef }) {
   const [rejectMessage, setRejectMessage] = useState(null);
   const [recoilingKeyId, setRecoilingKeyId] = useState(null);
   const [showIdleHint, setShowIdleHint] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(() => sound.enabled);
   const [liveAnnouncement, setLiveAnnouncement] = useState("");
 
   const rootRef = useRef(null);
@@ -234,16 +108,12 @@ export default function GateIntro({ onComplete, heroRef }) {
   const rafOpenRef = useRef(null);
   const rafInsertionRef = useRef(null);
   const rafAmbianceRef = useRef(null);
-  const soundEngineRef = useRef(new WebAudioEngine());
-  const soundEnabledRef = useRef(false);
 
   // Parallax & Flashlight state
   const mousePos = useRef({ x: window.innerWidth * 0.5, y: window.innerHeight * 0.45 });
   const flPos = useRef({ x: window.innerWidth * 0.5, y: window.innerHeight * 0.45 });
   const parPos = useRef({ x: 0, y: 0 });
   const isTouchDevice = useRef(false);
-
-  soundEnabledRef.current = soundEnabled;
 
   const clearAllTimers = useCallback(() => {
     timersRef.current.forEach((id) => clearTimeout(id));
@@ -382,8 +252,8 @@ export default function GateIntro({ onComplete, heroRef }) {
 
   // Sound toggle handler
   const toggleSound = () => {
-    soundEngineRef.current.init();
-    setSoundEnabled((prev) => !prev);
+    const next = sound.toggle();
+    setSoundEnabled(next);
   };
 
   // Skip handler: skip straight to site, no blur or zoom
@@ -421,9 +291,7 @@ export default function GateIntro({ onComplete, heroRef }) {
       thresholdLightRef.current.style.filter = "blur(1.5px)";
     }
 
-    if (soundEnabledRef.current) {
-      soundEngineRef.current.playKeySlide();
-    }
+    sound.playKeySlide();
 
     const startTime = performance.now();
 
@@ -515,9 +383,7 @@ export default function GateIntro({ onComplete, heroRef }) {
           keyPlateShadowRef.current.style.opacity = "0.45";
           keyPlateShadowRef.current.style.transform = "translate(-50%, -50%) scale(0.8)";
         }
-        if (soundEnabledRef.current) {
-          soundEngineRef.current.playKeySeat();
-        }
+        sound.playKeySeat();
         setPhase("inserted");
         setLiveAnnouncement("Key inserted. Press space to turn the lock.");
         return;
@@ -531,6 +397,7 @@ export default function GateIntro({ onComplete, heroRef }) {
 
   // Wrong Key Rejection: approach, cannot insert, 3px twitch twice (200ms), 1px door shake, ease back
   const triggerWrongKeyReject = useCallback((key) => {
+    sound.playWrongKeyReject();
     dismissIdleHint();
     setRecoilingKeyId(key.id);
     setRejectMessage("That is not the right key");
@@ -584,6 +451,7 @@ export default function GateIntro({ onComplete, heroRef }) {
     if (rootRef.current) rootRef.current.style.willChange = "opacity";
 
     const turnStartTime = performance.now();
+    let hasPlayedAnticipate = false;
     let hasClicked = false;
     let hasPlayedCreak = false;
     let hasPlayedSwell = false;
@@ -599,6 +467,10 @@ export default function GateIntro({ onComplete, heroRef }) {
           // a) Anticipation (120ms): key rotates -5deg about keyhole center
           const p = elapsedTurn / 120;
           const antRot = -5 * Math.sin((p * Math.PI) / 2);
+          if (!hasPlayedAnticipate) {
+            hasPlayedAnticipate = true;
+            sound.playKeyAnticipate();
+          }
           if (insertedKeyWrapRef.current) {
             insertedKeyWrapRef.current.style.transform =
               `translate(-50%, -50%) translate3d(0, 4px, 0) scale(0.9) scaleY(0.92) rotateZ(${antRot.toFixed(2)}deg)`;
@@ -618,9 +490,7 @@ export default function GateIntro({ onComplete, heroRef }) {
           const p = (elapsedTurn - 640) / 120;
           if (!hasClicked) {
             hasClicked = true;
-            if (soundEnabledRef.current) {
-              soundEngineRef.current.playLockClick();
-            }
+            sound.playLockClick();
           }
           // Door leaf nudges 1.5px toward frame and back
           const leafNudge = Math.sin(p * Math.PI) * 1.5;
@@ -661,11 +531,11 @@ export default function GateIntro({ onComplete, heroRef }) {
       // Play audio cues
       if (t >= 0.5 && !hasPlayedCreak) {
         hasPlayedCreak = true;
-        if (soundEnabledRef.current) soundEngineRef.current.playDoorCreak();
+        sound.playDoorCreak();
       }
       if (t >= 0.8 && !hasPlayedSwell) {
         hasPlayedSwell = true;
-        if (soundEnabledRef.current) soundEngineRef.current.playLightSwell();
+        sound.playLightSwell();
       }
 
       // 0. Fade UI tagline and key tray smoothly out from t = 0 to 1.0s
@@ -809,6 +679,7 @@ export default function GateIntro({ onComplete, heroRef }) {
   const handlePointerDown = (e, key) => {
     if (phase !== "ready" || insertedKey) return;
     e.preventDefault();
+    sound.playKeyPickup();
     dismissIdleHint();
     setActiveKeyId(key.id);
     setRejectMessage(null);
@@ -840,6 +711,10 @@ export default function GateIntro({ onComplete, heroRef }) {
       const dist = Math.hypot(keyTipX - holeCenterX, keyTipY - holeCenterY);
       const isTargetKey = activeKeyId === "key-3";
       const inRadius = dist < SNAP_RADIUS;
+
+      if (inRadius && isTargetKey && !isNearKeyhole) {
+        sound.playKeyProximity();
+      }
 
       setIsNearKeyhole(inRadius && isTargetKey);
 
@@ -905,6 +780,7 @@ export default function GateIntro({ onComplete, heroRef }) {
   // Direct click fallback
   const handleKeyClick = (key) => {
     if (phase !== "ready" || insertedKey) return;
+    sound.playKeyPickup();
     if (key.isCorrect) {
       startKeyInsertion(key);
     } else {

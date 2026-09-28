@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "../../context/AppContext";
+import { sound } from "../../utils/sound";
 
 export const NAV_LINKS = [
   { id: "search", label: "Search a Lost Item" },
@@ -161,6 +162,7 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
 
   const go = (e, id) => {
     e.preventDefault();
+    sound.playUiClick();
     setMenuOpen(false);
     setActive(id);
     goTo(id);
@@ -193,6 +195,7 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
                   className={`${isActive ? "is-active" : ""} ${isSectionHovered ? "is-section-hovered" : ""}`}
                   onClick={(e) => {
                     e.preventDefault();
+                    sound.playUiClick();
                     setActive(l.id);
                     goTo(l.id);
                   }}
@@ -251,12 +254,26 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
           {user ? (
             <>
               <span className="lp-user" title={user.name}>{user.name?.trim()?.[0]?.toUpperCase() || "U"}</span>
-              <button type="button" className="lp-nav-cta lp-nav-cta-ghost" onClick={logout}>
+              <button
+                type="button"
+                className="lp-nav-cta lp-nav-cta-ghost"
+                onClick={() => {
+                  sound.playUiClick();
+                  logout();
+                }}
+              >
                 Log out
               </button>
             </>
           ) : (
-            <button type="button" className="lp-nav-cta" onClick={onLogin}>
+            <button
+              type="button"
+              className="lp-nav-cta"
+              onClick={() => {
+                sound.playUiClick();
+                onLogin();
+              }}
+            >
               Log in
             </button>
           )}
