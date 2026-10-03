@@ -140,9 +140,31 @@ class SoundEngine {
     this.playBuffer("lockClick", { volume: 1.0, rate: 1.0 });
   }
 
-  // 7. Door creak: authentic heavy oak door slowly groaning on iron hinges
+  // 7. Door opening: calm, gentle, peaceful glide of a well-balanced heavy door
   playDoorCreak() {
-    this.playBuffer("doorCreak", { volume: 0.92, rate: 1.0 });
+    // Play the newly generated calm, soothing door glide audio buffer
+    this.playBuffer("doorCreak", { volume: 0.75, rate: 0.98 });
+
+    // Complement with a serene warm low-frequency acoustic glide
+    if (this.ctx && this.enabled) {
+      const t = this.ctx.currentTime;
+      [82.4, 123.5].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, t);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.94, t + 2.2);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.linearRampToValueAtTime(0.035 / (idx + 1), t + 0.4);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(t);
+        osc.stop(t + 2.5);
+      });
+    }
   }
 
   // 8. Wrong key reject: key tip rattling against the lock escutcheon plate
@@ -181,6 +203,34 @@ class SoundEngine {
   // 11. UI Toggle
   playUiToggle() {
     this.playBuffer("uiClick", { volume: 0.5, rate: 1.15 });
+  }
+
+  // 12. Soft OTP tactile key tap
+  playOtpKey() {
+    this.playBuffer("uiClick", { volume: 0.35, rate: 1.35 + Math.random() * 0.1 });
+  }
+
+  // 13. Login success chime
+  playSuccess() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, t + idx * 0.08);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, t + idx * 0.08);
+      gain.gain.linearRampToValueAtTime(0.08, t + idx * 0.08 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + idx * 0.08 + 0.85);
+
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t + idx * 0.08);
+      osc.stop(t + idx * 0.08 + 0.9);
+    });
   }
 }
 

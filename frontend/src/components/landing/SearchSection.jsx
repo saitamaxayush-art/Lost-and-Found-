@@ -3,6 +3,7 @@ import { useApp } from "../../context/AppContext";
 import { CATEGORIES, STATUSES } from "../../data/mockItems";
 import SearchDissolveLoader from "./SearchDissolveLoader";
 import ThemeDropdown, { CATEGORY_ICONS, STATUS_ICONS } from "./ThemeDropdown";
+import { sound } from "../../utils/sound";
 
 const PAGE = 6;
 
@@ -35,7 +36,14 @@ function highlightText(text, tokens) {
 
 export function ItemCard({ item, onOpen, tokens = [] }) {
   return (
-    <button type="button" className="sr-card" onClick={() => onOpen(item.id)}>
+    <button
+      type="button"
+      className="sr-card"
+      onClick={() => {
+        sound.playUiClick();
+        onOpen(item.id);
+      }}
+    >
       <div className="sr-card-media">
         {item.image ? <img src={item.image} alt="" /> : <span>No photo added</span>}
       </div>
@@ -69,6 +77,7 @@ export default function SearchSection({ onOpenItem, onReport, onMouseEnter, onMo
 
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
+    sound.playUiClick();
     const trimmed = query.trim();
 
     if (!trimmed) {
@@ -99,6 +108,7 @@ export default function SearchSection({ onOpenItem, onReport, onMouseEnter, onMo
   };
 
   const resetAllFilters = () => {
+    sound.playUiClick();
     setQuery("");
     setActiveQuery("");
     setActiveTokens([]);
@@ -257,14 +267,20 @@ export default function SearchSection({ onOpenItem, onReport, onMouseEnter, onMo
             <button
               type="button"
               className="lp-btn-primary sm"
-              onClick={() => onReport("lost")}
+              onClick={() => {
+                sound.playUiClick();
+                onReport("lost");
+              }}
             >
               Report a lost item
             </button>
             <button
               type="button"
               className="lp-btn-secondary sm"
-              onClick={() => onReport("found")}
+              onClick={() => {
+                sound.playUiClick();
+                onReport("found");
+              }}
             >
               I found something
             </button>

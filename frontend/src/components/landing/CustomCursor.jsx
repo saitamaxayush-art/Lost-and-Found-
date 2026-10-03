@@ -9,6 +9,11 @@ const HOVER_SELECTOR = [
   "label",
   "[role='button']",
   ".sr-card",
+  ".hs-item",
+  ".co-card",
+  ".sr-chip",
+  ".mock-bell",
+  ".lp-bell-btn",
   ".gate-cluster-item",
   ".gate-skip-btn",
   ".gate-prompt-btn",
@@ -18,6 +23,8 @@ const HOVER_SELECTOR = [
   ".lp-nav-pill a",
   ".lp-nav-pill button",
   ".gate-inserted-key",
+  ".lf-autofill-btn",
+  ".lf-otp-box",
 ].join(", ");
 
 export default function CustomCursor({ subscribe }) {

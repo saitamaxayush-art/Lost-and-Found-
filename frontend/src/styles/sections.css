@@ -959,7 +959,7 @@
 .rv-card figcaption small { color: var(--peach-ink-soft); font-size: 12.5px; }
 
 /* ===================== How it works: seamless edges ===================== */
-.lp-track-outro { height: 160px; background: linear-gradient(180deg, var(--peach-2) 0%, var(--peach-1) 100%); }
+.lp-track-outro { height: 160px; background: linear-gradient(180deg, #120b06 0%, var(--peach-2) 100%); }
 
 /* ===================== Contact ===================== */
 .lp-contact {
@@ -1600,21 +1600,21 @@
 }
 
 /* Section Headings subtly deepen to rich dark ink with warm ambient glow */
-:is(.lp-section, .lp-hero-section, .lp-track-section):is(:hover, .is-hovered) :is(h1, h2) {
+:is(.lp-section, .lp-hero-section):is(:hover, .is-hovered) :is(h1, h2) {
   color: #241405;
   text-shadow: 0 2px 20px rgba(217, 130, 43, 0.1);
   transition: color 0.4s ease, text-shadow 0.4s ease;
 }
 
 /* Section Eyebrow Pill interactive elevation & glow on section hover */
-:is(.lp-section, .lp-hero-section, .lp-track-section):is(:hover, .is-hovered) .lp-eyebrow {
+:is(.lp-section, .lp-hero-section):is(:hover, .is-hovered) .lp-eyebrow {
   background: rgba(255, 255, 255, 0.94);
   border-color: rgba(217, 130, 43, 0.45);
   color: #6d3303;
   transform: translateY(-2px);
   box-shadow: inset 0 1px 0 #ffffff, 0 4px 14px rgba(217, 130, 43, 0.16);
 }
-:is(.lp-section, .lp-hero-section, .lp-track-section):is(:hover, .is-hovered) .lp-eyebrow::before {
+:is(.lp-section, .lp-hero-section):is(:hover, .is-hovered) .lp-eyebrow::before {
   transform: scale(1.35);
   box-shadow: 0 0 10px rgba(217, 130, 43, 0.9);
 }
