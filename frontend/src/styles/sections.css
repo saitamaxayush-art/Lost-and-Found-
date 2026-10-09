@@ -176,6 +176,26 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   font-weight: 700; font-size: 14px;
 }
+.lp-user.lp-user-btn {
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lp-user.lp-user-btn:hover {
+  transform: scale(1.08);
+  border-color: rgba(217, 130, 43, 0.6);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 14px rgba(217, 130, 43, 0.25);
+}
+.lp-nav-links a.is-profile-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.lp-nav-profile-badge {
+  font-size: 13px;
+  line-height: 1;
+}
 .lp-icon-btn {
   position: relative;
   width: 38px; height: 38px;

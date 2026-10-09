@@ -4,7 +4,7 @@ import { useApp } from "../../context/AppContext";
 import Modal from "./Modal";
 import ThemeDropdown, { CATEGORY_ICONS } from "./ThemeDropdown";
 
-export default function ReportModal({ type, onClose, onViewItem }) {
+export default function ReportModal({ type, onClose, onViewItem, onViewReport }) {
   const { addItem } = useApp();
   const verb = type === "lost" ? "lost" : "found";
 
@@ -49,7 +49,17 @@ export default function ReportModal({ type, onClose, onViewItem }) {
               View the possible match
             </button>
           )}
-          <button type="button" className={match ? "lf-ghost" : "lf-submit"} onClick={() => onViewItem(item.id)}>
+          <button
+            type="button"
+            className={match ? "lf-ghost" : "lf-submit"}
+            onClick={() => {
+              if (onViewReport) {
+                onViewReport(item.id);
+              } else {
+                onViewItem(item.id, { isMyReport: true });
+              }
+            }}
+          >
             View my report
           </button>
         </div>

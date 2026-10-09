@@ -1,14 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
 import { sound } from "../../utils/sound";
 
-export const NAV_LINKS = [
+export const BASE_NAV_LINKS = [
   { id: "search", label: "Search a Lost Item" },
   { id: "how-it-works", label: "How it Works" },
   { id: "history", label: "History" },
   { id: "contact", label: "Contact Us" },
 ];
-const SECTION_IDS = ["top", ...NAV_LINKS.map((l) => l.id)];
+
+export const NAV_LINKS = BASE_NAV_LINKS;
+
+const SECTION_IDS = ["top", ...BASE_NAV_LINKS.map((l) => l.id)];
 const SHRINK_DISTANCE = 120; // px of scroll over which the bar shrinks into a pill
 
 const clamp = (v) => Math.min(1, Math.max(0, v));
@@ -95,30 +99,54 @@ export async function playBellChime() {
 }
 
 export default function Nav({ goTo, onLogin, hoveredSection }) {
-  const { user, logout, notifications, dismissNotifications } = useApp();
+  const { user, logout, notifications, dismissNotifications, userPoints } = useApp();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isProfilePage = location.pathname === "/profile";
+
   const rootRef = useRef(null);
   const ringTimerRef = useRef(null);
-  const [active, setActive] = useState("");
+  const [active, setActive] = useState(isProfilePage ? "profile" : "");
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
 
+  // Dynamic Navigation Links:
+  // When logged in, insert "My Profile" directly to the right of "Search a Lost Item"
+  const navLinks = useMemo(() => {
+    if (!user) {
+      return BASE_NAV_LINKS;
+    }
+    return [
+      { id: "search", label: "Search a Lost Item" },
+      { id: "profile", label: "My Profile", isRoute: true, path: "/profile" },
+      { id: "how-it-works", label: "How it Works" },
+      { id: "history", label: "History" },
+      { id: "contact", label: "Contact Us" },
+    ];
+  }, [user]);
+
+  useEffect(() => {
+    if (isProfilePage) {
+      setActive("profile");
+    }
+  }, [isProfilePage]);
+
   // Shrink amount --s (0 = full-width bar at the top, 1 = compact floating pill).
-  // It follows the scroll position continuously and is eased, so the bar shrinks
-  // going down and grows back into place going up.
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let target = 0;
-    let cur = 0;
-    let raf = 0;
 
     const paint = () => {
       el.classList.toggle("is-scrolled", window.scrollY > 25);
     };
     const onScroll = () => {
       paint();
+
+      if (isProfilePage) {
+        setActive("profile");
+        return;
+      }
 
       // which section is in view -> highlight its link
       let now = "";
@@ -135,7 +163,7 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
     return () => {
       window.removeEventListener("scroll", onScroll);
     };
-  }, []);
+  }, [isProfilePage]);
 
   // close popovers on outside click / Esc
   useEffect(() => {
@@ -160,12 +188,31 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
     };
   }, [menuOpen, notifOpen]);
 
-  const go = (e, id) => {
+  const handleLinkClick = (e, link) => {
     e.preventDefault();
-    sound.playUiClick();
+    if (!isProfilePage && link.id !== "profile") {
+      sound.playUiClick();
+    }
     setMenuOpen(false);
-    setActive(id);
-    goTo(id);
+
+    if (link.id === "profile") {
+      setActive("profile");
+      if (!isProfilePage) {
+        navigate("/profile");
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      return;
+    }
+
+    if (isProfilePage) {
+      navigate("/", { state: { scrollTo: link.id } });
+    } else if (goTo) {
+      setActive(link.id);
+      goTo(link.id);
+    } else {
+      navigate("/", { state: { scrollTo: link.id } });
+    }
   };
 
   const triggerBellRing = () => {
@@ -185,20 +232,15 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
       <div className="lp-nav-container">
         <div className="lp-nav-center">
           <nav className="lp-nav-links" aria-label="Sections">
-            {NAV_LINKS.map((l) => {
+            {navLinks.map((l) => {
               const isSectionHovered = hoveredSection === l.id;
               const isActive = active === l.id;
               return (
                 <a
                   key={l.id}
-                  href={`#${l.id}`}
-                  className={`${isActive ? "is-active" : ""} ${isSectionHovered ? "is-section-hovered" : ""}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    sound.playUiClick();
-                    setActive(l.id);
-                    goTo(l.id);
-                  }}
+                  href={l.isRoute ? l.path : `#${l.id}`}
+                  className={`${isActive ? "is-active" : ""} ${isSectionHovered ? "is-section-hovered" : ""} ${l.id === "profile" ? "is-profile-pill" : ""}`}
+                  onClick={(e) => handleLinkClick(e, l)}
                 >
                   {l.label}
                 </a>
@@ -253,13 +295,25 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
 
           {user ? (
             <>
-              <span className="lp-user" title={user.name}>{user.name?.trim()?.[0]?.toUpperCase() || "U"}</span>
+              <button
+                type="button"
+                className="lp-user lp-user-btn"
+                title={`My Profile: ${user.name}`}
+                onClick={() => {
+                  navigate("/profile");
+                }}
+              >
+                {user.name?.trim()?.[0]?.toUpperCase() || "U"}
+              </button>
               <button
                 type="button"
                 className="lp-nav-cta lp-nav-cta-ghost"
                 onClick={() => {
-                  sound.playUiClick();
+                  if (!isProfilePage) sound.playUiClick();
                   logout();
+                  if (isProfilePage) {
+                    navigate("/");
+                  }
                 }}
               >
                 Log out
@@ -271,7 +325,7 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
               className="lp-nav-cta"
               onClick={() => {
                 sound.playUiClick();
-                onLogin();
+                if (onLogin) onLogin();
               }}
             >
               Log in
@@ -297,8 +351,13 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
 
       {menuOpen && (
         <div className="lp-nav-menu">
-          {NAV_LINKS.map((l) => (
-            <a key={l.id} href={`#${l.id}`} className={active === l.id ? "is-active" : ""} onClick={(e) => go(e, l.id)}>
+          {navLinks.map((l) => (
+            <a
+              key={l.id}
+              href={l.isRoute ? l.path : `#${l.id}`}
+              className={active === l.id ? "is-active" : ""}
+              onClick={(e) => handleLinkClick(e, l)}
+            >
               {l.label}
             </a>
           ))}

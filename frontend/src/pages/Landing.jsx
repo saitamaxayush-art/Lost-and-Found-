@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useScrollProgress } from "../hooks/useScrollProgress";
 import { useReveal } from "../hooks/useReveal";
@@ -33,8 +34,13 @@ export default function Landing() {
   const heroRef = useRef(null);
   const { subscribe, snap } = useScrollProgress(trackRef);
   const { user } = useApp();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const [introActive, setIntroActive] = useState(true);
+  const [introActive, setIntroActive] = useState(() => {
+    if (location.state?.scrollTo || location.hash) return false;
+    return true;
+  });
   const [loginOpen, setLoginOpen] = useState(false);
   const [reportType, setReportType] = useState(null); // "lost" | "found" | null
   const [itemId, setItemId] = useState(null);
@@ -174,6 +180,16 @@ export default function Landing() {
     [snap]
   );
 
+  useEffect(() => {
+    const target = location.state?.scrollTo || (location.hash ? location.hash.replace("#", "") : null);
+    if (target) {
+      setIntroActive(false);
+      const timer = setTimeout(() => {
+        goTo(target);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [location, goTo]);
 
   /* ---------------------------- auth gate --------------------------- */
   const requireLogin = useCallback(
@@ -204,10 +220,25 @@ export default function Landing() {
   const openReport = useCallback((type) => requireLogin(() => setReportType(type)), [requireLogin]);
   const closeReport = useCallback(() => setReportType(null), []);
   const closeItem = useCallback(() => setItemId(null), []);
-  const viewItem = useCallback((id) => {
-    setReportType(null);
-    setItemId(id);
-  }, []);
+  const handleViewReport = useCallback(
+    (id) => {
+      setReportType(null);
+      navigate("/profile", { state: { highlightItemId: id } });
+    },
+    [navigate]
+  );
+
+  const viewItem = useCallback(
+    (id, meta) => {
+      setReportType(null);
+      if (meta?.isMyReport) {
+        navigate("/profile", { state: { highlightItemId: id } });
+      } else {
+        setItemId(id);
+      }
+    },
+    [navigate]
+  );
 
   return (
     <div className="lp-root" ref={rootRef}>
@@ -290,7 +321,14 @@ export default function Landing() {
       />
 
       <LoginModal open={loginOpen} onClose={closeLogin} onSuccess={afterLogin} />
-      {reportType && <ReportModal type={reportType} onClose={closeReport} onViewItem={viewItem} />}
+      {reportType && (
+        <ReportModal
+          type={reportType}
+          onClose={closeReport}
+          onViewItem={viewItem}
+          onViewReport={handleViewReport}
+        />
+      )}
       {itemId && <ItemModal itemId={itemId} onClose={closeItem} requireLogin={requireLogin} />}
     </div>
   );
