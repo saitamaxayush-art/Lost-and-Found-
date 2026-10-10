@@ -121,7 +121,6 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
     }
     return [
       { id: "search", label: "Search a Lost Item" },
-      { id: "profile", label: "My Profile", isRoute: true, path: "/profile" },
       { id: "people", label: "People", isRoute: true, path: "/people" },
       { id: "how-it-works", label: "How it Works" },
       { id: "history", label: "History" },
@@ -342,12 +341,27 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
               <button
                 type="button"
                 className="lp-user lp-user-btn"
-                title={`My Profile: ${user.name}`}
+                title={`My Profile (${user.name || "Student"})`}
                 onClick={() => {
                   navigate("/profile");
                 }}
+                aria-label="Open My Profile"
               >
-                {user.name?.trim()?.[0]?.toUpperCase() || "U"}
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name || "User"}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                ) : (
+                  user.name?.trim()?.[0]?.toUpperCase() || "U"
+                )}
               </button>
               <button
                 type="button"

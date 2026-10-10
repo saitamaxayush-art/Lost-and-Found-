@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTilt } from "../../hooks/useTilt";
 import { useCountUp } from "../../hooks/useCountUp";
 import Avatar from "../common/Avatar";
 import ProgressRing from "./ProgressRing";
 import Sparkline from "./Sparkline";
 import NotificationsPopover from "./NotificationsPopover";
+import HeroStars from "./HeroStars";
+import { useApp } from "../../context/AppContext";
 
 export default function IdentityHero({
   user,
@@ -17,14 +20,14 @@ export default function IdentityHero({
   onReportLost,
   onReportFound,
 }) {
-  const heroRef = useTilt({ maxTilt: 3, perspective: 1200 });
+  const navigate = useNavigate();
+  const heroRef = useTilt({ maxTilt: 2.2, perspective: 1200, damping: 0.075 });
   const [notifOpen, setNotifOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [copiedKey, setCopiedKey] = useState(null);
-
   const contactRef = useRef(null);
 
-  const animatedPoints = useCountUp(userPoints, 650);
+  const animatedPoints = useCountUp(userPoints, 700);
   const animatedRank = useCountUp(userRank, 650);
   const animatedReports = useCountUp(reportsCount, 650);
 
@@ -55,6 +58,9 @@ export default function IdentityHero({
 
   return (
     <header className="pf-hero-card" ref={heroRef}>
+      {/* Background Starfield & Nebula */}
+      <HeroStars />
+
       {/* Specular highlight & Grain overlay */}
       <div className="pf-hero-specular" aria-hidden="true" />
       <div className="pf-hero-grain" aria-hidden="true" />
@@ -103,14 +109,29 @@ export default function IdentityHero({
       <div className="pf-hero-content">
         {/* Left: 96px Avatar with Progress Ring + Name + Subtitle */}
         <div className="pf-hero-profile">
-          <ProgressRing points={userPoints} size={114} strokeWidth={3}>
-            <Avatar
-              name={user.name || "Student"}
-              image={user.avatar || null}
-              size={96}
-              className="pf-hero-avatar"
-            />
-          </ProgressRing>
+          <div
+            className="pf-hero-avatar-wrap"
+            onClick={() => navigate("/edit-profile")}
+            title="Edit profile & photo"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && navigate("/edit-profile")}
+          >
+            <ProgressRing points={userPoints} size={114} strokeWidth={3}>
+              <Avatar
+                name={user.name || "Student"}
+                image={user.avatar || null}
+                size={96}
+                className="pf-hero-avatar"
+              />
+            </ProgressRing>
+            <span className="pf-avatar-edit-badge" title="Edit Profile">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </span>
+          </div>
 
           <div className="pf-hero-meta">
             <h1 className="pf-hero-name">{user.name || "Student"}</h1>
@@ -205,6 +226,18 @@ export default function IdentityHero({
           </div>
 
           <div className="pf-hero-actions">
+            <button
+              type="button"
+              className="pf-btn-edit-profile"
+              onClick={() => navigate("/edit-profile")}
+              title="Edit profile & campus information"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              <span>Edit profile</span>
+            </button>
             <button
               type="button"
               className="pf-btn-report-lost"

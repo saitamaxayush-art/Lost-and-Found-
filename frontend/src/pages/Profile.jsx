@@ -212,6 +212,12 @@ export default function Profile() {
                   name: "Demo Student",
                   email: "demo@student.edu",
                   campus: "North Campus, Engineering Block",
+                  department: "Computer Science & Engineering",
+                  rollNo: "22BCS10482",
+                  year: "3rd Year",
+                  semester: "Semester 6",
+                  hostel: "Boys Hostel Block B, Room 304",
+                  bio: "Campus helper · Lost & Found regular",
                   whatsapp: "+91 98765 43210",
                   avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
                 })

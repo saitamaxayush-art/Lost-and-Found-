@@ -191,8 +191,104 @@
   box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.10);
   margin-bottom: 24px;
   transform-style: preserve-3d;
+  will-change: transform;
   transition: box-shadow 300ms ease;
   overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   STARFIELD & NEBULA BACKGROUND (Cosmic badge depth)
+   -------------------------------------------------------------------------- */
+.pf-hero-stars-backdrop {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.pf-hero-nebula {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(55px);
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.pf-hero-nebula-amber {
+  top: -25%;
+  right: -5%;
+  width: 440px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(224, 122, 31, 0.20) 0%, rgba(224, 122, 31, 0) 70%);
+}
+
+.pf-hero-nebula-violet {
+  bottom: -35%;
+  left: 3%;
+  width: 400px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(138, 92, 246, 0.13) 0%, rgba(138, 92, 246, 0) 70%);
+}
+
+.pf-hero-stars-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.pf-constellation-line {
+  stroke: rgba(255, 245, 225, 0.13);
+  stroke-width: 0.85;
+  stroke-dasharray: 2.5 3;
+}
+
+.pf-star-sparkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pfSparklePulse 3.8s ease-in-out infinite;
+}
+
+.pf-star-twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pfStarTwinkle 3.2s ease-in-out infinite alternate;
+}
+
+.pf-star-delay-1 { animation-delay: 0.2s; }
+.pf-star-delay-2 { animation-delay: 0.9s; }
+.pf-star-delay-3 { animation-delay: 1.6s; }
+.pf-star-delay-4 { animation-delay: 2.3s; }
+.pf-star-delay-5 { animation-delay: 3.1s; }
+
+@keyframes pfStarTwinkle {
+  0% {
+    opacity: 0.22;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.18);
+  }
+  100% {
+    opacity: 0.32;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes pfSparklePulse {
+  0%, 100% {
+    opacity: 0.40;
+    transform: scale(0.85) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.22) rotate(6deg);
+    filter: drop-shadow(0 0 5px rgba(255, 235, 180, 0.8));
+  }
 }
 
 /* Subtle Paper Grain & Specular Highlight */
@@ -200,9 +296,9 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 .pf-hero-specular {
@@ -217,7 +313,15 @@
   );
   opacity: var(--specular-opacity, 0);
   transition: opacity 300ms ease;
-  z-index: 2;
+  z-index: 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-star-sparkle,
+  .pf-star-twinkle {
+    animation: none !important;
+    opacity: 0.7 !important;
+  }
 }
 
 /* Hero Top Actions (Notification Bell) */
@@ -2205,6 +2309,74 @@
   .pf-lb-bar-track {
     display: none;
   }
+}
+
+/* --------------------------------------------------------------------------
+   HERO AVATAR EDIT BADGE & EDIT PROFILE BUTTON
+   -------------------------------------------------------------------------- */
+.pf-hero-avatar-wrap {
+  position: relative;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pf-hero-avatar-wrap:hover {
+  transform: scale(1.035);
+}
+
+.pf-avatar-edit-badge {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #E07A5F;
+  color: #FFFDF9;
+  border: 2px solid #141210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pf-hero-avatar-wrap:hover .pf-avatar-edit-badge {
+  background: #F4A261;
+  transform: scale(1.12);
+}
+
+.pf-btn-edit-profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 17px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #FFFDF9;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pf-btn-edit-profile:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.pf-btn-edit-profile:active {
+  transform: translateY(0) scale(0.98);
 }
 
 /* Reduced motion mode */

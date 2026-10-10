@@ -459,6 +459,15 @@ export function AppProvider({ children }) {
     );
   }
 
+  function updateUser(updates) {
+    setUser((prev) => {
+      const base = prev || { name: "Student", email: "student@campus.edu" };
+      const updated =
+        typeof updates === "function" ? updates(base) : { ...base, ...updates };
+      return updated;
+    });
+  }
+
   function logout() {
     setUser(null);
   }
@@ -479,6 +488,7 @@ export function AppProvider({ children }) {
       confirmLostItemReturned,
       user,
       login,
+      updateUser,
       logout,
       userPoints,
       pointsLedger,
