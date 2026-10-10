@@ -424,7 +424,6 @@ export default function HistorySection({ onMouseEnter, onMouseLeave, isHovered }
         <div className={`hs-editorial ${sectionInView ? "in-view" : ""}`}>
           {/* Left Column */}
           <div className="hs-narrative">
-            <span className="hs-eyebrow">History</span>
             <h2 className="hs-headline">Thousands of things have found their way home.</h2>
             <p className="hs-story">
               FindBack started as a quiet WhatsApp group between students tired of unclaimed

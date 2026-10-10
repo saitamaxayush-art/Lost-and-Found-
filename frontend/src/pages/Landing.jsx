@@ -6,7 +6,6 @@ import { useReveal } from "../hooks/useReveal";
 import Scene from "../components/landing/Scene";
 import Steps from "../components/landing/Steps";
 import Nav from "../components/landing/Nav";
-import CustomCursor from "../components/landing/CustomCursor";
 import SearchSection from "../components/landing/SearchSection";
 import HistorySection from "../components/landing/HistorySection";
 import ContactSection from "../components/landing/ContactSection";
@@ -248,7 +247,6 @@ export default function Landing() {
           onComplete={() => setIntroActive(false)}
         />
       )}
-      <CustomCursor subscribe={subscribe} />
       <Nav goTo={goTo} onLogin={openLogin} hoveredSection={hoveredSection} />
       <div className="lp-veil" ref={veilRef} aria-hidden="true" />
 

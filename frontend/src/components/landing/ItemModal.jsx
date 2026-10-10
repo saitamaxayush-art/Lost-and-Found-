@@ -6,12 +6,25 @@ import Modal from "./Modal";
 const mask = (v = "") => (/^\+?\d{10,14}$/.test(v) ? `${v.slice(0, v.length - 10)} ••••• ${v.slice(-5)}`.trim() : v);
 
 export default function ItemModal({ itemId, onClose, requireLogin }) {
-  const { items, updateItemStatus } = useApp();
+  const { user, items, markItemMatched, requestMarkAsMatched, markItemReturned } = useApp();
   const item = items.find((i) => i.id === itemId);
   if (!item) return null;
 
+  const isLost = item.type === "lost";
+  const isReturned = item.status === "Returned" || item.isReturned;
+  const isMatched = item.status === "Matched" || item.hasMatch;
+  const userEmail = (user?.email || "").toLowerCase().trim();
+  const isReporter =
+    item.isUserItem ||
+    (userEmail && (item.reporter || "").toLowerCase() === userEmail) ||
+    (user?.name && (item.reporterName || "").toLowerCase() === user.name.toLowerCase());
+
+  // Role resolution:
+  // If lost item: reporter is owner.
+  // If found item: reporter is finder.
+  const isOwner = isLost ? isReporter : !isReporter;
+
   const idx = STATUSES.indexOf(item.status);
-  const next = STATUSES[idx + 1];
 
   return (
     <Modal onClose={onClose} labelledBy="im-title" size="lg">
@@ -21,7 +34,7 @@ export default function ItemModal({ itemId, onClose, requireLogin }) {
         </div>
 
         <div className="im-body">
-          <span className={`sr-tag sr-${item.type}`}>{item.type === "lost" ? "Lost" : "Found"}</span>
+          <span className={`sr-tag sr-${item.type}`}>{isLost ? "Lost" : "Found"}</span>
           <h2 id="im-title">{item.description}</h2>
 
           <dl className="im-dl">
@@ -42,16 +55,94 @@ export default function ItemModal({ itemId, onClose, requireLogin }) {
             ))}
           </div>
 
-          {next ? (
-            <button
-              type="button"
-              className="lf-submit"
-              onClick={() => requireLogin(() => updateItemStatus(item.id, next))}
-            >
-              Mark as {next}
-            </button>
-          ) : (
+          {/* Action & Status depending on roles */}
+          {isReturned ? (
             <p className="im-done">This item has been returned to its owner.</p>
+          ) : isMatched ? (
+            /* Item is Matched: ONLY the user who lost the item can mark as returned! Finder waits for owner. */
+            isOwner ? (
+              <button
+                type="button"
+                className="lf-submit"
+                onClick={() =>
+                  requireLogin(() => {
+                    markItemReturned(item.id, item.reporterName || "Campus Finder");
+                    onClose?.();
+                  })
+                }
+              >
+                Mark as Returned (+50 pts)
+              </button>
+            ) : (
+              <div className="im-waiting-box">
+                <strong>Waiting for the user who has lost the item to mark as returned</strong>
+                <p>The owner must confirm handover receipt to mark as returned and close the report.</p>
+              </div>
+            )
+          ) : (
+            /* Item is Reported: Finder can mark as matched, owner can request mark as matched */
+            isLost ? (
+              isReporter ? (
+                /* Lost item owner CANNOT mark as matched; can request mark as matched from finder */
+                item.matchRequested ? (
+                  <p className="im-pending-text">Match requested from finder — waiting for finder to mark as matched.</p>
+                ) : (
+                  <button
+                    type="button"
+                    className="lf-submit"
+                    onClick={() =>
+                      requireLogin(() => {
+                        requestMarkAsMatched(item.id);
+                      })
+                    }
+                  >
+                    Request Mark as Matched
+                  </button>
+                )
+              ) : (
+                /* Non-owner who found this lost item can mark as matched! */
+                <button
+                  type="button"
+                  className="lf-submit"
+                  onClick={() =>
+                    requireLogin(() => {
+                      markItemMatched(item.id, user?.name || "Campus Student");
+                    })
+                  }
+                >
+                  I Found This (Mark as Matched)
+                </button>
+              )
+            ) : (
+              /* Found item: Finder has access to mark as matched; claimant/lost owner can request match */
+              isReporter ? (
+                <button
+                  type="button"
+                  className="lf-submit"
+                  onClick={() =>
+                    requireLogin(() => {
+                      markItemMatched(item.id, "Verified Student");
+                    })
+                  }
+                >
+                  Mark as Matched
+                </button>
+              ) : item.matchRequested ? (
+                <p className="im-pending-text">Match requested from finder — waiting for finder to mark as matched.</p>
+              ) : (
+                <button
+                  type="button"
+                  className="lf-submit"
+                  onClick={() =>
+                    requireLogin(() => {
+                      requestMarkAsMatched(item.id, item.reporterName);
+                    })
+                  }
+                >
+                  Request Mark as Matched
+                </button>
+              )
+            )
           )}
         </div>
       </div>

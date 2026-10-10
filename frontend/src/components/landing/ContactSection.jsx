@@ -21,7 +21,6 @@ export default function ContactSection({ onMouseEnter, onMouseLeave, isHovered }
     >
       <div className="lp-wrap">
         <div className="lp-head reveal">
-          <span className="lp-eyebrow">Get in Touch</span>
           <h2>Contact Us</h2>
           <p>Have a question, a bug to report, or an idea to make FindBack better? We'd love to hear it.</p>
         </div>

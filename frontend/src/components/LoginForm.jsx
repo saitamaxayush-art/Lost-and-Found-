@@ -96,7 +96,6 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
   // Submit Step 1: Validate and send OTP
   function handleContinueToOtp(e) {
     e.preventDefault();
-    sound.playUiClick();
     const allTouched = { name: true, email: true, whatsapp: true, campus: true };
     setTouched(allTouched);
 
@@ -170,7 +169,6 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
   // Resend OTP
   function handleResendOtp() {
     if (!canResend) return;
-    sound.playUiClick();
     const newCode = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedOtp(newCode);
     setOtp(["", "", "", "", "", ""]);
@@ -206,7 +204,6 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
   // Verify OTP
   function handleVerifyOtp(e) {
     e?.preventDefault();
-    sound.playUiClick();
     const enteredCode = otp.join("");
 
     if (enteredCode.length < 6) {
@@ -245,9 +242,6 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
             <path d="M5 12.5l4.5 4.5L19 7.5" />
           </svg>
         </div>
-        <div className="lf-badge lf-badge-success">
-          <span className="lf-badge-dot" /> Verified Account
-        </div>
         <h3>Welcome, {values.name.trim().split(" ")[0]}!</h3>
         <p>Your identity has been authenticated. Connecting you to {values.campus.trim()}…</p>
         <button type="button" className="lf-submit" onClick={() => onSuccess?.()}>
@@ -266,13 +260,6 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
       <div className="lf-container">
         {/* Step Header */}
         <div className="lf-header">
-          <div className="lf-badge">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
-            <span>Step 2 of 2: Security Verification</span>
-          </div>
-
           <h2 className="lf-title">Verify your email</h2>
           <p className="lf-desc">
             We sent a 6-digit confirmation code to:
@@ -284,7 +271,6 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
               type="button"
               className="lf-change-btn"
               onClick={() => {
-                sound.playUiClick();
                 setStep("details");
               }}
             >
@@ -370,7 +356,6 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
               type="button"
               className="lf-back-btn"
               onClick={() => {
-                sound.playUiClick();
                 setStep("details");
               }}
             >
@@ -387,30 +372,10 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
     <div className="lf-container">
       {/* Step Header */}
       <div className="lf-header">
-        <div className="lf-badge">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
-          <span>Campus Authentication</span>
-        </div>
-
         <h2 className="lf-title">Sign in to FindBack</h2>
         <p className="lf-desc">
           Enter your details and email address. We'll send an OTP to verify your identity.
         </p>
-
-        {/* Step Indicator */}
-        <div className="lf-stepper" aria-hidden="true">
-          <div className="lf-step-item is-active">
-            <span className="lf-step-num">1</span>
-            <span className="lf-step-label">Your Details</span>
-          </div>
-          <div className="lf-step-divider" />
-          <div className="lf-step-item">
-            <span className="lf-step-num">2</span>
-            <span className="lf-step-label">Email OTP</span>
-          </div>
-        </div>
       </div>
 
       <form onSubmit={handleContinueToOtp} noValidate>
@@ -442,11 +407,10 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
           {show("name") && <span className="lf-err" id={`${uid}-name-err`}>{errors.name}</span>}
         </div>
 
-        {/* Email Address (Requested specifically by user) */}
+        {/* Email Address */}
         <div className="lf-field-wrap">
           <label htmlFor={`${uid}-email`} className="lf-label">
             <span>Email Address</span>
-            <span className="lf-badge-hint">OTP will be sent here</span>
           </label>
           <div className="lf-input-box">
             <span className="lf-input-icon" aria-hidden="true">
@@ -475,7 +439,6 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
         <div className="lf-field-wrap">
           <label htmlFor={`${uid}-whatsapp`} className="lf-label">
             <span>WhatsApp Phone Number</span>
-            <span className="lf-badge-hint">For handover alerts</span>
           </label>
           <div className="lf-input-box">
             <span className="lf-input-icon" aria-hidden="true">

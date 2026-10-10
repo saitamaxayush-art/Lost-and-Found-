@@ -147,7 +147,6 @@ export default function SearchSection({ onOpenItem, onReport, onMouseEnter, onMo
     >
       <div className="lp-wrap">
         <div className="lp-head reveal">
-          <span className="lp-eyebrow">Search a Lost Item</span>
           <h2>Look through everything reported on campus.</h2>
           <p>Type what you lost — colour, brand, where you last had it — or browse what people have handed in.</p>
         </div>

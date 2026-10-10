@@ -4,16 +4,10 @@
    Works seamlessly on both dark gate intro and light peach canvas.
    ========================================================================== */
 
-/* Suppress system cursor only on devices with a fine pointer */
 @media (pointer: fine) {
   html.cc-on,
   html.cc-on body,
-  html.cc-on a,
-  html.cc-on button,
-  html.cc-on input,
-  html.cc-on select,
-  html.cc-on textarea,
-  html.cc-on [role="button"] {
+  html.cc-on * {
     cursor: none !important;
   }
 }

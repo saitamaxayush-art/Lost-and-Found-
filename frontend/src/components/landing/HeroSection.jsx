@@ -93,11 +93,6 @@ const HeroSection = forwardRef(function HeroSection(
       <div className="hero-editorial-container">
         {/* Left Column: Copy, CTAs, and Stats */}
         <div className="hero-copy-col">
-          <div className="hero-kicker-tag">
-            <span className="hero-kicker-dot" />
-            <span>Campus Lost &amp; Found</span>
-          </div>
-
           <h1 className="hero-headline">
             Everything lost finds its way <em>back</em> home.
           </h1>

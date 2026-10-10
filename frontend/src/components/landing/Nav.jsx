@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
-import { sound } from "../../utils/sound";
 
 export const BASE_NAV_LINKS = [
   { id: "search", label: "Search a Lost Item" },
+  { id: "people", label: "People", isRoute: true, path: "/people" },
   { id: "how-it-works", label: "How it Works" },
   { id: "history", label: "History" },
   { id: "contact", label: "Contact Us" },
@@ -103,16 +103,18 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
   const location = useLocation();
   const navigate = useNavigate();
   const isProfilePage = location.pathname === "/profile";
+  const isPeoplePage = location.pathname === "/people";
 
   const rootRef = useRef(null);
   const ringTimerRef = useRef(null);
-  const [active, setActive] = useState(isProfilePage ? "profile" : "");
+  const [active, setActive] = useState(
+    isProfilePage ? "profile" : isPeoplePage ? "people" : ""
+  );
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [isRinging, setIsRinging] = useState(false);
 
   // Dynamic Navigation Links:
-  // When logged in, insert "My Profile" directly to the right of "Search a Lost Item"
   const navLinks = useMemo(() => {
     if (!user) {
       return BASE_NAV_LINKS;
@@ -120,6 +122,7 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
     return [
       { id: "search", label: "Search a Lost Item" },
       { id: "profile", label: "My Profile", isRoute: true, path: "/profile" },
+      { id: "people", label: "People", isRoute: true, path: "/people" },
       { id: "how-it-works", label: "How it Works" },
       { id: "history", label: "History" },
       { id: "contact", label: "Contact Us" },
@@ -129,8 +132,10 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
   useEffect(() => {
     if (isProfilePage) {
       setActive("profile");
+    } else if (isPeoplePage) {
+      setActive("people");
     }
-  }, [isProfilePage]);
+  }, [isProfilePage, isPeoplePage]);
 
   // Shrink amount --s (0 = full-width bar at the top, 1 = compact floating pill).
   useEffect(() => {
@@ -145,6 +150,10 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
 
       if (isProfilePage) {
         setActive("profile");
+        return;
+      }
+      if (isPeoplePage) {
+        setActive("people");
         return;
       }
 
@@ -163,7 +172,7 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
     return () => {
       window.removeEventListener("scroll", onScroll);
     };
-  }, [isProfilePage]);
+  }, [isProfilePage, isPeoplePage]);
 
   // close popovers on outside click / Esc
   useEffect(() => {
@@ -190,9 +199,6 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
 
   const handleLinkClick = (e, link) => {
     e.preventDefault();
-    if (!isProfilePage && link.id !== "profile") {
-      sound.playUiClick();
-    }
     setMenuOpen(false);
 
     if (link.id === "profile") {
@@ -205,7 +211,17 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
       return;
     }
 
-    if (isProfilePage) {
+    if (link.id === "people") {
+      setActive("people");
+      if (!isPeoplePage) {
+        navigate("/people");
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      return;
+    }
+
+    if (isProfilePage || isPeoplePage) {
       navigate("/", { state: { scrollTo: link.id } });
     } else if (goTo) {
       setActive(link.id);
@@ -271,16 +287,44 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
                 {notifications.length > 0 && <em>{notifications.length}</em>}
               </button>
               {notifOpen && (
-                <div className="lp-notif-panel" role="region" aria-label="Match notifications">
-                  <div className="lp-notif-head">Match notifications</div>
+                <div className="lp-notif-panel" role="region" aria-label="Activity and match alerts">
+                  <div className="lp-notif-head">Activity &amp; Match Alerts</div>
                   {notifications.length === 0 ? (
-                    <div className="lp-notif-empty">No notifications yet.</div>
+                    <div className="lp-notif-empty">No new activity alerts.</div>
                   ) : (
                     <>
                       {notifications.map((n) => (
                         <div className="lp-notif-item" key={n.id}>
-                          {n.message}
-                          <small>{new Date(n.createdAt).toLocaleString()}</small>
+                          <div className="lp-notif-msg">{n.message}</div>
+                          {n.chatId && (
+                            <button
+                              type="button"
+                              style={{
+                                marginTop: 6,
+                                padding: "4px 11px",
+                                borderRadius: 999,
+                                background: "rgba(217, 130, 43, 0.12)",
+                                border: "1px solid rgba(217, 130, 43, 0.3)",
+                                color: "var(--peach-accent-dark)",
+                                fontSize: "11.5px",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                              }}
+                              onClick={() => {
+                                setNotifOpen(false);
+                                navigate(`/people?chat=${n.chatId}`);
+                              }}
+                            >
+                              <span>Chat in People</span>
+                              <span>→</span>
+                            </button>
+                          )}
+                          <small>
+                            {new Date(n.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} • {new Date(n.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })}
+                          </small>
                         </div>
                       ))}
                       <button type="button" className="lp-notif-clear" onClick={dismissNotifications}>
@@ -309,7 +353,6 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
                 type="button"
                 className="lp-nav-cta lp-nav-cta-ghost"
                 onClick={() => {
-                  if (!isProfilePage) sound.playUiClick();
                   logout();
                   if (isProfilePage) {
                     navigate("/");
@@ -324,7 +367,6 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
               type="button"
               className="lp-nav-cta"
               onClick={() => {
-                sound.playUiClick();
                 if (onLogin) onLogin();
               }}
             >

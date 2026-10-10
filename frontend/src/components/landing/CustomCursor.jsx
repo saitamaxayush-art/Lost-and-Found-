@@ -8,6 +8,7 @@ const HOVER_SELECTOR = [
   "textarea",
   "label",
   "[role='button']",
+  "[role='tab']",
   ".sr-card",
   ".hs-item",
   ".co-card",
@@ -25,6 +26,15 @@ const HOVER_SELECTOR = [
   ".gate-inserted-key",
   ".lf-autofill-btn",
   ".lf-otp-box",
+  ".pf-item-clean-card",
+  ".pf-item-main-row",
+  ".pf-tab-btn",
+  ".pf-seg-btn",
+  ".pf-drawer-image-thumb",
+  ".pf-return-btn-action",
+  ".pf-back-nav",
+  ".pf-ghost-btn",
+  ".pf-status-trigger",
 ].join(", ");
 
 export default function CustomCursor({ subscribe }) {

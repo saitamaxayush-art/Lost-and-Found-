@@ -1,0 +1,1305 @@
+/* ==========================================================================
+   FindBack — People Page Stylesheet (Paper & Espresso System)
+   ========================================================================== */
+
+.pp-page {
+  --paper: #FBF6EE;
+  --paper-2: #F3E9DA;
+  --surface: #FFFDF9;
+  --espresso: #1B130D;
+  --espresso-2: #2A1D14;
+  --ink: #2B2118;
+  --ink-soft: #7B6A58;
+  --line: rgba(43, 33, 24, 0.10);
+  --accent: #E07A1F;
+  --accent-deep: #B85A0E;
+  --success: #2E7D5B;
+
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+
+  --shadow-sm: 0 2px 8px rgba(43, 33, 24, 0.05);
+  --shadow-md: 0 8px 24px rgba(43, 33, 24, 0.07), 0 2px 6px rgba(43, 33, 24, 0.04);
+  --shadow-lg: 0 16px 44px rgba(43, 33, 24, 0.10), 0 4px 14px rgba(43, 33, 24, 0.05);
+
+  height: 100dvh;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding-top: 76px;
+  padding-bottom: 16px;
+  padding-left: 20px;
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Tabular figures for time and ranks */
+.pp-page [data-tabular],
+.pp-convo-time,
+.pp-group-time,
+.pp-bubble-hover-time {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Accessible focus rings */
+.pp-page button:focus-visible,
+.pp-page a:focus-visible,
+.pp-page input:focus-visible,
+.pp-page textarea:focus-visible,
+.pp-page [role="button"]:focus-visible,
+.pp-page [role="tab"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   PEOPLE THREE-PANE SHELL
+   -------------------------------------------------------------------------- */
+.pp-shell-container {
+  flex: 1;
+  max-width: 1240px;
+  width: 100%;
+  margin: 0 auto;
+  height: calc(100dvh - 96px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  animation: ppShellEnter 450ms var(--ease-out) backwards;
+}
+
+@keyframes ppShellEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   PANE 1: CONVERSATION LIST (340px)
+   -------------------------------------------------------------------------- */
+.pp-pane-list {
+  width: 340px;
+  min-width: 340px;
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.pp-list-search-wrap {
+  padding: 18px 18px 12px 18px;
+}
+
+.pp-search-input-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pp-search-lens-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+
+.pp-list-search-input {
+  width: 100%;
+  height: 38px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0 32px 0 36px;
+  font-size: 13.5px;
+  color: var(--ink);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.pp-list-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(224, 122, 31, 0.12);
+  outline: none;
+}
+
+.pp-search-clear-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+/* Filter pills with sliding indicator */
+.pp-filter-segment-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 16px 12px 16px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.pp-filter-segment-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.pp-filter-sliding-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--paper-2);
+  border-radius: 10px;
+  pointer-events: none;
+  transition: transform 220ms var(--ease-out), width 220ms var(--ease-out), opacity 150ms ease;
+}
+
+.pp-filter-pill-btn {
+  position: relative;
+  z-index: 1;
+  background: none;
+  border: none;
+  padding: 5px 11px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.pp-filter-pill-btn.is-active {
+  color: var(--espresso);
+  font-weight: 600;
+}
+
+/* Items stream */
+.pp-list-items-stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pp-list-empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+}
+
+.pp-convo-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  background: transparent;
+  transition: background-color 150ms ease, transform 150ms var(--ease-out);
+  animation: pfFadeUp 350ms var(--ease-out) backwards;
+}
+
+.pp-convo-row:hover {
+  background: var(--paper);
+}
+
+.pp-convo-row.is-active {
+  background: var(--paper-2);
+}
+
+/* Active row left bar */
+.pp-convo-active-bar {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+  opacity: 0;
+  transform: scaleY(0.6);
+  transition: opacity 180ms ease, transform 180ms var(--ease-out);
+}
+
+.pp-convo-row.is-active .pp-convo-active-bar {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+/* Avatar composite with item badge */
+.pp-convo-avatar-composite {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pp-convo-item-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  border-radius: 5px;
+  background: var(--surface);
+  border: 1px solid var(--surface);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Meta Area */
+.pp-convo-meta-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pp-convo-top-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pp-convo-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--espresso);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pp-convo-row.is-unread .pp-convo-name {
+  font-weight: 700;
+}
+
+.pp-unread-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.pp-convo-time {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.pp-convo-item-tag {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pp-convo-last-msg {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.35;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pp-convo-row.is-unread .pp-convo-last-msg {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   PANE 2: THREAD (flex 1)
+   -------------------------------------------------------------------------- */
+.pp-pane-thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  min-width: 0;
+  position: relative;
+  height: 100%;
+}
+
+/* Minimal Header */
+.pp-thread-header {
+  height: 64px;
+  border-bottom: 1px solid var(--line);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--surface);
+  z-index: 5;
+  flex-shrink: 0;
+}
+
+.pp-thread-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pp-mobile-back-btn {
+  display: none;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--espresso);
+  cursor: pointer;
+}
+
+.pp-thread-user-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pp-thread-user-name {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--espresso);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pp-thread-user-sub {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.pp-item-header-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 12px 4px 6px;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+  color: var(--ink);
+}
+
+.pp-item-header-chip:hover {
+  background: var(--paper-2);
+  border-color: rgba(43, 33, 24, 0.16);
+}
+
+.pp-item-chip-title {
+  font-size: 12.5px;
+  font-weight: 500;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Thread Messages Stream */
+.pp-thread-stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #FFFDF9;
+}
+
+.pp-day-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0;
+}
+
+.pp-day-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--paper-2);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+/* System event pill */
+.pp-system-pill-row {
+  display: flex;
+  justify-content: center;
+  margin: 6px 0;
+}
+
+.pp-system-event-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  text-align: center;
+  max-width: 480px;
+}
+
+/* Message groups */
+.pp-msg-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  animation: ppMsgIn 220ms var(--ease-out) backwards;
+}
+
+@keyframes ppMsgIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.pp-msg-group.is-own-group {
+  justify-content: flex-end;
+}
+
+.pp-group-avatar-col {
+  flex-shrink: 0;
+  margin-bottom: 18px;
+}
+
+.pp-group-bubbles-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 70%;
+}
+
+.pp-msg-group.is-own-group .pp-group-bubbles-col {
+  align-items: flex-end;
+}
+
+.pp-bubble-row {
+  display: flex;
+  position: relative;
+}
+
+/* Bubble Styling */
+.pp-bubble {
+  position: relative;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.45;
+  transition: transform 120ms ease;
+}
+
+/* Own messages: espresso with light text */
+.pp-bubble.is-own {
+  background: var(--espresso);
+  color: #FFFDF9;
+  border-radius: 18px 18px 4px 18px;
+}
+
+.pp-bubble.is-own.is-middle {
+  border-radius: 18px 4px 4px 18px;
+}
+
+.pp-bubble.is-own.is-first {
+  border-radius: 18px 18px 4px 18px;
+}
+
+.pp-bubble.is-own.is-last {
+  border-radius: 18px 4px 18px 18px;
+}
+
+.pp-bubble.is-own.is-single {
+  border-radius: 18px 18px 4px 18px;
+}
+
+/* Other messages: surface with hairline border */
+.pp-bubble.is-other {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 3px rgba(43, 33, 24, 0.04);
+  border-radius: 18px 18px 18px 4px;
+}
+
+.pp-bubble.is-other.is-middle {
+  border-radius: 4px 18px 18px 4px;
+}
+
+.pp-bubble.is-other.is-first {
+  border-radius: 18px 18px 18px 4px;
+}
+
+.pp-bubble.is-other.is-last {
+  border-radius: 4px 18px 18px 18px;
+}
+
+.pp-bubble.is-other.is-single {
+  border-radius: 18px 18px 18px 4px;
+}
+
+.pp-bubble-text {
+  margin: 0;
+  word-break: break-word;
+}
+
+.pp-bubble-hover-time {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--ink-soft);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+  white-space: nowrap;
+}
+
+.pp-bubble.is-own .pp-bubble-hover-time {
+  right: calc(100% + 8px);
+}
+
+.pp-bubble.is-other .pp-bubble-hover-time {
+  left: calc(100% + 8px);
+}
+
+.pp-bubble:hover .pp-bubble-hover-time {
+  opacity: 1;
+}
+
+.pp-group-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  padding: 0 4px;
+}
+
+.pp-group-time {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.pp-seen-tick {
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+}
+
+/* Typing Dots */
+.pp-typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 38px;
+}
+
+.pp-typing-bubble {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pp-typing-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+  animation: ppDotJump 1.2s infinite ease-in-out;
+}
+
+@keyframes ppDotJump {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+  40% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   COMPOSER
+   -------------------------------------------------------------------------- */
+.pp-composer-container {
+  border-top: 1px solid var(--line);
+  padding: 12px 18px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Suggestion chips row */
+.pp-suggestions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+  animation: pfFadeUp 200ms var(--ease-out) backwards;
+}
+
+.pp-suggestions-row::-webkit-scrollbar {
+  display: none;
+}
+
+.pp-suggestion-chip {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: var(--espresso);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 150ms var(--ease-out);
+}
+
+.pp-suggestion-chip:hover {
+  background: #EADECE;
+  transform: translateY(-1px);
+}
+
+.pp-composer-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  position: relative;
+}
+
+.pp-attach-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+  flex-shrink: 0;
+}
+
+.pp-attach-btn:hover {
+  color: var(--espresso);
+  background: var(--paper);
+}
+
+.pp-composer-textarea {
+  flex: 1;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 8px 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink);
+  resize: none;
+  max-height: 120px;
+  box-sizing: border-box;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.pp-composer-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(224, 122, 31, 0.12);
+  outline: none;
+}
+
+/* Morphing Send Button */
+.pp-send-circle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 200ms var(--ease-out), transform 200ms var(--ease-spring), opacity 150ms ease;
+}
+
+.pp-send-circle-btn.is-disabled {
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: scale(0.94);
+}
+
+.pp-send-circle-btn.is-active {
+  background: var(--accent);
+  color: #fff;
+  opacity: 1;
+  transform: scale(1);
+  box-shadow: 0 4px 12px rgba(224, 122, 31, 0.32);
+}
+
+.pp-send-circle-btn.is-active:hover {
+  background: var(--accent-deep);
+  transform: scale(1.05);
+}
+
+.pp-send-circle-btn.is-active:active {
+  transform: scale(0.94);
+}
+
+/* --------------------------------------------------------------------------
+   PANE 3: ITEM CONTEXT PANEL (320px)
+   -------------------------------------------------------------------------- */
+.pp-pane-context {
+  width: 320px;
+  min-width: 320px;
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  transition: transform 300ms var(--ease-out);
+}
+
+.pp-context-mobile-close {
+  display: none;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.pp-context-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Large Item Photo (aspect 4/3, cover, parallax) */
+.pp-context-photo-card {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  position: relative;
+  box-shadow: inset 0 0 0 1px rgba(43, 33, 24, 0.08);
+}
+
+.pp-context-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 120ms ease-out;
+}
+
+.pp-context-no-photo-tile {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+/* Header block */
+.pp-context-header-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pp-context-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pp-context-cat-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--espresso);
+  background: var(--paper-2);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.pp-context-type-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(224, 122, 31, 0.12);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.pp-context-item-title {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 600;
+  color: var(--espresso);
+  margin: 0;
+}
+
+.pp-context-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.pp-context-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.pp-context-hairline {
+  height: 1px;
+  background: var(--line);
+  width: 100%;
+}
+
+/* Vertical 3-step status stepper */
+.pp-vertical-stepper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 4px 6px;
+}
+
+.pp-vstep-line-bg {
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 17px;
+  width: 2px;
+  background: var(--line);
+  z-index: 1;
+}
+
+.pp-vstep-line-fill {
+  position: absolute;
+  top: 14px;
+  left: 17px;
+  width: 2px;
+  background: var(--accent);
+  z-index: 2;
+  transition: height 600ms var(--ease-out);
+}
+
+.pp-vstep-row {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.pp-vstep-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  color: var(--ink-soft);
+  display: grid;
+  place-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  transition: border-color 200ms ease, background-color 200ms ease, color 200ms ease;
+  flex-shrink: 0;
+}
+
+.pp-vstep-dot.is-done {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.pp-vstep-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pp-vstep-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--espresso);
+}
+
+.pp-vstep-sub {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+/* Floating +50 chip */
+.pp-floater-pts-chip {
+  background: var(--success);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(46, 125, 91, 0.35);
+  animation: ppFloatChip 2.2s var(--ease-out) forwards;
+}
+
+@keyframes ppFloatChip {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.95);
+  }
+}
+
+/* Action button area */
+.pp-context-action-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.pp-btn-context-primary {
+  width: 100%;
+  height: 44px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(224, 122, 31, 0.28);
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 150ms var(--ease-out), box-shadow 150ms ease;
+}
+
+.pp-btn-context-primary:hover {
+  background: var(--accent-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(224, 122, 31, 0.36);
+}
+
+.pp-btn-context-primary:active {
+  transform: scale(0.97);
+}
+
+.pp-btn-context-primary.is-return {
+  background: var(--success);
+  box-shadow: 0 4px 14px rgba(46, 125, 91, 0.28);
+}
+
+.pp-btn-context-primary.is-return:hover {
+  background: #25664a;
+}
+
+.pp-context-waiting-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--paper-2);
+  border-radius: 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.pp-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 rgba(224, 122, 31, 0.6);
+  animation: pfPulse 1.8s infinite;
+  flex-shrink: 0;
+}
+
+.pp-context-completed-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(46, 125, 91, 0.12);
+  color: var(--success);
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Contact Card */
+.pp-context-contact-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pp-contact-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pp-lock-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--ink-soft);
+  transition: transform 300ms var(--ease-spring), color 200ms ease;
+}
+
+.pp-lock-icon-wrap.is-unlocked {
+  color: var(--success);
+  transform: rotate(-10deg) scale(1.05);
+}
+
+.pp-contact-card-label-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pp-contact-card-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--espresso);
+}
+
+.pp-contact-card-note {
+  font-size: 11px;
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+
+.pp-contact-display-row {
+  padding-top: 4px;
+}
+
+.pp-contact-number-val {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: filter 300ms ease, opacity 300ms ease;
+}
+
+.pp-contact-number-val.is-masked {
+  color: var(--ink-soft);
+  filter: blur(0.5px);
+  user-select: none;
+}
+
+.pp-contact-number-val.is-revealed {
+  color: var(--espresso);
+  filter: blur(0);
+}
+
+/* Panel Footer: Demo View */
+.pp-context-footer {
+  border-top: 1px solid var(--line);
+  padding: 12px 18px;
+  background: var(--surface);
+}
+
+.pp-demo-view-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pp-demo-view-label {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.pp-demo-segmented-control {
+  display: inline-flex;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.pp-demo-seg-btn {
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.pp-demo-seg-btn.is-active {
+  background: var(--surface);
+  color: var(--espresso);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(43, 33, 24, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE DESIGN (360px to 1600px)
+   -------------------------------------------------------------------------- */
+/* Tablet (768px - 1199px): Context panel becomes a slide-over */
+@media (max-width: 1199px) and (min-width: 768px) {
+  .pp-pane-context {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 320px;
+    z-index: 40;
+    box-shadow: var(--shadow-lg);
+    transform: translate3d(100%, 0, 0);
+  }
+  .pp-pane-context.is-slide-open {
+    transform: translate3d(0, 0, 0);
+  }
+  .pp-context-mobile-close {
+    display: grid;
+  }
+}
+
+/* Mobile (< 768px): Single pane with slide transitions */
+@media (max-width: 767px) {
+  .pp-page {
+    padding-top: 72px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+  }
+  .pp-shell-container {
+    border-radius: 20px;
+    height: calc(100dvh - 84px);
+  }
+  .pp-mobile-back-btn {
+    display: inline-flex;
+  }
+  .pp-pane-list {
+    width: 100%;
+    min-width: 100%;
+    border-right: none;
+  }
+  .pp-shell-container.show-thread .pp-pane-list {
+    display: none;
+  }
+  .pp-shell-container:not(.show-thread) .pp-pane-thread {
+    display: none;
+  }
+  .pp-pane-context {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-width: 100%;
+    z-index: 50;
+    transform: translate3d(100%, 0, 0);
+  }
+  .pp-pane-context.is-slide-open {
+    transform: translate3d(0, 0, 0);
+  }
+  .pp-context-mobile-close {
+    display: grid;
+  }
+}
+
+/* Reduced motion mode */
+@media (prefers-reduced-motion: reduce) {
+  .pp-page *,
+  .pp-shell-container,
+  .pp-msg-group,
+  .pp-pane-context {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
