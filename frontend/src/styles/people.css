@@ -386,7 +386,7 @@
 }
 
 .pp-thread-user-name {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 16px;
   font-weight: 600;
   color: var(--espresso);
@@ -886,7 +886,7 @@
 }
 
 .pp-context-item-title {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 18px;
   line-height: 1.25;
   font-weight: 600;

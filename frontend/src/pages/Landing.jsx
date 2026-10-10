@@ -110,13 +110,14 @@ export default function Landing() {
    * ---------------------------------------------------------------- */
   const goTo = useCallback(
     (id) => {
-      const el = document.getElementById(id);
+      const targetId = id === "top" ? "hero" : id;
+      const el = document.getElementById(targetId) || document.getElementById(id);
       const track = trackRef.current;
       if (!el || jumping.current) return;
 
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const from = window.scrollY;
-      const navOffset = id === "top" ? 0 : 68;
+      const navOffset = id === "top" || id === "hero" ? 0 : 68;
       const to = Math.max(0, Math.round(el.getBoundingClientRect().top + from - navOffset));
       if (Math.abs(to - from) < 4) {
         if (id === "search") {
@@ -312,6 +313,7 @@ export default function Landing() {
 
       {/* ---------- Contact ---------- */}
       <ContactSection
+        goTo={goTo}
         isHovered={hoveredSection === "contact"}
         onMouseEnter={() => setHoveredSection("contact")}
         onMouseLeave={() => setHoveredSection((prev) => (prev === "contact" ? null : prev))}

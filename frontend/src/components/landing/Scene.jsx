@@ -524,7 +524,7 @@ export default function Scene({ subscribe }) {
             <g transform="translate(601 632) rotate(-.8)">
               <rect x="-121" y="-38" width="242" height="78" rx="2" fill="#000" opacity=".22" transform="translate(2 4)" filter="url(#soft)" />
               <rect x="-120" y="-40" width="240" height="78" rx="1.5" fill="url(#labelPaper)" />
-              <text x="-4" y="9" textAnchor="middle" fontFamily="Sora, Inter, Arial, sans-serif" fontWeight="700" fontSize="30" letterSpacing=".8" textLength="208" lengthAdjust="spacingAndGlyphs" fill="#2d2f34" opacity=".9">LOST &amp; FOUND</text>
+              <text x="-4" y="9" textAnchor="middle" fontFamily="'Plus Jakarta Sans', 'Inter', sans-serif" fontWeight="700" fontSize="30" letterSpacing=".8" textLength="208" lengthAdjust="spacingAndGlyphs" fill="#2d2f34" opacity=".9">LOST &amp; FOUND</text>
               <rect x="-134" y="-46" width="30" height="14" fill="#e8d7a6" opacity=".72" transform="rotate(-38 -119 -39)" />
               <rect x="104" y="26" width="30" height="14" fill="#e8d7a6" opacity=".72" transform="rotate(-38 119 33)" />
             </g>

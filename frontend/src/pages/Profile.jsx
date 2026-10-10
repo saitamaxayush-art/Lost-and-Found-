@@ -110,6 +110,7 @@ export default function Profile() {
 
     return items.filter((item) => {
       if (item.isUserItem) return true;
+      if (item.id && String(item.id).startsWith("seed-")) return false;
       const rep = (item.reporter || "").toLowerCase();
       if (userEmail && rep === userEmail) return true;
       if (userPhone && rep.includes(userPhone)) return true;

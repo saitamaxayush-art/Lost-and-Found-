@@ -15,8 +15,9 @@
   --accent-deep: #B85A0E;
   --success: #2E7D5B;
 
-  --ease-out: cubic-bezier(.22, 1, .36, 1);
-  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.2, 0.9, 0.3, 1.15);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
 
   --shadow-sm: 0 2px 8px rgba(43, 33, 24, 0.05);
   --shadow-md: 0 8px 24px rgba(43, 33, 24, 0.07), 0 2px 6px rgba(43, 33, 24, 0.04);
@@ -101,7 +102,7 @@
 }
 
 .pf-gate-title {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 32px;
   color: var(--espresso);
   font-weight: 600;
@@ -397,7 +398,7 @@
 }
 
 .pf-hero-name {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 40px;
   line-height: 1.1;
   font-weight: 500;
@@ -556,7 +557,7 @@
 }
 
 .pf-stat-number {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 42px;
   line-height: 1;
   font-weight: 500;
@@ -675,7 +676,7 @@
 }
 
 .pf-notif-popover-title {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 16px;
   font-weight: 600;
   color: var(--espresso);
@@ -855,11 +856,13 @@
 /* Sliding Underline Indicator */
 .pf-tabs-sliding-indicator {
   position: absolute;
-  bottom: -1px;
+  bottom: -2px;
   left: 0;
-  height: 2px;
-  background: var(--accent);
-  transition: transform 250ms var(--ease-out), width 250ms var(--ease-out), opacity 150ms ease;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #E07A1F 0%, #F5A623 50%, #E07A1F 100%);
+  box-shadow: 0 2px 10px rgba(224, 122, 31, 0.45);
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), width 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease;
   pointer-events: none;
 }
 
@@ -881,7 +884,7 @@
   display: inline-flex;
   background: var(--paper-2);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 999px;
   padding: 4px;
   gap: 2px;
 }
@@ -892,10 +895,10 @@
   left: 0;
   height: calc(100% - 8px);
   background: var(--surface);
-  border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(43, 33, 24, 0.08);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(43, 33, 24, 0.1);
   pointer-events: none;
-  transition: transform 220ms var(--ease-out), width 220ms var(--ease-out), opacity 150ms ease;
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease;
 }
 
 .pf-seg-btn {
@@ -903,12 +906,13 @@
   z-index: 1;
   background: none;
   border: none;
-  padding: 6px 14px;
+  border-radius: 999px;
+  padding: 7px 16px;
   font-size: 13px;
   font-weight: 500;
   color: var(--ink-soft);
   cursor: pointer;
-  transition: color 150ms ease;
+  transition: color 180ms ease;
 }
 
 .pf-seg-btn.is-active {
@@ -1478,7 +1482,7 @@
 }
 
 .pf-action-state-title {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 17px;
   font-weight: 600;
   color: var(--espresso);
@@ -1621,7 +1625,7 @@
 }
 
 .pf-rewards-score-num {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 56px;
   line-height: 1;
   font-weight: 500;
@@ -1694,17 +1698,19 @@
 
 .pf-tier-track {
   width: 100%;
-  height: 6px;
+  height: 8px;
   background: var(--paper-2);
-  border-radius: 3px;
+  border-radius: 999px;
   overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(43, 33, 24, 0.08);
 }
 
 .pf-tier-fill {
   height: 100%;
-  background: var(--accent);
-  border-radius: 3px;
-  transition: width 700ms var(--ease-out);
+  background: linear-gradient(90deg, #E07A1F 0%, #F5A623 100%);
+  border-radius: 999px;
+  box-shadow: 0 1px 6px rgba(224, 122, 31, 0.4);
+  transition: width 700ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Compact SVG Bar Chart */
@@ -1716,7 +1722,7 @@
 }
 
 .pf-chart-title {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 17px;
   font-weight: 600;
   color: var(--espresso);
@@ -1729,6 +1735,8 @@
 
 .pf-bar-chart-wrap {
   height: 110px;
+  display: flex;
+  align-items: flex-end;
 }
 
 .pf-bars-container {
@@ -1758,15 +1766,18 @@
 }
 
 .pf-bar-pillar {
-  width: 16px;
-  background: var(--accent);
-  border-radius: 4px 4px 0 0;
-  animation: pfGrowUp 500ms var(--ease-out) backwards;
-  transition: opacity 150ms ease;
+  width: 18px;
+  background: linear-gradient(180deg, #F8A740 0%, #E07A1F 100%);
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 8px rgba(224, 122, 31, 0.25);
+  animation: pfGrowUp 600ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  transition: opacity 200ms ease, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .pf-bar-pillar:hover {
-  opacity: 0.85;
+  opacity: 0.9;
+  transform: scaleY(1.04);
+  transform-origin: bottom;
 }
 
 @keyframes pfGrowUp {
@@ -1789,7 +1800,7 @@
 }
 
 .pf-section-heading {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 24px;
   font-weight: 500;
   letter-spacing: -0.015em;
@@ -1868,7 +1879,7 @@
 }
 
 .pf-activity-pts-chip {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 18px;
   font-weight: 600;
   color: var(--accent);
@@ -2094,7 +2105,7 @@
 }
 
 .pf-podium-pillar-num {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 26px;
   font-weight: 600;
   opacity: 0.35;
@@ -2126,23 +2137,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: var(--shadow-sm);
-  transition: transform 150ms var(--ease-out), border-color 150ms ease;
+  padding: 16px 22px;
+  background: rgba(255, 253, 249, 0.92);
+  border: 1px solid rgba(224, 122, 31, 0.14);
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(43, 33, 24, 0.04);
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms ease;
   gap: 16px;
 }
 
 .pf-lb-row:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 26px rgba(43, 33, 24, 0.08), 0 2px 8px rgba(224, 122, 31, 0.08);
+  border-color: rgba(224, 122, 31, 0.35);
 }
 
 .pf-lb-row.is-current-user {
-  background: linear-gradient(90deg, rgba(254, 243, 199, 0.45) 0%, rgba(255, 253, 249, 0.95) 45%, rgba(254, 237, 217, 0.4) 100%);
+  background: linear-gradient(90deg, rgba(254, 243, 199, 0.55) 0%, rgba(255, 253, 249, 0.98) 45%, rgba(254, 237, 217, 0.45) 100%);
   border: 1.5px solid var(--accent);
-  box-shadow: 0 6px 20px rgba(224, 122, 31, 0.16);
+  box-shadow: 0 8px 24px rgba(224, 122, 31, 0.18);
   position: relative;
   transform: translateY(-1px);
 }
@@ -2155,7 +2168,7 @@
   bottom: 0;
   width: 5px;
   background: linear-gradient(180deg, #F8A740 0%, #E07A1F 100%);
-  border-radius: 16px 0 0 16px;
+  border-radius: 18px 0 0 18px;
 }
 
 .pf-lb-row.is-current-user .pf-lb-avatar {
@@ -2174,6 +2187,7 @@
 
 .pf-lb-row.is-current-user .pf-lb-bar-fill {
   background: linear-gradient(90deg, #F8A740 0%, #E07A1F 100%);
+  box-shadow: 0 1px 6px rgba(224, 122, 31, 0.45);
 }
 
 .pf-lb-left {
@@ -2220,17 +2234,19 @@
 
 .pf-lb-bar-track {
   width: 90px;
-  height: 5px;
+  height: 7px;
   background: var(--paper-2);
-  border-radius: 3px;
+  border-radius: 999px;
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(43, 33, 24, 0.08);
 }
 
 .pf-lb-bar-fill {
   height: 100%;
-  background: var(--accent);
-  border-radius: 3px;
-  transition: width 600ms var(--ease-out);
+  background: linear-gradient(90deg, #F8A740 0%, #E07A1F 100%);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(224, 122, 31, 0.35);
+  transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .pf-lb-points {
@@ -2238,94 +2254,6 @@
   color: var(--espresso);
   min-width: 62px;
   text-align: right;
-}
-
-/* Pinned "Your position" bar at bottom of viewport */
-.pf-pinned-position-bar {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 48px);
-  max-width: 640px;
-  background: linear-gradient(135deg, rgba(255, 253, 249, 0.98) 0%, rgba(254, 243, 199, 0.95) 100%);
-  color: var(--espresso);
-  border: 1.5px solid var(--accent);
-  border-radius: 20px;
-  padding: 12px 20px;
-  box-shadow: 0 16px 36px rgba(224, 122, 31, 0.22);
-  backdrop-filter: blur(12px);
-  z-index: 90;
-  animation: pfSlideUp 280ms var(--ease-spring) backwards;
-}
-
-@keyframes pfSlideUp {
-  from {
-    opacity: 0;
-    transform: translate3d(-50%, 20px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
-.pf-pinned-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.pf-pinned-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.pf-pinned-badge {
-  background: var(--accent);
-  color: #fff;
-  font-size: 11.5px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 12px;
-}
-
-.pf-pinned-title {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--espresso);
-}
-
-.pf-pinned-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.pf-pinned-points {
-  font-size: 13.5px;
-  color: var(--espresso);
-}
-
-.pf-pinned-scroll-btn {
-  background: var(--accent);
-  border: none;
-  color: #fff;
-  border-radius: 10px;
-  padding: 4px 10px;
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 150ms ease;
-}
-
-.pf-pinned-scroll-btn:hover {
-  opacity: 0.9;
-}
-
-.pf-pinned-scroll-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
 }
 
 /* --------------------------------------------------------------------------

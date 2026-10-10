@@ -145,13 +145,13 @@
 
 .gate-tagline {
   margin: 0;
-  font-family: "Fraunces", "Playfair Display", Georgia, serif;
-  font-style: italic;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+  font-style: normal;
   font-size: clamp(17px, 2.2vw, 24px);
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.55;
-  letter-spacing: 0.035em;
-  word-spacing: 0.16em;
+  letter-spacing: -0.01em;
+  word-spacing: 0.1em;
   color: #fff8ef;
   text-shadow: 0 2px 20px rgba(255, 223, 148, 0.25), 0 1px 4px rgba(0, 0, 0, 0.95);
   max-width: 36ch;
@@ -179,11 +179,12 @@
 /* Idle hint: fades in after 6s of inactivity */
 .gate-idle-hint {
   margin: 4px 0 0;
-  font-family: "Fraunces", "Playfair Display", Georgia, serif;
-  font-style: italic;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+  font-style: normal;
   font-size: clamp(13px, 1.4vw, 15px);
+  font-weight: 500;
   color: #e5b275;
-  letter-spacing: 0.035em;
+  letter-spacing: 0.01em;
   word-spacing: 0.08em;
   opacity: 0;
   transform: translateY(6px);
@@ -389,7 +390,7 @@
 }
 
 .gate-plaque-text {
-  font-family: "Fraunces", "Playfair Display", Georgia, serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -721,7 +722,7 @@
   border: 1px solid rgba(160, 125, 80, 0.4);
   border-radius: 3px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.65), inset 0 0 2px rgba(255, 255, 255, 0.5);
-  font-family: "Fraunces", "Playfair Display", Georgia, serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.12em;

@@ -25,7 +25,8 @@ export const seedItems = [
     date: daysAgo(3),
     status: "Reported",
     image: null,
-    reporter: "demo@student.edu",
+    reporter: "rahul.m@student.edu",
+    reporterName: "Rahul Mehta",
     createdAt: now - 3 * 86400000,
   },
   {
@@ -36,7 +37,8 @@ export const seedItems = [
     date: daysAgo(2),
     status: "Reported",
     image: null,
-    reporter: "demo@student.edu",
+    reporter: "priya.s@student.edu",
+    reporterName: "Priya Sharma",
     createdAt: now - 2 * 86400000,
   },
   {
@@ -47,7 +49,8 @@ export const seedItems = [
     date: daysAgo(5),
     status: "Matched",
     image: null,
-    reporter: "demo@student.edu",
+    reporter: "dev.k@student.edu",
+    reporterName: "Dev Kapoor",
     createdAt: now - 5 * 86400000,
   },
   {
@@ -58,7 +61,8 @@ export const seedItems = [
     date: daysAgo(1),
     status: "Reported",
     image: null,
-    reporter: "demo@student.edu",
+    reporter: "kavita.r@student.edu",
+    reporterName: "Kavita Rao",
     createdAt: now - 1 * 86400000,
   },
   {
@@ -68,8 +72,9 @@ export const seedItems = [
     category: "Accessories",
     date: daysAgo(4),
     status: "Matched",
-    image: null,
-    reporter: "demo@student.edu",
+    image: "/hero/casio_watch.jpg",
+    reporter: "aditya.v@student.edu",
+    reporterName: "Aditya Verma",
     createdAt: now - 4 * 86400000,
   },
   {
@@ -80,7 +85,8 @@ export const seedItems = [
     date: daysAgo(6),
     status: "Reported",
     image: null,
-    reporter: "demo@student.edu",
+    reporter: "ananya.d@student.edu",
+    reporterName: "Ananya Das",
     createdAt: now - 6 * 86400000,
   },
   {
@@ -91,7 +97,8 @@ export const seedItems = [
     date: daysAgo(2),
     status: "Reported",
     image: null,
-    reporter: "demo@student.edu",
+    reporter: "rohan.g@student.edu",
+    reporterName: "Rohan Gupta",
     createdAt: now - 2 * 86400000 - 3600000,
   },
   {
@@ -102,7 +109,8 @@ export const seedItems = [
     date: daysAgo(1),
     status: "Reported",
     image: null,
-    reporter: "demo@student.edu",
+    reporter: "sid.n@student.edu",
+    reporterName: "Siddharth Nair",
     createdAt: now - 1 * 86400000 - 7200000,
   },
   {
@@ -113,7 +121,8 @@ export const seedItems = [
     date: daysAgo(7),
     status: "Returned",
     image: null,
-    reporter: "demo@student.edu",
+    reporter: "tanvi.p@student.edu",
+    reporterName: "Tanvi Patel",
     createdAt: now - 7 * 86400000,
   },
   {
@@ -124,7 +133,8 @@ export const seedItems = [
     date: daysAgo(8),
     status: "Returned",
     image: null,
-    reporter: "demo@student.edu",
+    reporter: "varun.b@student.edu",
+    reporterName: "Varun Bhatia",
     createdAt: now - 8 * 86400000,
   },
 ];

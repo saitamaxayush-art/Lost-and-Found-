@@ -80,7 +80,7 @@ const HeroSection = forwardRef(function HeroSection(
   return (
     <section
       ref={ref}
-      id="top"
+      id="hero"
       className={`hero-editorial-section ${isHovered ? "is-hovered" : ""}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}

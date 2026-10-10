@@ -49,7 +49,27 @@ export function AppProvider({ children }) {
   const [items, setItems] = useState(() => {
     const stored = loadFromStorage(ITEMS_KEY, null);
     if (stored && Array.isArray(stored) && stored.length > 0) {
-      return stored;
+      return stored.map((item) => {
+        if (item.id === "user-lost-1" || (item.description && item.description.includes("AirPods"))) {
+          return { ...item, image: "/hero/airpods.png" };
+        }
+        if (item.id === "user-lost-2" || (item.description && item.description.includes("HP 65W"))) {
+          return { ...item, image: "/hero/hp_charger.jpg" };
+        }
+        if (item.id === "user-lost-3" || (item.description && item.description.includes("Student ID Card"))) {
+          return { ...item, image: "/hero/student_id.jpg" };
+        }
+        if (item.id === "user-found-1" || item.id === "seed-5" || (item.description && item.description.includes("Casio"))) {
+          return { ...item, image: "/hero/casio_watch.jpg" };
+        }
+        if (item.id === "user-found-2" || (item.description && item.description.includes("Calculator"))) {
+          return { ...item, image: "/hero/calculator.jpg" };
+        }
+        if (item.id === "user-found-3" || (item.description && item.description.includes("Titan Leather"))) {
+          return { ...item, image: "/hero/wallet.jpg" };
+        }
+        return item;
+      });
     }
     // Combine seed items and user items
     return [...INITIAL_USER_ITEMS, ...seedItems];

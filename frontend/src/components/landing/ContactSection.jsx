@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-export default function ContactSection({ onMouseEnter, onMouseLeave, isHovered }) {
+export default function ContactSection({ goTo, onMouseEnter, onMouseLeave, isHovered }) {
   const [sent, setSent] = useState(false);
   const [v, setV] = useState({ name: "", email: "", message: "" });
   const set = (k) => (e) => setV((s) => ({ ...s, [k]: e.target.value }));
@@ -75,7 +75,27 @@ export default function ContactSection({ onMouseEnter, onMouseLeave, isHovered }
         <footer className="lp-footer">
           <div className="lp-footer-inner">
             <div className="lp-footer-brand">
-              <strong>FindBack</strong> — Campus Lost &amp; Found Portal
+              <a
+                href="#hero"
+                className="lp-footer-brand-link"
+                id="footer-findback-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (goTo) {
+                    goTo("hero");
+                  } else {
+                    const heroEl = document.getElementById("hero") || document.getElementById("top") || document.querySelector(".hero-editorial-section");
+                    if (heroEl) {
+                      heroEl.scrollIntoView({ behavior: "smooth" });
+                    } else {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }
+                }}
+              >
+                <strong>FindBack</strong>
+              </a>{" "}
+              — Campus Lost &amp; Found Portal
             </div>
             <div className="lp-footer-links">
               <Link to="/terms" className="lp-footer-link" id="footer-terms-link">

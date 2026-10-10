@@ -216,7 +216,7 @@ export default function SearchDissolveLoader({
       const textY = height - 30;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = '600 14px "Sora", sans-serif';
+      ctx.font = '600 14px "Plus Jakarta Sans", "Inter", sans-serif';
       const textAlpha = 0.72 + 0.22 * Math.sin(t * 1.8);
       ctx.fillStyle = `rgba(251, 243, 228, ${textAlpha})`;
       const displayText = query ? `Searching for "${query}"…` : label;

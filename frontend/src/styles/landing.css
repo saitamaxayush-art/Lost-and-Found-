@@ -94,7 +94,7 @@
 }
 .lp-hero-content { max-width: 720px; }
 .lp-hero-content h1 {
-  font-family: "Sora", "Inter", sans-serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: clamp(30px, 4.6vw, 56px);
   line-height: 1.08;
   letter-spacing: -0.02em;
@@ -186,7 +186,7 @@
   background: transparent;
 }
 .lp-track-heading h2 {
-  font-family: "Sora", "Inter", sans-serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: clamp(26px, 3.4vw, 42px);
   color: #ffffff !important;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
@@ -228,7 +228,7 @@
   opacity: 0;
   z-index: 4;
 }
-.lp-h1, .lp-h2 { color: #ffffff !important; font-family: "Sora", "Inter", sans-serif; text-shadow: 0 2px 22px rgba(0, 0, 0, .65); }
+.lp-h1, .lp-h2 { color: #ffffff !important; font-family: var(--font-display, "Plus Jakarta Sans", sans-serif); text-shadow: 0 2px 22px rgba(0, 0, 0, .65); }
 .lp-hero { text-shadow: 0 2px 22px rgba(0, 0, 0, .65); z-index: 4; }
 
 .lp-hero {
@@ -399,7 +399,7 @@
   width: min(480px, 95vw);
   padding: 30px 28px 26px;
 }
-.lm-dialog h2, .lm-dialog h3 { color: var(--navy); font-family: "Sora", "Inter", sans-serif; }
+.lm-dialog h2, .lm-dialog h3 { color: var(--navy); font-family: var(--font-display, "Plus Jakarta Sans", sans-serif); }
 .lm-dialog h2 { font-size: 24px; margin: 10px 0 6px; letter-spacing: -.01em; }
 .lm-sub { margin: 0 0 18px; color: #6b6558; font-size: 14.5px; line-height: 1.5; }
 .lm-close {
@@ -461,7 +461,7 @@
   border-color: rgba(16, 185, 129, 0.28);
 }
 .lf-title {
-  font-family: "Sora", "Inter", sans-serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 23px;
   font-weight: 700;
   color: #1e1b18;
@@ -639,7 +639,7 @@
 }
 .lf-demo-code strong {
   letter-spacing: 0.12em;
-  font-family: "Sora", monospace, sans-serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 15px;
 }
 .lf-autofill-btn {
@@ -681,7 +681,7 @@
   width: 48px;
   height: 56px;
   text-align: center;
-  font-family: "Sora", monospace, sans-serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-size: 24px;
   font-weight: 700;
   color: #1e1b18;
@@ -799,7 +799,7 @@
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   color: #fffaf0;
-  font-family: "Sora", sans-serif;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;

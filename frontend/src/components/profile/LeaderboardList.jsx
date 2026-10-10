@@ -3,29 +3,9 @@ import Avatar from "../common/Avatar";
 
 export default function LeaderboardList({ entries = [], maxPoints = 500 }) {
   const currentUserRef = useRef(null);
-  const [userRowOffScreen, setUserRowOffScreen] = useState(false);
 
   // Filter 4+ rank entries
   const listEntries = entries.slice(3);
-  const currentUserEntry = entries.find((e) => e.isCurrentUser);
-
-  useEffect(() => {
-    if (!currentUserRef.current) {
-      // If current user is not in list (maybe top 3 or not rendered)
-      setUserRowOffScreen(false);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setUserRowOffScreen(!entry.isIntersecting);
-      },
-      { threshold: 0.2 }
-    );
-
-    observer.observe(currentUserRef.current);
-    return () => observer.disconnect();
-  }, [listEntries]);
 
   return (
     <div className="pf-leaderboard-list-wrap">
@@ -68,36 +48,6 @@ export default function LeaderboardList({ entries = [], maxPoints = 500 }) {
           );
         })}
       </div>
-
-      {/* Pinned "Your position" bar sticking to bottom of viewport if user row is off-screen */}
-      {userRowOffScreen && currentUserEntry && (
-        <div className="pf-pinned-position-bar" role="status">
-          <div className="pf-pinned-inner">
-            <div className="pf-pinned-left">
-              <span className="pf-pinned-badge">#{currentUserEntry.rank}</span>
-              <Avatar name={currentUserEntry.name} size={28} />
-              <span className="pf-pinned-title">Your position</span>
-            </div>
-            <div className="pf-pinned-right">
-              <span className="pf-pinned-points">
-                <strong>{currentUserEntry.points}</strong> pts
-              </span>
-              <button
-                type="button"
-                className="pf-pinned-scroll-btn"
-                onClick={() => {
-                  currentUserRef.current?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center",
-                  });
-                }}
-              >
-                Jump to row ↑
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

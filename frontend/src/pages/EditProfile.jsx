@@ -12,60 +12,41 @@ import "../styles/landing.css";
 import "../styles/profile.css";
 import "../styles/editProfile.css";
 
-const PRESET_AVATARS = [
-  {
-    id: "preset-1",
-    label: "Student 1",
-    url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "preset-2",
-    label: "Student 2",
-    url: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "preset-3",
-    label: "Student 3",
-    url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "preset-4",
-    label: "Student 4",
-    url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "preset-5",
-    label: "Student 5",
-    url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: "preset-6",
-    label: "Student 6",
-    url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
-  },
-];
-
-const POPULAR_DEPTS = [
+const DEPARTMENT_OPTIONS = [
   "Computer Science & Engineering",
   "Information Technology",
   "Electronics & Communication",
   "Mechanical Engineering",
   "Design & Architecture",
   "Management Studies",
+  "Biotechnology",
+  "Civil Engineering",
+  "Electrical & Electronics Engineering",
+  "Mathematics & Computing",
+  "Chemical Engineering",
+  "Physics & Applied Sciences",
+  "Other / Specialized Course",
 ];
 
-const POPULAR_CAMPUSES = [
+const CAMPUS_OPTIONS = [
   "North Campus, Engineering Block",
-  "South Campus, Tech Park",
+  "South Campus, Science Block",
+  "Main Campus, Central Wing",
+  "East Campus, Technology Park",
+  "West Campus, Medical Sciences",
   "Central Campus",
-  "East Campus, Science Block",
+  "Off-Campus / Satellite Facility",
 ];
 
-const POPULAR_HOSTELS = [
+const HOSTEL_OPTIONS = [
   "Boys Hostel Block B, Room 304",
+  "Boys Hostel Block A",
+  "Boys Hostel Block C",
   "Girls Hostel Block A, Room 210",
+  "Girls Hostel Block B",
   "Aryabhata Hall H-102",
-  "Day Scholar",
+  "PG & Research Scholars Hostel",
+  "Day Scholar (Off-Campus Residence)",
 ];
 
 export default function EditProfile() {
@@ -379,7 +360,7 @@ export default function EditProfile() {
               </div>
               <div>
                 <h2 className="ep-card-title">Profile Picture &amp; Visual Avatar</h2>
-                <p className="ep-card-desc">Choose a custom photo or tap any curated campus avatar</p>
+                <p className="ep-card-desc">Upload a photo directly from your device</p>
               </div>
             </div>
 
@@ -439,47 +420,14 @@ export default function EditProfile() {
                     </button>
                   )}
                 </div>
-
-                <div className="ep-presets-block">
-                  <span className="ep-presets-label">Preset Campus Student Avatars:</span>
-                  <div className="ep-presets-grid">
-                    {PRESET_AVATARS.map((p) => {
-                      const isSelected = avatar === p.url;
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          className={`ep-preset-tile ${isSelected ? "is-selected" : ""}`}
-                          onClick={() => {
-                            setAvatar(p.url);
-                            sound.playKeyTurn?.();
-                          }}
-                          title={`Select ${p.label}`}
-                        >
-                          <img src={p.url} alt={p.label} className="ep-preset-img" />
-                          {isSelected && <span className="ep-preset-check">✓</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="ep-field ep-url-field">
-                  <label className="ep-label">Or Image Web URL</label>
-                  <input
-                    type="url"
-                    name="avatarUrl"
-                    className="ep-input"
-                    value={avatar?.startsWith("data:") ? "" : avatar}
-                    onChange={(e) => setAvatar(e.target.value)}
-                    placeholder="https://images.unsplash.com/your-photo.jpg"
-                  />
-                </div>
+                <span className="ep-field-hint" style={{ marginTop: 10 }}>
+                  Supports PNG, JPG, or WEBP. File stays local and previews instantly on your campus card.
+                </span>
               </div>
             </div>
           </section>
 
-          {/* SECTION 2: CAMPUS & ACADEMICS */}
+          {/* SECTION 2: CAMPUS & ACADEMIC CREDENTIALS */}
           <section className="ep-card ep-academic-card ep-stagger-2">
             <div className="ep-card-head">
               <div className="ep-icon-circle">
@@ -490,7 +438,7 @@ export default function EditProfile() {
               </div>
               <div>
                 <h2 className="ep-card-title">Campus &amp; Academic Credentials</h2>
-                <p className="ep-card-desc">Helps verify student identity for safe item returns across campus</p>
+                <p className="ep-card-desc">Student identification and campus contact details for verified coordination</p>
               </div>
             </div>
 
@@ -521,61 +469,69 @@ export default function EditProfile() {
                 <span className="ep-field-hint">Matches your college student ID card.</span>
               </div>
 
+              <div className="ep-field">
+                <label className="ep-label">College Email ID</label>
+                <input
+                  type="email"
+                  name="email"
+                  className="ep-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="student@campus.edu"
+                  required
+                />
+                <span className="ep-field-hint">Official campus student email address.</span>
+              </div>
+
+              <div className="ep-field">
+                <label className="ep-label">Phone Number / WhatsApp</label>
+                <input
+                  type="tel"
+                  name="whatsapp"
+                  className="ep-input"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="+91 98765 43210"
+                />
+                <span className="ep-field-hint">Direct contact for coordinating item handovers.</span>
+              </div>
+
               <div className="ep-field ep-field-full">
                 <label className="ep-label">Department / Degree Major</label>
-                <input
-                  type="text"
+                <select
                   name="department"
-                  className="ep-input"
+                  className="ep-input ep-select"
                   value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  placeholder="e.g. Computer Science & Engineering"
-                />
-                {/* Popular department quick chips */}
-                <div className="ep-quick-chips-row">
-                  <span className="ep-quick-chips-label">Quick select:</span>
-                  {POPULAR_DEPTS.map((dept) => (
-                    <button
-                      key={dept}
-                      type="button"
-                      className={`ep-quick-chip ${department === dept ? "is-active" : ""}`}
-                      onClick={() => {
-                        setDepartment(dept);
-                        sound.playKeyTurn?.();
-                      }}
-                    >
+                  onChange={(e) => {
+                    setDepartment(e.target.value);
+                    sound.playKeyTurn?.();
+                  }}
+                >
+                  {DEPARTMENT_OPTIONS.map((dept) => (
+                    <option key={dept} value={dept}>
                       {dept}
-                    </button>
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
               <div className="ep-field ep-field-full">
                 <label className="ep-label">Campus / College Branch</label>
-                <input
-                  type="text"
+                <select
                   name="campus"
-                  className="ep-input"
+                  className="ep-input ep-select"
                   value={campus}
-                  onChange={(e) => setCampus(e.target.value)}
-                  placeholder="e.g. North Campus, Engineering Block"
-                />
-                <div className="ep-quick-chips-row">
-                  <span className="ep-quick-chips-label">Quick select:</span>
-                  {POPULAR_CAMPUSES.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      className={`ep-quick-chip ${campus === c ? "is-active" : ""}`}
-                      onClick={() => {
-                        setCampus(c);
-                        sound.playKeyTurn?.();
-                      }}
-                    >
+                  onChange={(e) => {
+                    setCampus(e.target.value);
+                    sound.playKeyTurn?.();
+                  }}
+                >
+                  {CAMPUS_OPTIONS.map((c) => (
+                    <option key={c} value={c}>
                       {c}
-                    </button>
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
               <div className="ep-field">
@@ -616,131 +572,43 @@ export default function EditProfile() {
 
               <div className="ep-field ep-field-full">
                 <label className="ep-label">Hostel / Hall of Residence</label>
-                <input
-                  type="text"
+                <select
                   name="hostel"
-                  className="ep-input"
+                  className="ep-input ep-select"
                   value={hostel}
-                  onChange={(e) => setHostel(e.target.value)}
-                  placeholder="e.g. Boys Hostel Block B, Room 304 or Day Scholar"
-                />
-                <div className="ep-quick-chips-row">
-                  <span className="ep-quick-chips-label">Quick select:</span>
-                  {POPULAR_HOSTELS.map((h) => (
-                    <button
-                      key={h}
-                      type="button"
-                      className={`ep-quick-chip ${hostel === h ? "is-active" : ""}`}
-                      onClick={() => {
-                        setHostel(h);
-                        sound.playKeyTurn?.();
-                      }}
-                    >
+                  onChange={(e) => {
+                    setHostel(e.target.value);
+                    sound.playKeyTurn?.();
+                  }}
+                >
+                  {HOSTEL_OPTIONS.map((h) => (
+                    <option key={h} value={h}>
                       {h}
-                    </button>
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
             </div>
           </section>
 
-          {/* SECTION 3: CONTACT & BIO */}
-          <section className="ep-card ep-contact-card ep-stagger-3">
-            <div className="ep-card-head">
-              <div className="ep-icon-circle">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="ep-card-title">Contact &amp; Reachability Note</h2>
-                <p className="ep-card-desc">Ensures quick coordination when an item is matched</p>
-              </div>
-            </div>
-
-            <div className="ep-fields-grid">
-              <div className="ep-field">
-                <label className="ep-label">Student Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  className="ep-input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="student@campus.edu"
-                  required
-                />
-                <span className="ep-field-hint">Used for official lost &amp; found match updates.</span>
-              </div>
-
-              <div className="ep-field">
-                <label className="ep-label">WhatsApp / Contact Phone</label>
-                <input
-                  type="tel"
-                  name="whatsapp"
-                  className="ep-input"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  placeholder="+91 98765 43210"
-                />
-                <span className="ep-field-hint">Shared with finder or owner upon mutual confirmation.</span>
-              </div>
-
-              <div className="ep-field ep-field-full">
-                <label className="ep-label">Campus Bio / Status Note</label>
-                <textarea
-                  name="bio"
-                  className="ep-input ep-textarea"
-                  rows={3}
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="e.g. Usually in CS Lab 301 or Central Library. Fast respondent."
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* STICKY ACTION BAR */}
-          <div className="ep-action-bar">
-            <div className="ep-action-bar-inner">
-              <div className="ep-action-status">
-                <span className="ep-status-dot" />
-                <span>All edits previewed on your campus card live</span>
-              </div>
-
-              <div className="ep-action-buttons">
-                <button
-                  type="button"
-                  className="ep-btn-cancel"
-                  onClick={() => navigate("/profile")}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={`ep-btn-save ${saveSuccess ? "is-success" : ""}`}
-                  disabled={saveSuccess}
-                >
-                  {saveSuccess ? (
-                    <>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                      <span>Changes Saved!</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                        <polyline points="17 21 17 13 7 13 7 21" />
-                        <polyline points="7 3 7 8 15 8" />
-                      </svg>
-                      <span>Save Profile Changes</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+          {/* DARK THEMED SAVE CHANGES BUTTON */}
+          <div className="ep-save-btn-row">
+            <button
+              type="submit"
+              className={`ep-btn-save-dark ${saveSuccess ? "is-success" : ""}`}
+              disabled={saveSuccess}
+            >
+              {saveSuccess ? (
+                <>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>Changes Saved!</span>
+                </>
+              ) : (
+                <span>Save Changes</span>
+              )}
+            </button>
           </div>
         </form>
       </main>
