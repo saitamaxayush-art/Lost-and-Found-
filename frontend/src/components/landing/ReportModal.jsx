@@ -11,6 +11,7 @@ export default function ReportModal({ type, onClose, onViewItem, onViewReport })
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [location, setLocation] = useState("");
   const [image, setImage] = useState(null);
   const [result, setResult] = useState(null);
 
@@ -25,7 +26,18 @@ export default function ReportModal({ type, onClose, onViewItem, onViewReport })
   function submit(e) {
     e.preventDefault();
     if (!description.trim() || !date) return;
-    setResult(addItem({ type, description: description.trim(), category, date, image }));
+    setResult(
+      addItem({
+        type,
+        description: description.trim(),
+        category,
+        date,
+        location: location.trim(),
+        locationLost: type === "lost" ? location.trim() : undefined,
+        locationFound: type === "found" ? location.trim() : undefined,
+        image,
+      })
+    );
   }
 
   if (result) {
@@ -106,6 +118,38 @@ export default function ReportModal({ type, onClose, onViewItem, onViewReport })
           <div className="lf-row">
             <label htmlFor="rp-date">Date {verb}</label>
             <input id="rp-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          </div>
+        </div>
+
+        {/* Estimated / Known Location Section */}
+        <div className="lf-row">
+          <label htmlFor="rp-location">
+            {type === "lost" ? "Where do you think you lost it? (Estimated location)" : "Where was the item found?"}
+          </label>
+          <input
+            id="rp-location"
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder={
+              type === "lost"
+                ? "e.g. Central Library 2nd floor, CS Lab 301, Canteen, Near Sports Complex…"
+                : "e.g. Bench near Canteen, Seminar Hall B entrance, Basketball Court…"
+            }
+            required
+          />
+          <div className="lf-quick-spots">
+            <span className="lf-quick-spots-label">Quick select:</span>
+            {["Central Library", "CS Lab 301", "Campus Canteen", "Sports Ground", "Seminar Hall", "Hostel Block"].map((spot) => (
+              <button
+                key={spot}
+                type="button"
+                className={`lf-spot-chip ${location === spot ? "is-active" : ""}`}
+                onClick={() => setLocation(spot)}
+              >
+                {spot}
+              </button>
+            ))}
           </div>
         </div>
 

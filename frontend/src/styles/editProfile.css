@@ -1,25 +1,73 @@
 /* --------------------------------------------------------------------------
-   EDIT PROFILE WEBPAGE STYLES (Paper & Espresso)
+   EDIT PROFILE WEBPAGE STYLES (Paper & Espresso + Cosmic 3D ID Card)
    -------------------------------------------------------------------------- */
+
+@keyframes epFadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes livePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.6;
+  }
+}
+
+@keyframes hologramGleam {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes avatarGlowPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(224, 122, 31, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(224, 122, 31, 0);
+  }
+}
 
 .ep-page {
   background-color: var(--surface-warm, #FAF6ED);
   min-height: 100vh;
   color: var(--espresso, #1B130D);
+  position: relative;
+  overflow-x: hidden;
 }
 
 .ep-container {
-  max-width: 860px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 32px 24px 96px;
+  padding: 36px 24px 120px;
 }
 
-/* Top bar with back button & title */
+/* --------------------------------------------------------------------------
+   Top Bar & Header
+   -------------------------------------------------------------------------- */
 .ep-top-bar {
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin-bottom: 32px;
+  animation: epFadeSlideUp 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .ep-back-btn {
@@ -27,15 +75,15 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 8px 18px;
   border-radius: 999px;
   background: var(--surface, #FFFDF9);
   border: 1px solid var(--line, #E8DFD1);
   color: var(--ink-soft, #5A4E44);
   font-size: 13.5px;
-  font-weight: 550;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: var(--shadow-sm, 0 1px 3px rgba(27, 19, 13, 0.05));
 }
 
@@ -43,19 +91,62 @@
   background: #FFF;
   color: var(--espresso, #1B130D);
   border-color: var(--ink-soft, #5A4E44);
-  transform: translateX(-2px);
+  transform: translateX(-3px);
+  box-shadow: 0 3px 10px rgba(27, 19, 13, 0.08);
 }
 
 .ep-header-text {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+}
+
+.ep-header-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ep-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(224, 122, 31, 0.12);
+  color: var(--accent, #E07A1F);
+  border: 1px solid rgba(224, 122, 31, 0.25);
+}
+
+.ep-live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2E7D5B;
+  background: rgba(46, 125, 91, 0.09);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(46, 125, 91, 0.2);
+}
+
+.ep-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2E7D5B;
+  animation: livePulse 1.8s ease-in-out infinite;
 }
 
 .ep-page-title {
   font-family: 'Fraunces', Georgia, serif;
-  font-size: 38px;
-  font-weight: 600;
+  font-size: 40px;
+  font-weight: 650;
   line-height: 1.15;
   color: var(--espresso, #1B130D);
   letter-spacing: -0.025em;
@@ -63,13 +154,334 @@
 }
 
 .ep-page-subtitle {
-  font-size: 15px;
+  font-size: 15.5px;
   color: var(--ink-soft, #5A4E44);
   line-height: 1.5;
   margin: 0;
+  max-width: 640px;
 }
 
-/* Modular Section Cards */
+/* --------------------------------------------------------------------------
+   LIVE 3D STUDENT ID CARD SHOWCASE (Cosmic Hero Card)
+   -------------------------------------------------------------------------- */
+.ep-id-showcase-wrap {
+  margin-bottom: 40px;
+  perspective: 1100px;
+  animation: epFadeSlideUp 500ms cubic-bezier(0.16, 1, 0.3, 1) both 80ms;
+}
+
+.ep-id-card {
+  position: relative;
+  background: radial-gradient(120% 120% at 50% 0%, #1c140d 0%, #0d0805 100%);
+  border: 1px solid rgba(255, 235, 210, 0.14);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow:
+    0 20px 48px -10px rgba(18, 12, 7, 0.45),
+    0 4px 16px rgba(18, 12, 7, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: box-shadow 300ms ease, transform 120ms ease-out;
+  transform-style: preserve-3d;
+  color: #FFFDF9;
+}
+
+.ep-id-card:hover {
+  box-shadow:
+    0 28px 64px -12px rgba(18, 12, 7, 0.55),
+    0 6px 20px rgba(224, 122, 31, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.ep-id-specular {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 40%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ep-id-inner {
+  position: relative;
+  z-index: 3;
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Card Top Bar */
+.ep-id-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  padding-bottom: 16px;
+}
+
+.ep-id-institute-tag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #F6D8A8;
+}
+
+.ep-id-logo-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(224, 122, 31, 0.22);
+  color: #F8B368;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(248, 179, 104, 0.3);
+}
+
+/* Holographic Shimmer Seal */
+.ep-id-hologram-seal {
+  position: relative;
+  padding: 5px 14px;
+  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 180, 0, 0.2),
+    rgba(0, 220, 200, 0.2),
+    rgba(255, 90, 180, 0.2),
+    rgba(255, 180, 0, 0.2)
+  );
+  background-size: 300% 300%;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  overflow: hidden;
+  animation: hologramGleam 6s ease infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ep-hologram-shimmer {
+  position: absolute;
+  inset: -100%;
+  background: linear-gradient(
+    45deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 65%
+  );
+  pointer-events: none;
+  animation: hologramGleam 4s linear infinite;
+}
+
+.ep-hologram-text {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #FFF;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* Card Main Body */
+.ep-id-body {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.ep-id-avatar-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ep-id-avatar-img {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.ep-id-avatar-tier {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #F8B368;
+  background: rgba(224, 122, 31, 0.18);
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(224, 122, 31, 0.3);
+}
+
+.ep-id-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ep-id-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ep-id-name {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 26px;
+  font-weight: 650;
+  color: #FFFDF9;
+  letter-spacing: -0.015em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ep-id-roll-badge {
+  font-family: 'SF Mono', Consolas, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.12);
+  color: #F6D8A8;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  letter-spacing: 0.04em;
+}
+
+.ep-id-dept-line {
+  font-size: 14.5px;
+  color: #D6CBC1;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.ep-id-tags-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.ep-id-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #EFE7DE;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ep-id-sem-tag {
+  color: #F8B368;
+  background: rgba(224, 122, 31, 0.15);
+  border-color: rgba(224, 122, 31, 0.25);
+  font-weight: 600;
+}
+
+/* Completeness Radial Meter */
+.ep-id-completeness-meter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 12px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ep-id-radial-box {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+}
+
+.ep-id-radial-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ep-id-radial-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 3.2;
+}
+
+.ep-id-radial-fill {
+  fill: none;
+  stroke: #F8B368;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  transition: stroke-dasharray 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ep-id-radial-number {
+  position: absolute;
+  font-size: 12.5px;
+  font-weight: 750;
+  color: #FFF;
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+.ep-id-completeness-lbl {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #C3B4A6;
+  font-weight: 600;
+}
+
+/* Simulated Barcode & Serial */
+.ep-id-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  padding-top: 14px;
+}
+
+.ep-id-barcode-lines {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  opacity: 0.75;
+}
+
+.ep-id-barcode-lines span {
+  display: inline-block;
+  height: 100%;
+  background: #EFE7DE;
+  border-radius: 1px;
+}
+
+.ep-id-serial-code {
+  font-family: 'SF Mono', Consolas, Menlo, monospace;
+  font-size: 11px;
+  color: #A99B8F;
+  letter-spacing: 0.08em;
+}
+
+/* --------------------------------------------------------------------------
+   FORM SECTIONS & CARDS
+   -------------------------------------------------------------------------- */
 .ep-form {
   display: flex;
   flex-direction: column;
@@ -80,13 +492,27 @@
   background: var(--surface, #FFFDF9);
   border: 1px solid var(--line, #E8DFD1);
   border-radius: 24px;
-  padding: 32px 36px;
-  box-shadow: var(--shadow-sm, 0 2px 8px rgba(27, 19, 13, 0.04));
-  transition: box-shadow 220ms ease;
+  padding: 34px 38px;
+  box-shadow: 0 4px 14px rgba(27, 19, 13, 0.04);
+  transition: box-shadow 240ms ease, transform 240ms ease;
+  position: relative;
 }
 
 .ep-card:hover {
-  box-shadow: var(--shadow-md, 0 6px 18px rgba(27, 19, 13, 0.07));
+  box-shadow: 0 10px 28px rgba(27, 19, 13, 0.08);
+  transform: translateY(-2px);
+}
+
+.ep-stagger-1 {
+  animation: epFadeSlideUp 500ms cubic-bezier(0.16, 1, 0.3, 1) both 140ms;
+}
+
+.ep-stagger-2 {
+  animation: epFadeSlideUp 500ms cubic-bezier(0.16, 1, 0.3, 1) both 200ms;
+}
+
+.ep-stagger-3 {
+  animation: epFadeSlideUp 500ms cubic-bezier(0.16, 1, 0.3, 1) both 260ms;
 }
 
 .ep-card-head {
@@ -99,19 +525,24 @@
 }
 
 .ep-icon-circle {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   background: rgba(224, 122, 31, 0.12);
   color: var(--accent, #E07A1F);
   display: grid;
   place-items: center;
   flex-shrink: 0;
+  transition: transform 200ms ease;
+}
+
+.ep-card:hover .ep-icon-circle {
+  transform: scale(1.08) rotate(-4deg);
 }
 
 .ep-card-title {
   font-family: 'Fraunces', Georgia, serif;
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 600;
   margin: 0;
   color: var(--espresso, #1B130D);
@@ -119,16 +550,18 @@
 }
 
 .ep-card-desc {
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--ink-soft, #5A4E44);
-  margin: 3px 0 0;
+  margin: 4px 0 0;
 }
 
-/* SECTION 1: PHOTO */
+/* --------------------------------------------------------------------------
+   SECTION 1: PHOTO & AVATAR
+   -------------------------------------------------------------------------- */
 .ep-photo-body {
   display: flex;
   align-items: flex-start;
-  gap: 32px;
+  gap: 36px;
   flex-wrap: wrap;
 }
 
@@ -137,26 +570,40 @@
   flex-shrink: 0;
 }
 
+.ep-avatar-interactive-halo {
+  border-radius: 50%;
+  padding: 4px;
+  background: linear-gradient(135deg, rgba(224, 122, 31, 0.3), rgba(246, 216, 168, 0.4));
+  box-shadow: 0 6px 20px rgba(27, 19, 13, 0.08);
+  transition: transform 220ms ease;
+}
+
+.ep-avatar-interactive-halo:hover {
+  transform: scale(1.04);
+}
+
 .ep-remove-photo-badge {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 26px;
-  height: 26px;
+  top: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #A33A2B;
   color: #fff;
   border: 2px solid #FFFDF9;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   display: grid;
   place-items: center;
-  transition: transform 150ms ease;
+  transition: transform 160ms ease, background-color 160ms ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .ep-remove-photo-badge:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
+  background: #842618;
 }
 
 .ep-photo-controls {
@@ -164,7 +611,7 @@
   min-width: 280px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
 .ep-photo-buttons {
@@ -178,40 +625,42 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
-  border-radius: 12px;
+  padding: 11px 20px;
+  border-radius: 14px;
   background: var(--accent, #E07A1F);
   color: #FFF;
   border: none;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
-  box-shadow: 0 3px 10px rgba(224, 122, 31, 0.28);
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(224, 122, 31, 0.28);
 }
 
 .ep-btn-upload:hover {
   background: #C46413;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(224, 122, 31, 0.38);
 }
 
 .ep-btn-ghost {
   display: inline-flex;
   align-items: center;
-  padding: 10px 16px;
-  border-radius: 12px;
+  padding: 11px 18px;
+  border-radius: 14px;
   background: transparent;
   border: 1px solid var(--line, #E8DFD1);
   color: var(--ink-soft, #5A4E44);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 13.5px;
+  font-weight: 550;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: all 160ms ease;
 }
 
 .ep-btn-ghost:hover {
   border-color: var(--ink-soft, #5A4E44);
   color: var(--espresso, #1B130D);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .ep-presets-block {
@@ -221,37 +670,39 @@
 }
 
 .ep-presets-label {
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 650;
   color: var(--espresso, #1B130D);
 }
 
 .ep-presets-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .ep-preset-tile {
   position: relative;
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 2px solid transparent;
+  border: 2.5px solid transparent;
   padding: 2px;
   background: none;
   cursor: pointer;
-  transition: transform 180ms ease, border-color 180ms ease;
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms ease, box-shadow 180ms ease;
   overflow: hidden;
 }
 
 .ep-preset-tile:hover {
-  transform: scale(1.08);
+  transform: scale(1.12);
   border-color: var(--line, #E8DFD1);
+  box-shadow: 0 4px 12px rgba(27, 19, 13, 0.12);
 }
 
 .ep-preset-tile.is-selected {
   border-color: var(--accent, #E07A1F);
-  transform: scale(1.08);
+  transform: scale(1.12);
+  box-shadow: 0 4px 14px rgba(224, 122, 31, 0.35);
 }
 
 .ep-preset-img {
@@ -265,20 +716,23 @@
 .ep-preset-check {
   position: absolute;
   inset: 0;
-  background: rgba(224, 122, 31, 0.45);
+  background: rgba(224, 122, 31, 0.55);
   border-radius: 50%;
   color: #fff;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 800;
+  font-size: 15px;
   display: grid;
   place-items: center;
+  backdrop-filter: blur(1px);
 }
 
-/* SECTION 2 & 3: FORM FIELDS GRID */
+/* --------------------------------------------------------------------------
+   FORM FIELDS & QUICK SELECT CHIPS
+   -------------------------------------------------------------------------- */
 .ep-fields-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 22px;
 }
 
 .ep-field-full {
@@ -288,68 +742,156 @@
 .ep-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .ep-label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 650;
   color: var(--espresso, #1B130D);
   letter-spacing: -0.01em;
 }
 
 .ep-input {
   width: 100%;
-  padding: 11px 14px;
-  border-radius: 12px;
+  padding: 12px 15px;
+  border-radius: 14px;
   border: 1px solid var(--line, #E8DFD1);
   background: #FFF;
   color: var(--espresso, #1B130D);
   font-size: 14px;
   font-family: inherit;
   outline: none;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  box-sizing: border-box;
 }
 
 .ep-input:focus {
   border-color: var(--accent, #E07A1F);
-  box-shadow: 0 0 0 3px rgba(224, 122, 31, 0.15);
+  box-shadow: 0 0 0 3px rgba(224, 122, 31, 0.16);
+  background-color: #FFFDF9;
 }
 
 .ep-select {
   cursor: pointer;
+  appearance: auto;
 }
 
 .ep-textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 84px;
   line-height: 1.5;
 }
 
 .ep-field-hint {
   font-size: 12px;
   color: var(--ink-soft, #5A4E44);
+  line-height: 1.4;
 }
 
-/* ACTION BAR */
-.ep-action-bar {
+/* Quick Select Interactive Chips */
+.ep-quick-chips-row {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.ep-quick-chips-label {
+  font-size: 11.5px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft, #5A4E44);
+}
+
+.ep-quick-chip {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--surface-warm, #FAF6ED);
+  border: 1px solid var(--line, #E8DFD1);
+  color: var(--espresso, #1B130D);
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ep-quick-chip:hover {
+  background: #FFF;
+  border-color: var(--accent, #E07A1F);
+  color: var(--accent, #E07A1F);
+  transform: translateY(-1px);
+}
+
+.ep-quick-chip.is-active {
+  background: var(--espresso, #1B130D);
+  color: #FFFDF9;
+  border-color: var(--espresso, #1B130D);
+  box-shadow: 0 2px 6px rgba(27, 19, 13, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   STICKY ACTION BAR
+   -------------------------------------------------------------------------- */
+.ep-action-bar {
+  position: sticky;
+  bottom: 24px;
+  z-index: 40;
+  margin-top: 12px;
+  animation: epFadeSlideUp 500ms cubic-bezier(0.16, 1, 0.3, 1) both 320ms;
+}
+
+.ep-action-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 16px;
-  padding: 24px 0 0;
+  padding: 16px 24px;
+  border-radius: 20px;
+  background: rgba(255, 253, 249, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--line, #E8DFD1);
+  box-shadow:
+    0 12px 36px rgba(27, 19, 13, 0.12),
+    0 2px 8px rgba(27, 19, 13, 0.06);
+}
+
+.ep-action-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-soft, #5A4E44);
+  font-weight: 500;
+}
+
+.ep-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2E7D5B;
+  animation: livePulse 2s ease infinite;
+}
+
+.ep-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .ep-btn-cancel {
-  padding: 12px 24px;
+  padding: 12px 22px;
   border-radius: 14px;
-  background: var(--surface, #FFFDF9);
+  background: transparent;
   border: 1px solid var(--line, #E8DFD1);
   color: var(--ink-soft, #5A4E44);
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 180ms ease;
+  transition: all 160ms ease;
 }
 
 .ep-btn-cancel:hover {
@@ -361,51 +903,88 @@
 .ep-btn-save {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   padding: 12px 28px;
   border-radius: 14px;
   background: var(--accent, #E07A1F);
   color: #FFF;
   border: none;
   font-size: 14.5px;
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(224, 122, 31, 0.32);
-  transition: all 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ep-btn-save:hover:not(:disabled) {
   background: #C46413;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(224, 122, 31, 0.40);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(224, 122, 31, 0.42);
 }
 
+.ep-btn-save.is-success,
 .ep-btn-save:disabled {
   background: #2E7D5B;
-  box-shadow: 0 4px 14px rgba(46, 125, 91, 0.3);
+  box-shadow: 0 4px 16px rgba(46, 125, 91, 0.35);
   cursor: default;
+  transform: scale(1.02);
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+/* --------------------------------------------------------------------------
+   RESPONSIVE DESIGN
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
   .ep-container {
-    padding: 20px 16px 64px;
+    padding: 24px 16px 80px;
   }
-  .ep-card {
+
+  .ep-page-title {
+    font-size: 32px;
+  }
+
+  .ep-id-inner {
     padding: 24px 20px;
   }
+
+  .ep-id-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .ep-id-completeness-meter {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .ep-card {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
+
   .ep-fields-grid {
     grid-template-columns: 1fr;
   }
+
   .ep-presets-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .ep-action-bar {
-    flex-direction: column-reverse;
+
+  .ep-action-bar-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
   }
+
+  .ep-action-buttons {
+    display: flex;
+    width: 100%;
+  }
+
   .ep-btn-cancel,
   .ep-btn-save {
-    width: 100%;
+    flex: 1;
     justify-content: center;
   }
 }

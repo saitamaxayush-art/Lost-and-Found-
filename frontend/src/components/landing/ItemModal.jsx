@@ -42,6 +42,12 @@ export default function ItemModal({ itemId, onClose, requireLogin }) {
             <dd>{item.category}</dd>
             <dt>Date {item.type}</dt>
             <dd>{item.date}</dd>
+            {(item.location || item.locationLost || item.locationFound) && (
+              <>
+                <dt>{isLost ? "Estimated Location" : "Location Found"}</dt>
+                <dd>{item.location || (isLost ? item.locationLost : item.locationFound)}</dd>
+              </>
+            )}
             <dt>Reported by</dt>
             <dd>{mask(item.reporter)}</dd>
           </dl>

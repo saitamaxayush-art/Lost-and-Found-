@@ -37,6 +37,13 @@ const HOVER_SELECTOR = [
   ".pf-status-trigger",
 ].join(", ");
 
+// Morphing of border applies STRICTLY to navigation pills and profile & logout buttons on the same line
+const MORPH_SELECTOR = [
+  ".lp-nav-links a",
+  ".lp-user-btn",
+  ".lp-nav-cta",
+].join(", ");
+
 export default function CustomCursor({ subscribe }) {
   const rootRef = useRef(null);
   const dotRef = useRef(null);
@@ -58,12 +65,51 @@ export default function CustomCursor({ subscribe }) {
       y: mid.y,
       rx: mid.x,
       ry: mid.y,
+      rw: 26,
+      rh: 26,
+      rr: 13,
       dotScale: 1,
-      ringScale: 1,
+      dotOpacity: 1,
       hover: false,
+      morphed: false,
       down: false,
       raf: 0,
       hasMoved: false,
+    };
+
+    let currentMorphEl = null;
+
+    const findMorphTarget = (target) => {
+      if (!target || !target.closest) return null;
+      // Strictly restricted to navigation pills and profile + logout buttons on the same line
+      const el = target.closest(MORPH_SELECTOR);
+      if (!el || el.disabled || el.getAttribute("aria-disabled") === "true") return null;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return null;
+      return el;
+    };
+
+    const updateTargetFromPoint = (x, y, fallbackTarget) => {
+      let morphEl = null;
+      if (typeof document.elementsFromPoint === "function") {
+        const els = document.elementsFromPoint(x, y);
+        for (const el of els) {
+          if (el.closest?.(".cc-root")) continue;
+          morphEl = findMorphTarget(el);
+          if (morphEl) break;
+        }
+      }
+      if (!morphEl && fallbackTarget) {
+        morphEl = findMorphTarget(fallbackTarget);
+      }
+
+      currentMorphEl = morphEl;
+      const isMorphed = !!morphEl;
+      if (s.morphed !== isMorphed) {
+        s.morphed = isMorphed;
+        root?.classList.toggle("is-morphed", isMorphed);
+      }
+      return morphEl;
     };
 
     const onMove = (e) => {
@@ -77,13 +123,35 @@ export default function CustomCursor({ subscribe }) {
         s.ry = s.my;
       }
       root?.classList.remove("is-hidden");
+      updateTargetFromPoint(e.clientX, e.clientY, e.target);
     };
 
     const onOver = (e) => {
-      const isInteractive = !!e.target.closest?.(HOVER_SELECTOR);
+      updateTargetFromPoint(e.clientX, e.clientY, e.target);
+      const isInteractive = s.morphed || !!e.target.closest?.(HOVER_SELECTOR);
       if (s.hover !== isInteractive) {
         s.hover = isInteractive;
         root?.classList.toggle("is-hover", isInteractive);
+      }
+    };
+
+    const onOut = (e) => {
+      if (!e.relatedTarget) {
+        currentMorphEl = null;
+        if (s.morphed) {
+          s.morphed = false;
+          root?.classList.remove("is-morphed");
+        }
+        return;
+      }
+      const newMorph = findMorphTarget(e.relatedTarget);
+      if (newMorph !== currentMorphEl) {
+        currentMorphEl = newMorph;
+        const isMorphed = !!newMorph;
+        if (s.morphed !== isMorphed) {
+          s.morphed = isMorphed;
+          root?.classList.toggle("is-morphed", isMorphed);
+        }
       }
     };
 
@@ -97,13 +165,20 @@ export default function CustomCursor({ subscribe }) {
       root?.classList.remove("is-down");
     };
 
-    const onLeaveDoc = () => root?.classList.add("is-hidden");
+    const onLeaveDoc = () => {
+      root?.classList.add("is-hidden");
+      currentMorphEl = null;
+      s.morphed = false;
+      root?.classList.remove("is-morphed");
+    };
+
     const onEnterDoc = () => root?.classList.remove("is-hidden");
 
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
     window.addEventListener("pointerup", onUp, { passive: true });
     document.addEventListener("mouseover", onOver, { passive: true });
+    document.addEventListener("mouseout", onOut, { passive: true });
     document.addEventListener("mouseleave", onLeaveDoc);
     document.addEventListener("mouseenter", onEnterDoc);
 
@@ -112,26 +187,93 @@ export default function CustomCursor({ subscribe }) {
       const dt = Math.min(0.064, (now - lastTime) / 1000 || 0.016);
       lastTime = now;
 
-      const targetDotScale = s.down ? 0.8 : s.hover ? 1.35 : 1;
-      const targetRingScale = s.down ? 0.88 : s.hover ? 1.65 : 1;
+      let targetW = 26;
+      let targetH = 26;
+      let targetR = 13;
+      let targetX = s.mx;
+      let targetY = s.my;
+      let targetDotScale = s.down ? 0.75 : s.hover ? 1.25 : 1;
+      let targetDotOpacity = 1;
 
-      // Silky-smooth responsive tracking physics
-      const fDot = 1 - Math.exp(-36 * dt);
-      const fRing = 1 - Math.exp(-18 * dt);
-      const fScale = 1 - Math.exp(-22 * dt);
+      // If hovering over an interactive element without a visible border (e.g. text nav links/pills)
+      if (s.hover && !currentMorphEl) {
+        targetW = 34;
+        targetH = 34;
+        targetR = 17;
+      }
+
+      // When hovering over a pill, button or nav section, take its exact shape
+      if (currentMorphEl && currentMorphEl.isConnected) {
+        const rect = currentMorphEl.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          const cs = window.getComputedStyle(currentMorphEl);
+          const rawRadius = parseFloat(cs.borderTopLeftRadius) || 0;
+
+          // Align EXACTLY with the target element's dimensions with 0 pixel drift
+          targetW = rect.width;
+          targetH = rect.height;
+
+          // Corner radius: capsule radius for pills/circles, or matching rounded corner
+          const maxCapsuleR = Math.min(targetW, targetH) / 2;
+          const isPillOrCircle =
+            rawRadius >= rect.height / 2 - 3 ||
+            cs.borderRadius.includes("999") ||
+            cs.borderRadius.includes("50%");
+
+          if (isPillOrCircle) {
+            targetR = maxCapsuleR;
+          } else {
+            targetR = Math.min(rawRadius, maxCapsuleR);
+          }
+
+          // Exact center of the target element: perfectly centered with zero alignment offset
+          targetX = rect.left + rect.width / 2;
+          targetY = rect.top + rect.height / 2;
+
+          // While morphed, hide the center dot so text inside pill is 100% unobstructed
+          targetDotScale = 0;
+          targetDotOpacity = 0;
+        } else {
+          currentMorphEl = null;
+          s.morphed = false;
+          root?.classList.remove("is-morphed");
+        }
+      } else if (currentMorphEl) {
+        currentMorphEl = null;
+        s.morphed = false;
+        root?.classList.remove("is-morphed");
+      }
+
+      // High-refresh fluid spring physics
+      const fDot = 1 - Math.exp(-42 * dt);
+      const fRingPos = s.morphed ? (1 - Math.exp(-34 * dt)) : (1 - Math.exp(-22 * dt));
+      const fRingSize = 1 - Math.exp(-32 * dt);
+      const fScale = 1 - Math.exp(-24 * dt);
 
       s.x += (s.mx - s.x) * fDot;
       s.y += (s.my - s.y) * fDot;
-      s.rx += (s.mx - s.rx) * fRing;
-      s.ry += (s.my - s.ry) * fRing;
+
+      s.rx += (targetX - s.rx) * fRingPos;
+      s.ry += (targetY - s.ry) * fRingPos;
+      s.rw += (targetW - s.rw) * fRingSize;
+      s.rh += (targetH - s.rh) * fRingSize;
+      s.rr += (targetR - s.rr) * fRingSize;
+
       s.dotScale += (targetDotScale - s.dotScale) * fScale;
-      s.ringScale += (targetRingScale - s.ringScale) * fScale;
+      s.dotOpacity += (targetDotOpacity - s.dotOpacity) * fScale;
 
       if (dotRef.current) {
         dotRef.current.style.transform = `translate3d(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0) scale(${s.dotScale.toFixed(3)})`;
+        dotRef.current.style.opacity = s.dotOpacity.toFixed(3);
       }
       if (ringRef.current) {
-        ringRef.current.style.transform = `translate3d(${s.rx.toFixed(2)}px, ${s.ry.toFixed(2)}px, 0) scale(${s.ringScale.toFixed(3)})`;
+        const pressScale = s.down ? (s.morphed ? 0.97 : 0.88) : 1;
+        const left = (s.rx - s.rw / 2).toFixed(2);
+        const top = (s.ry - s.rh / 2).toFixed(2);
+        ringRef.current.style.width = `${s.rw.toFixed(1)}px`;
+        ringRef.current.style.height = `${s.rh.toFixed(1)}px`;
+        ringRef.current.style.borderRadius = `${s.rr.toFixed(1)}px`;
+        ringRef.current.style.transform = `translate3d(${left}px, ${top}px, 0) scale(${pressScale})`;
       }
 
       s.raf = requestAnimationFrame(tick);
@@ -144,6 +286,7 @@ export default function CustomCursor({ subscribe }) {
       window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointerup", onUp);
       document.removeEventListener("mouseover", onOver);
+      document.removeEventListener("mouseout", onOut);
       document.removeEventListener("mouseleave", onLeaveDoc);
       document.removeEventListener("mouseenter", onEnterDoc);
       cancelAnimationFrame(s.raf);

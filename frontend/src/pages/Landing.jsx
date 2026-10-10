@@ -276,7 +276,6 @@ export default function Landing() {
         onMouseLeave={() => setHoveredSection((prev) => (prev === "how-it-works" ? null : prev))}
       >
         <div className="lp-track-heading">
-          <span className="lp-eyebrow">How it Works</span>
           <h2>Keep scrolling to watch a lost item find its way home.</h2>
         </div>
 

@@ -1,9 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import Nav from "../components/landing/Nav";
 import Avatar from "../components/common/Avatar";
 import LoginModal from "../components/landing/LoginModal";
+import HeroStars from "../components/profile/HeroStars";
+import ProgressRing from "../components/profile/ProgressRing";
+import { useTilt } from "../hooks/useTilt";
 import { sound } from "../utils/sound";
 import "../styles/landing.css";
 import "../styles/profile.css";
@@ -42,10 +45,34 @@ const PRESET_AVATARS = [
   },
 ];
 
+const POPULAR_DEPTS = [
+  "Computer Science & Engineering",
+  "Information Technology",
+  "Electronics & Communication",
+  "Mechanical Engineering",
+  "Design & Architecture",
+  "Management Studies",
+];
+
+const POPULAR_CAMPUSES = [
+  "North Campus, Engineering Block",
+  "South Campus, Tech Park",
+  "Central Campus",
+  "East Campus, Science Block",
+];
+
+const POPULAR_HOSTELS = [
+  "Boys Hostel Block B, Room 304",
+  "Girls Hostel Block A, Room 210",
+  "Aryabhata Hall H-102",
+  "Day Scholar",
+];
+
 export default function EditProfile() {
   const navigate = useNavigate();
-  const { user, updateUser, login } = useApp();
+  const { user, updateUser, userPoints = 120, login } = useApp();
   const fileInputRef = useRef(null);
+  const heroCardRef = useTilt({ maxTilt: 3.2, perspective: 1100, damping: 0.08 });
 
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -83,6 +110,21 @@ export default function EditProfile() {
       setBio(user.bio || "Campus helper · Lost & Found regular");
     }
   }, [user]);
+
+  // Compute live profile completion percentage
+  const completionPercentage = useMemo(() => {
+    let score = 0;
+    if (name.trim()) score += 15;
+    if (email.trim()) score += 15;
+    if (avatar) score += 15;
+    if (rollNo.trim()) score += 15;
+    if (department.trim()) score += 15;
+    if (campus.trim()) score += 10;
+    if (hostel.trim()) score += 5;
+    if (whatsapp.trim()) score += 5;
+    if (bio.trim()) score += 5;
+    return Math.min(100, score);
+  }, [name, email, avatar, rollNo, department, campus, hostel, whatsapp, bio]);
 
   // Upload local photo from machine
   const handleFileUpload = (e) => {
@@ -207,14 +249,126 @@ export default function EditProfile() {
           <div className="ep-header-text">
             <h1 className="ep-page-title">Edit Student Profile</h1>
             <p className="ep-page-subtitle">
-              Update your photo, campus information, and academic department details.
+              Refine your photo, student credentials, and academic details in real time.
             </p>
           </div>
         </div>
 
+        {/* =========================================================================
+            LIVE 3D STUDENT ID CARD SHOWCASE (Like IdentityHero with Stars & Tilt)
+           ========================================================================= */}
+        <section className="ep-id-showcase-wrap" aria-label="Live Student ID Preview">
+          <div className="ep-id-card" ref={heroCardRef}>
+            {/* Cosmic constellation stars backdrop */}
+            <HeroStars />
+
+            {/* Specular sheen & subtle noise */}
+            <div className="ep-id-specular" aria-hidden="true" />
+            <div className="ep-id-grain" aria-hidden="true" />
+
+            <div className="ep-id-inner">
+              {/* Top Banner on ID Card */}
+              <div className="ep-id-topbar">
+                <div className="ep-id-institute-tag">
+                  <div className="ep-id-logo-mark">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                      <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                  </div>
+                  <span>{campus || "STUDENT IDENTITY"}</span>
+                </div>
+              </div>
+
+              {/* Main ID Body */}
+              <div className="ep-id-body">
+                {/* Left: Avatar with Progress Ring */}
+                <div className="ep-id-avatar-box">
+                  <ProgressRing points={userPoints} size={98} strokeWidth={3}>
+                    <Avatar
+                      name={name || "Student"}
+                      image={avatar}
+                      size={82}
+                      className="ep-id-avatar-img"
+                    />
+                  </ProgressRing>
+                  <span className="ep-id-avatar-tier">{year || "Student"}</span>
+                </div>
+
+                {/* Center: Live Credentials Details */}
+                <div className="ep-id-meta">
+                  <div className="ep-id-name-row">
+                    <h2 className="ep-id-name">{name || "Your Name"}</h2>
+                    <span className="ep-id-roll-badge">{rollNo || "ROLL NO"}</span>
+                  </div>
+
+                  <div className="ep-id-dept-line">
+                    <span className="ep-id-dept">{department || "Department / Degree Major"}</span>
+                  </div>
+
+                  <div className="ep-id-tags-row">
+                    <span className="ep-id-tag">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      {campus || "Main Campus"}
+                    </span>
+                    <span className="ep-id-tag">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      </svg>
+                      {hostel || "Residence"}
+                    </span>
+                    <span className="ep-id-tag ep-id-sem-tag">{semester || "Semester"}</span>
+                  </div>
+                </div>
+
+                {/* Right: Profile Completeness Meter */}
+                <div className="ep-id-completeness-meter">
+                  <div className="ep-id-radial-box">
+                    <svg className="ep-id-radial-svg" viewBox="0 0 36 36">
+                      <path
+                        className="ep-id-radial-bg"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path
+                        className="ep-id-radial-fill"
+                        strokeDasharray={`${completionPercentage}, 100`}
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <span className="ep-id-radial-number">{completionPercentage}%</span>
+                  </div>
+                  <span className="ep-id-completeness-lbl">Profile Strength</span>
+                </div>
+              </div>
+
+              {/* Bottom Simulated Barcode & Card Serial */}
+              <div className="ep-id-bottom-row">
+                <div className="ep-id-barcode-lines" aria-hidden="true">
+                  <span style={{ width: 2 }} /><span style={{ width: 1 }} /><span style={{ width: 3 }} />
+                  <span style={{ width: 1 }} /><span style={{ width: 4 }} /><span style={{ width: 2 }} />
+                  <span style={{ width: 1 }} /><span style={{ width: 3 }} /><span style={{ width: 2 }} />
+                  <span style={{ width: 4 }} /><span style={{ width: 1 }} /><span style={{ width: 2 }} />
+                  <span style={{ width: 3 }} /><span style={{ width: 1 }} /><span style={{ width: 2 }} />
+                  <span style={{ width: 4 }} /><span style={{ width: 1 }} /><span style={{ width: 3 }} />
+                  <span style={{ width: 2 }} /><span style={{ width: 1 }} /><span style={{ width: 4 }} />
+                </div>
+                <div className="ep-id-serial-code">
+                  ID: {rollNo ? `${rollNo}` : "FB-CAMPUS-2026"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+            PROFILE EDITING FORM (Staggered cards with rich micro-interactions)
+           ========================================================================= */}
         <form onSubmit={handleSave} className="ep-form">
           {/* SECTION 1: PROFILE PICTURE */}
-          <section className="ep-card ep-photo-card">
+          <section className="ep-card ep-photo-card ep-stagger-1">
             <div className="ep-card-head">
               <div className="ep-icon-circle">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -224,19 +378,24 @@ export default function EditProfile() {
                 </svg>
               </div>
               <div>
-                <h2 className="ep-card-title">Profile Picture</h2>
-                <p className="ep-card-desc">Choose a photo from your files or select a campus preset</p>
+                <h2 className="ep-card-title">Profile Picture &amp; Visual Avatar</h2>
+                <p className="ep-card-desc">Choose a custom photo or tap any curated campus avatar</p>
               </div>
             </div>
 
             <div className="ep-photo-body">
               <div className="ep-photo-preview-wrap">
-                <Avatar name={name || "Student"} image={avatar} size={118} />
+                <div className="ep-avatar-interactive-halo">
+                  <Avatar name={name || "Student"} image={avatar} size={118} />
+                </div>
                 {avatar && (
                   <button
                     type="button"
                     className="ep-remove-photo-badge"
-                    onClick={() => setAvatar("")}
+                    onClick={() => {
+                      setAvatar("");
+                      sound.playKeyTurn?.();
+                    }}
                     title="Remove custom photo and use monogram initials"
                   >
                     ✕
@@ -271,7 +430,10 @@ export default function EditProfile() {
                     <button
                       type="button"
                       className="ep-btn-ghost"
-                      onClick={() => setAvatar("")}
+                      onClick={() => {
+                        setAvatar("");
+                        sound.playKeyTurn?.();
+                      }}
                     >
                       Use Initial Monogram
                     </button>
@@ -279,7 +441,7 @@ export default function EditProfile() {
                 </div>
 
                 <div className="ep-presets-block">
-                  <span className="ep-presets-label">Preset Student Avatars:</span>
+                  <span className="ep-presets-label">Preset Campus Student Avatars:</span>
                   <div className="ep-presets-grid">
                     {PRESET_AVATARS.map((p) => {
                       const isSelected = avatar === p.url;
@@ -292,6 +454,7 @@ export default function EditProfile() {
                             setAvatar(p.url);
                             sound.playKeyTurn?.();
                           }}
+                          title={`Select ${p.label}`}
                         >
                           <img src={p.url} alt={p.label} className="ep-preset-img" />
                           {isSelected && <span className="ep-preset-check">✓</span>}
@@ -305,10 +468,11 @@ export default function EditProfile() {
                   <label className="ep-label">Or Image Web URL</label>
                   <input
                     type="url"
+                    name="avatarUrl"
                     className="ep-input"
                     value={avatar?.startsWith("data:") ? "" : avatar}
                     onChange={(e) => setAvatar(e.target.value)}
-                    placeholder="https://example.com/photo.jpg"
+                    placeholder="https://images.unsplash.com/your-photo.jpg"
                   />
                 </div>
               </div>
@@ -316,7 +480,7 @@ export default function EditProfile() {
           </section>
 
           {/* SECTION 2: CAMPUS & ACADEMICS */}
-          <section className="ep-card ep-academic-card">
+          <section className="ep-card ep-academic-card ep-stagger-2">
             <div className="ep-card-head">
               <div className="ep-icon-circle">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -326,7 +490,7 @@ export default function EditProfile() {
               </div>
               <div>
                 <h2 className="ep-card-title">Campus &amp; Academic Credentials</h2>
-                <p className="ep-card-desc">Helps verify student identity for safe item returns</p>
+                <p className="ep-card-desc">Helps verify student identity for safe item returns across campus</p>
               </div>
             </div>
 
@@ -357,7 +521,7 @@ export default function EditProfile() {
                 <span className="ep-field-hint">Matches your college student ID card.</span>
               </div>
 
-              <div className="ep-field">
+              <div className="ep-field ep-field-full">
                 <label className="ep-label">Department / Degree Major</label>
                 <input
                   type="text"
@@ -367,9 +531,26 @@ export default function EditProfile() {
                   onChange={(e) => setDepartment(e.target.value)}
                   placeholder="e.g. Computer Science & Engineering"
                 />
+                {/* Popular department quick chips */}
+                <div className="ep-quick-chips-row">
+                  <span className="ep-quick-chips-label">Quick select:</span>
+                  {POPULAR_DEPTS.map((dept) => (
+                    <button
+                      key={dept}
+                      type="button"
+                      className={`ep-quick-chip ${department === dept ? "is-active" : ""}`}
+                      onClick={() => {
+                        setDepartment(dept);
+                        sound.playKeyTurn?.();
+                      }}
+                    >
+                      {dept}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="ep-field">
+              <div className="ep-field ep-field-full">
                 <label className="ep-label">Campus / College Branch</label>
                 <input
                   type="text"
@@ -379,6 +560,22 @@ export default function EditProfile() {
                   onChange={(e) => setCampus(e.target.value)}
                   placeholder="e.g. North Campus, Engineering Block"
                 />
+                <div className="ep-quick-chips-row">
+                  <span className="ep-quick-chips-label">Quick select:</span>
+                  {POPULAR_CAMPUSES.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`ep-quick-chip ${campus === c ? "is-active" : ""}`}
+                      onClick={() => {
+                        setCampus(c);
+                        sound.playKeyTurn?.();
+                      }}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="ep-field">
@@ -427,13 +624,28 @@ export default function EditProfile() {
                   onChange={(e) => setHostel(e.target.value)}
                   placeholder="e.g. Boys Hostel Block B, Room 304 or Day Scholar"
                 />
-                <span className="ep-field-hint">Helps with convenient campus pickup coordination.</span>
+                <div className="ep-quick-chips-row">
+                  <span className="ep-quick-chips-label">Quick select:</span>
+                  {POPULAR_HOSTELS.map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      className={`ep-quick-chip ${hostel === h ? "is-active" : ""}`}
+                      onClick={() => {
+                        setHostel(h);
+                        sound.playKeyTurn?.();
+                      }}
+                    >
+                      {h}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
 
           {/* SECTION 3: CONTACT & BIO */}
-          <section className="ep-card ep-contact-card">
+          <section className="ep-card ep-contact-card ep-stagger-3">
             <div className="ep-card-head">
               <div className="ep-icon-circle">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -441,8 +653,8 @@ export default function EditProfile() {
                 </svg>
               </div>
               <div>
-                <h2 className="ep-card-title">Contact &amp; Campus Bio</h2>
-                <p className="ep-card-desc">Reachability for matched items</p>
+                <h2 className="ep-card-title">Contact &amp; Reachability Note</h2>
+                <p className="ep-card-desc">Ensures quick coordination when an item is matched</p>
               </div>
             </div>
 
@@ -471,7 +683,7 @@ export default function EditProfile() {
                   onChange={(e) => setWhatsapp(e.target.value)}
                   placeholder="+91 98765 43210"
                 />
-                <span className="ep-field-hint">Shared with verified finder/owner upon mutual confirmation.</span>
+                <span className="ep-field-hint">Shared with finder or owner upon mutual confirmation.</span>
               </div>
 
               <div className="ep-field ep-field-full">
@@ -488,32 +700,47 @@ export default function EditProfile() {
             </div>
           </section>
 
-          {/* Sticky Form Action Bar */}
+          {/* STICKY ACTION BAR */}
           <div className="ep-action-bar">
-            <button
-              type="button"
-              className="ep-btn-cancel"
-              onClick={() => navigate("/profile")}
-            >
-              Cancel
-            </button>
+            <div className="ep-action-bar-inner">
+              <div className="ep-action-status">
+                <span className="ep-status-dot" />
+                <span>All edits previewed on your campus card live</span>
+              </div>
 
-            <button
-              type="submit"
-              className="ep-btn-save"
-              disabled={saveSuccess}
-            >
-              {saveSuccess ? (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span>Changes Saved!</span>
-                </>
-              ) : (
-                <span>Save Profile Changes</span>
-              )}
-            </button>
+              <div className="ep-action-buttons">
+                <button
+                  type="button"
+                  className="ep-btn-cancel"
+                  onClick={() => navigate("/profile")}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={`ep-btn-save ${saveSuccess ? "is-success" : ""}`}
+                  disabled={saveSuccess}
+                >
+                  {saveSuccess ? (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span>Changes Saved!</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                      </svg>
+                      <span>Save Profile Changes</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </form>
       </main>

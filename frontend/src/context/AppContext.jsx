@@ -99,6 +99,10 @@ export function AppProvider({ children }) {
     const match = findLikelyMatch({ ...newItemData, type: newItemData.type }, items);
 
     const isLost = newItemData.type === "lost";
+    const loc =
+      newItemData.location ||
+      (isLost ? newItemData.locationLost : newItemData.locationFound) ||
+      "Campus premises";
 
     const newItem = {
       id: `item-${Date.now()}`,
@@ -107,6 +111,9 @@ export function AppProvider({ children }) {
       reporter: user?.email || user?.whatsapp || user?.name || "demo@student.edu",
       reporterName: user?.name || "Campus Student",
       isUserItem: true,
+      location: loc,
+      locationLost: isLost ? loc : undefined,
+      locationFound: !isLost ? loc : undefined,
       ...newItemData,
 
       // Stage tracking properties

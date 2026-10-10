@@ -5,7 +5,6 @@ import { useCountUp } from "../../hooks/useCountUp";
 import Avatar from "../common/Avatar";
 import ProgressRing from "./ProgressRing";
 import Sparkline from "./Sparkline";
-import NotificationsPopover from "./NotificationsPopover";
 import HeroStars from "./HeroStars";
 import { useApp } from "../../context/AppContext";
 
@@ -15,14 +14,11 @@ export default function IdentityHero({
   userRank = 1,
   reportsCount = 0,
   pointsLedger = [],
-  notifications = [],
-  onDismissNotifications,
   onReportLost,
   onReportFound,
 }) {
   const navigate = useNavigate();
   const heroRef = useTilt({ maxTilt: 2.2, perspective: 1200, damping: 0.075 });
-  const [notifOpen, setNotifOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [copiedKey, setCopiedKey] = useState(null);
   const contactRef = useRef(null);
@@ -64,47 +60,6 @@ export default function IdentityHero({
       {/* Specular highlight & Grain overlay */}
       <div className="pf-hero-specular" aria-hidden="true" />
       <div className="pf-hero-grain" aria-hidden="true" />
-
-      {/* Top right notification bell button */}
-      <div className="pf-hero-top-actions">
-        <div style={{ position: "relative" }}>
-          <button
-            type="button"
-            className="pf-bell-btn"
-            aria-label="View notifications"
-            onClick={() => setNotifOpen((prev) => !prev)}
-            aria-expanded={notifOpen}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-            </svg>
-            {notifications.length > 0 && (
-              <span className="pf-bell-badge">{notifications.length}</span>
-            )}
-          </button>
-
-          <NotificationsPopover
-            notifications={notifications}
-            isOpen={notifOpen}
-            onClose={() => setNotifOpen(false)}
-            onClearAll={() => {
-              onDismissNotifications?.();
-              setNotifOpen(false);
-            }}
-          />
-        </div>
-      </div>
 
       <div className="pf-hero-content">
         {/* Left: 96px Avatar with Progress Ring + Name + Subtitle */}

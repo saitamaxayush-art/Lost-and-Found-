@@ -1949,17 +1949,34 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--espresso);
-  color: #fff;
+  background: var(--surface);
+  color: var(--espresso);
   font-size: 11px;
   font-weight: 700;
   display: grid;
   place-items: center;
-  border: 1px solid var(--surface);
+  border: 1px solid var(--line);
 }
 
 .pf-podium-rank-tag.is-rank-1 {
-  background: var(--accent);
+  background: linear-gradient(135deg, #F9B250 0%, #E07A1F 100%);
+  color: #FFFDF9;
+  border-color: #FFFDF9;
+  box-shadow: 0 2px 8px rgba(224, 122, 31, 0.4);
+}
+
+.pf-podium-rank-tag.is-rank-2 {
+  background: linear-gradient(135deg, #ECE5DA 0%, #D8CABB 100%);
+  color: var(--espresso);
+  border-color: #FFFDF9;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.pf-podium-rank-tag.is-rank-3 {
+  background: linear-gradient(135deg, #E8D6C4 0%, #D2B89D 100%);
+  color: var(--espresso);
+  border-color: #FFFDF9;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .pf-podium-meta {
@@ -1981,12 +1998,30 @@
 }
 
 .pf-you-tag {
-  background: var(--accent);
+  background: linear-gradient(135deg, #F8A740 0%, #E07A1F 100%);
   color: #fff;
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 6px;
+  padding: 1.5px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(224, 122, 31, 0.35);
+}
+
+.pf-podium-col.is-current-user .pf-podium-avatar-wrap::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 12px rgba(224, 122, 31, 0.45);
+  pointer-events: none;
+}
+
+.pf-podium-col.is-current-user .pf-podium-name {
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .pf-podium-dept {
@@ -2001,8 +2036,8 @@
 
 .pf-podium-block {
   width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #FFFDF8 0%, #F6ECE0 100%);
+  border: 1px solid rgba(224, 122, 31, 0.18);
   border-bottom: none;
   border-radius: 16px 16px 0 0;
   display: flex;
@@ -2012,10 +2047,50 @@
   animation: pfPillarGrow 600ms var(--ease-out) backwards;
 }
 
+/* Rank 1 Champion: Warm golden amber gradient (NOT dark black) */
 .pf-podium-col.is-champion .pf-podium-block {
-  background: var(--espresso);
+  background: linear-gradient(180deg, #F8A740 0%, #E07A1F 55%, #CB6310 100%);
   color: #FFFDF9;
-  border-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: none;
+  box-shadow: 0 10px 24px rgba(224, 122, 31, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+.pf-podium-col.is-champion .pf-podium-pillar-num {
+  color: #FFFDF9;
+  opacity: 0.7;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+/* Rank 2: Soft warm sand-cream gradient */
+.pf-podium-col.is-rank-col-2 .pf-podium-block {
+  background: linear-gradient(180deg, #FFFDF8 0%, #F5ECE0 60%, #E9DEC8 100%);
+  border: 1px solid rgba(216, 178, 138, 0.35);
+  border-bottom: none;
+  box-shadow: 0 4px 14px rgba(27, 19, 13, 0.04);
+}
+
+.pf-podium-col.is-rank-col-2 .pf-podium-pillar-num {
+  color: #8C6A48;
+  opacity: 0.45;
+}
+
+/* Rank 3: Soft warm terracotta-biscuit gradient */
+.pf-podium-col.is-rank-col-3 .pf-podium-block {
+  background: linear-gradient(180deg, #FFFDF8 0%, #F5EAE1 60%, #EBDCD1 100%);
+  border: 1px solid rgba(200, 160, 130, 0.3);
+  border-bottom: none;
+  box-shadow: 0 4px 14px rgba(27, 19, 13, 0.04);
+}
+
+.pf-podium-col.is-rank-col-3 .pf-podium-pillar-num {
+  color: #9C7255;
+  opacity: 0.45;
+}
+
+.pf-podium-col.is-current-user .pf-podium-block {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .pf-podium-pillar-num {
@@ -2065,9 +2140,40 @@
 }
 
 .pf-lb-row.is-current-user {
-  border-left: 3px solid var(--accent);
-  background: var(--surface);
-  box-shadow: var(--shadow-md);
+  background: linear-gradient(90deg, rgba(254, 243, 199, 0.45) 0%, rgba(255, 253, 249, 0.95) 45%, rgba(254, 237, 217, 0.4) 100%);
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 6px 20px rgba(224, 122, 31, 0.16);
+  position: relative;
+  transform: translateY(-1px);
+}
+
+.pf-lb-row.is-current-user::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: linear-gradient(180deg, #F8A740 0%, #E07A1F 100%);
+  border-radius: 16px 0 0 16px;
+}
+
+.pf-lb-row.is-current-user .pf-lb-avatar {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+}
+
+.pf-lb-row.is-current-user .pf-lb-name {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.pf-lb-row.is-current-user .pf-lb-rank {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.pf-lb-row.is-current-user .pf-lb-bar-fill {
+  background: linear-gradient(90deg, #F8A740 0%, #E07A1F 100%);
 }
 
 .pf-lb-left {
@@ -2142,12 +2248,13 @@
   transform: translateX(-50%);
   width: calc(100% - 48px);
   max-width: 640px;
-  background: var(--espresso);
-  color: #FFFDF9;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(135deg, rgba(255, 253, 249, 0.98) 0%, rgba(254, 243, 199, 0.95) 100%);
+  color: var(--espresso);
+  border: 1.5px solid var(--accent);
   border-radius: 20px;
   padding: 12px 20px;
-  box-shadow: 0 16px 36px rgba(27, 19, 13, 0.35);
+  box-shadow: 0 16px 36px rgba(224, 122, 31, 0.22);
+  backdrop-filter: blur(12px);
   z-index: 90;
   animation: pfSlideUp 280ms var(--ease-spring) backwards;
 }
@@ -2186,8 +2293,8 @@
 
 .pf-pinned-title {
   font-size: 13.5px;
-  font-weight: 500;
-  color: #F8F4EC;
+  font-weight: 600;
+  color: var(--espresso);
 }
 
 .pf-pinned-right {
@@ -2198,19 +2305,23 @@
 
 .pf-pinned-points {
   font-size: 13.5px;
-  color: #F8F4EC;
+  color: var(--espresso);
 }
 
 .pf-pinned-scroll-btn {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--accent);
   border: none;
-  color: #FFFDF9;
+  color: #fff;
   border-radius: 10px;
   padding: 4px 10px;
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 150ms ease;
+  transition: opacity 150ms ease;
+}
+
+.pf-pinned-scroll-btn:hover {
+  opacity: 0.9;
 }
 
 .pf-pinned-scroll-btn:hover {

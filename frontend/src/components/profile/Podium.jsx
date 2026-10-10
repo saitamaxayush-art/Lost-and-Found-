@@ -23,7 +23,7 @@ export default function Podium({ topThree = [] }) {
           return (
             <div
               key={entry.name + rankNum}
-              className={`pf-podium-col ${isWinner ? "is-champion" : ""}`}
+              className={`pf-podium-col is-rank-col-${rankNum} ${isWinner ? "is-champion" : ""} ${entry.isCurrentUser ? "is-current-user" : ""}`}
               style={{ animationDelay: `${delay}ms` }}
             >
               {/* Crown for #1 */}

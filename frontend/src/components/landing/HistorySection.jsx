@@ -482,7 +482,6 @@ export default function HistorySection({ onMouseEnter, onMouseLeave, isHovered }
 
         {/* Kind Words / Reviews */}
         <div className="lp-head rv-head reveal">
-          <span className="lp-eyebrow">Kind Words</span>
           <h3>What people say about FindBack</h3>
         </div>
 

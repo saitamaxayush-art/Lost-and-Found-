@@ -1,6 +1,6 @@
 /* ==========================================================================
    FindBack Custom Cursor — Bespoke Warm Amber/Gold Theme
-   Luminous jewel core with fluid magnetic halo ring.
+   Luminous jewel core with fluid magnetic halo ring and pill morphing.
    Works seamlessly on both dark gate intro and light peach canvas.
    ========================================================================== */
 
@@ -24,23 +24,24 @@
   opacity: 0;
 }
 
-/* Concentric halo ring, fluid inertia trailing behind pointer */
+/* Fluid magnetic halo ring: dynamically morphs into pill / button shape on hover */
 .cc-ring {
   position: fixed;
   top: 0;
   left: 0;
   width: 26px;
   height: 26px;
-  margin-left: -13px;
-  margin-top: -13px;
+  margin-left: 0;
+  margin-top: 0;
   border-radius: 50%;
   border: 1.5px solid rgba(217, 130, 43, 0.7);
   background: radial-gradient(circle, rgba(255, 223, 148, 0.16) 0%, rgba(217, 130, 43, 0.04) 60%, transparent 80%);
   box-shadow: 0 0 12px rgba(217, 130, 43, 0.25);
   filter: drop-shadow(0 1px 3px rgba(35, 22, 12, 0.35));
   pointer-events: none !important;
-  will-change: transform;
-  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  will-change: transform, width, height, border-radius;
+  transition: border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+  box-sizing: border-box;
 }
 
 /* Luminous jewel dot at exact mouse pointer */
@@ -59,22 +60,38 @@
     0 0 3px rgba(217, 130, 43, 0.9),
     0 0 0 1px rgba(45, 30, 16, 0.5);
   pointer-events: none !important;
-  will-change: transform;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform, opacity;
+  transition: box-shadow 0.2s ease;
 }
 
-/* Hover state over interactive elements: expands smoothly */
-.cc-root.is-hover .cc-ring {
+/* Regular interactive hover (when not morphed) */
+.cc-root.is-hover:not(.is-morphed) .cc-ring {
   border-color: rgba(217, 130, 43, 0.95);
   background: radial-gradient(circle, rgba(255, 223, 148, 0.25) 0%, rgba(217, 130, 43, 0.08) 70%, transparent 100%);
   box-shadow: 0 0 18px rgba(217, 130, 43, 0.45);
 }
 
-.cc-root.is-hover .cc-dot {
+.cc-root.is-hover:not(.is-morphed) .cc-dot {
   box-shadow:
     0 0 14px rgba(245, 197, 66, 1),
     0 0 5px rgba(217, 130, 43, 1),
     0 0 0 1px rgba(45, 30, 16, 0.6);
+}
+
+/* Morphed state: cleanly frames the hovered pill, nav link, or button with 100% clear text */
+.cc-root.is-morphed .cc-ring {
+  border: 1.5px solid rgba(217, 130, 43, 0.88);
+  background: transparent !important;
+  box-shadow:
+    0 0 14px rgba(217, 130, 43, 0.25),
+    inset 0 0 0 1px rgba(255, 223, 148, 0.16);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.cc-root.is-morphed .cc-dot {
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 
 /* Active click / press down: tactile compression */

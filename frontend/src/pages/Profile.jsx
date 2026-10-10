@@ -255,8 +255,6 @@ export default function Profile() {
           userRank={userRank}
           reportsCount={userItems.length}
           pointsLedger={pointsLedger}
-          notifications={notifications}
-          onDismissNotifications={dismissNotifications}
           onReportLost={() => setReportModalType("lost")}
           onReportFound={() => setReportModalType("found")}
         />

@@ -56,6 +56,11 @@ export function ItemCard({ item, onOpen, tokens = [] }) {
         <div className="sr-meta">
           <span>{highlightText(item.category, tokens)}</span>
           <span>{item.date}</span>
+          {(item.location || item.locationLost || item.locationFound) && (
+            <span className="sr-loc-badge" title={item.location || item.locationLost || item.locationFound}>
+              📍 {item.location || item.locationLost || item.locationFound}
+            </span>
+          )}
         </div>
       </div>
     </button>
