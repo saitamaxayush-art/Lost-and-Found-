@@ -359,8 +359,441 @@ async function checkReturnedItemsExcluded(tokenA, tokenB) {
 }
 
 // -------------------------------------------------------------
-// Main execution runner
+// Phase 3 Checks: Conversations, Messaging, Privacy & Auth
 // -------------------------------------------------------------
+
+// Check 14: User A cannot start a chat on their own found item
+async function checkCannotChatOnOwnItem(tokenA, foundItemId) {
+  console.log('\n[14/20] Checking user cannot request chat on own item...');
+  try {
+    const res = await fetch(`${BASE_URL}/api/conversations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenA}`,
+      },
+      body: JSON.stringify({ foundItemId }),
+    });
+    const data = await res.json();
+    assert(res.status === 400, `Rejected chat request on own item with status 400 (got ${res.status})`);
+    assert(typeof data.error === 'string', `Received clear error message: "${data.error}"`);
+  } catch (err) {
+    assert(false, `Own item chat rejection check failed: ${err.message}`);
+  }
+}
+
+// Check 15, 16, 17, 18: User B requests chat on User A's found item
+async function checkCreateConversation(tokenB, tokenA, foundItemId, userA_id) {
+  console.log('\n[15/20] User B requests chat on User A\'s found item...');
+  try {
+    const res = await fetch(`${BASE_URL}/api/conversations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenB}`,
+      },
+      body: JSON.stringify({ foundItemId }),
+    });
+    const conv = await res.json();
+
+    assert(res.status === 201 || res.status === 200, `POST /api/conversations returned success status (${res.status})`);
+    assert(conv && conv.status === 'chatting', `Conversation status is 'chatting'`);
+    assert(conv.myRole === 'owner', `User B's role is 'owner'`);
+    assert(conv.canDecideMatch === false, `canDecideMatch is false for owner while chatting`);
+    assert(conv.canDecideReturn === false, `canDecideReturn is false while chatting`);
+    assert(conv.lastMessage && conv.lastMessage.text === 'Chat started', `System message 'Chat started' recorded as last message`);
+
+    console.log('\n[16/20] Checking conversation otherParty details and contact privacy...');
+    assert(conv.otherParty && conv.otherParty.name === 'Alex Supertester', `otherParty name is 'Alex Supertester'`);
+    assert(conv.otherParty.initials === 'AS', `otherParty initials correctly computed as 'AS'`);
+
+    // PRIVACY / CONTACT REVEAL RULE:
+    assert(conv.otherParty.whatsapp === undefined, `otherParty has NO whatsapp for B while chatting`);
+    assert(conv.otherParty.campus === undefined, `otherParty has NO campus for B while chatting`);
+
+    console.log('\n[17/20] Verifying notification for finder (User A) was recorded...');
+    const { default: db } = await import('../src/db.js');
+    const notif = db.prepare(`
+      SELECT * FROM notifications
+      WHERE user_id = ? AND type = 'claim'
+      ORDER BY created_at DESC
+      LIMIT 1
+    `).get(userA_id);
+
+    assert(Boolean(notif), `Notification exists for finder User A`);
+    if (notif) {
+      assert(notif.link === `/people?chat=${conv.id}`, `Notification link matches /people?chat=${conv.id}`);
+      assert(notif.title === 'New Claim Request', `Notification title is 'New Claim Request'`);
+    }
+
+    return conv;
+  } catch (err) {
+    assert(false, `Create conversation failed: ${err.message}`);
+    return null;
+  }
+}
+
+// Check 19: Third user C gets 403 when trying to access the conversation
+async function checkThirdPartyAccessForbidden(tokenC, convId) {
+  console.log('\n[18/20] Checking third user C gets 403 when accessing private conversation...');
+  try {
+    // 1. Reading conversation details
+    const convRes = await fetch(`${BASE_URL}/api/conversations/${convId}`, {
+      headers: { Authorization: `Bearer ${tokenC}` },
+    });
+    const convData = await convRes.json();
+    assert(convRes.status === 403, `GET /api/conversations/:id returned 403 for non-participant (got ${convRes.status})`);
+    assert(typeof convData.error === 'string', `Received forbidden error: "${convData.error}"`);
+
+    // 2. Reading messages
+    const msgRes = await fetch(`${BASE_URL}/api/conversations/${convId}/messages`, {
+      headers: { Authorization: `Bearer ${tokenC}` },
+    });
+    assert(msgRes.status === 403, `GET /api/conversations/:id/messages returned 403 for non-participant`);
+
+    // 3. Posting messages
+    const postRes = await fetch(`${BASE_URL}/api/conversations/${convId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenC}`,
+      },
+      body: JSON.stringify({ text: 'I am spying on you' }),
+    });
+    assert(postRes.status === 403, `POST /api/conversations/:id/messages returned 403 for non-participant`);
+  } catch (err) {
+    assert(false, `Third party access check failed: ${err.message}`);
+  }
+}
+
+// Check 20: A and B exchange messages; 'after' filter returns only new ones
+async function checkMessageExchangeAndAfterFilter(tokenA, tokenB, convId) {
+  console.log('\n[19/20] User B and User A exchange messages in claim chat...');
+  try {
+    // 1. User B sends message
+    const msg1Res = await fetch(`${BASE_URL}/api/conversations/${convId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenB}`,
+      },
+      body: JSON.stringify({ text: 'Hi! I lost my black leather wallet near the library entrance.' }),
+    });
+    const msg1 = await msg1Res.json();
+    assert(msg1Res.status === 201, `User B sent message (status 201)`);
+    assert(msg1.text.includes('black leather wallet'), `Message text matches`);
+    assert(msg1.isMine === true, `isMine is true for sender B`);
+
+    const cutoffTimestamp = msg1.createdAt;
+    // Small delay to ensure timestamp progression
+    await new Promise(r => setTimeout(r, 10));
+
+    // 2. User A replies
+    const msg2Res = await fetch(`${BASE_URL}/api/conversations/${convId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenA}`,
+      },
+      body: JSON.stringify({ text: 'Hello! Does your wallet contain a student ID card?' }),
+    });
+    const msg2 = await msg2Res.json();
+    assert(msg2Res.status === 201, `User A sent reply (status 201)`);
+    assert(msg2.text.includes('student ID card'), `Reply text matches`);
+
+    console.log('\n[20/20] Testing ?after=<ms> filter on messages endpoint...');
+    // 3. Fetch messages with ?after=cutoffTimestamp
+    const filteredRes = await fetch(`${BASE_URL}/api/conversations/${convId}/messages?after=${cutoffTimestamp}`, {
+      headers: { Authorization: `Bearer ${tokenB}` },
+    });
+    const filteredMessages = await filteredRes.json();
+
+    assert(filteredRes.status === 200, `GET messages?after= returned status 200`);
+    assert(Array.isArray(filteredMessages), `Returned array of messages`);
+    assert(filteredMessages.length === 1, `Filter ?after= returned only the 1 newer message (got ${filteredMessages.length})`);
+    if (filteredMessages.length > 0) {
+      assert(filteredMessages[0].id === msg2.id, `The filtered message is User A's latest reply`);
+    }
+
+    // 4. Verify conversation updated_at updated
+    const convRes = await fetch(`${BASE_URL}/api/conversations/${convId}`, {
+      headers: { Authorization: `Bearer ${tokenB}` },
+    });
+    const convData = await convRes.json();
+    assert(convData.updatedAt >= msg2.createdAt, `Conversation updated_at reflects newest message timestamp`);
+  } catch (err) {
+    assert(false, `Message exchange and filter check failed: ${err.message}`);
+  }
+}
+
+// -------------------------------------------------------------
+// Phase 4 Checks: The Decision Flow (Match & Return Decisions)
+// -------------------------------------------------------------
+
+async function checkPhase4Decisions(tokenA, tokenB, tokenC, tokenD, userA, userD, conv1) {
+  console.log('\n[21/28] Phase 4: Checking role restrictions on /match (owner B cannot call /match)...');
+  try {
+    const res = await fetch(`${BASE_URL}/api/conversations/${conv1.id}/match`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenB}`,
+      },
+      body: JSON.stringify({ decision: 'matched' }),
+    });
+    const data = await res.json();
+    assert(res.status === 403, `Owner B rejected with 403 when trying to call /match (got ${res.status})`);
+    assert(typeof data.error === 'string', `Received forbidden error: "${data.error}"`);
+  } catch (err) {
+    assert(false, `Owner /match rejection check failed: ${err.message}`);
+  }
+
+  console.log('\n[22/28] Phase 4: Finder A calls not_matched (explanation required)...');
+  try {
+    // 1. Without explanation -> 400
+    const noExpRes = await fetch(`${BASE_URL}/api/conversations/${conv1.id}/match`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenA}`,
+      },
+      body: JSON.stringify({ decision: 'not_matched' }),
+    });
+    const noExpData = await noExpRes.json();
+    assert(noExpRes.status === 400, `not_matched without explanation rejected with 400`);
+    assert(noExpData.error.includes('15 characters'), `Error message requires 15 characters`);
+
+    // 2. With valid explanation (>= 15 chars) -> 200
+    const explanation = 'The serial numbers provided do not match what I found on the desk.';
+    const validRes = await fetch(`${BASE_URL}/api/conversations/${conv1.id}/match`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenA}`,
+      },
+      body: JSON.stringify({ decision: 'not_matched', explanation }),
+    });
+    const validConv = await validRes.json();
+    assert(validRes.status === 200, `not_matched with explanation returned status 200`);
+    assert(validConv.status === 'not_matched', `Conversation status is 'not_matched'`);
+
+    // 3. Chat is now read-only
+    const closedMsgRes = await fetch(`${BASE_URL}/api/conversations/${conv1.id}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenB}`,
+      },
+      body: JSON.stringify({ text: 'Can we try again?' }),
+    });
+    assert(closedMsgRes.status === 400, `Posting to closed chat rejected with 400 'This chat is closed'`);
+
+    // 4. Feedback row saved
+    const { default: db } = await import('../src/db.js');
+    const fb = db.prepare('SELECT * FROM feedback WHERE conversation_id = ? AND stage = ?').get(conv1.id, 'match');
+    assert(Boolean(fb), `Feedback row saved in database`);
+    assert(fb && fb.outcome === 'not_matched' && fb.explanation === explanation, `Feedback outcome and explanation match`);
+  } catch (err) {
+    assert(false, `Finder not_matched check failed: ${err.message}`);
+  }
+
+  console.log('\n[23/28] Phase 4: Owner D starts chat on Item 2, Finder A confirms match...');
+  let conv2 = null;
+  let item2 = null;
+  try {
+    // 1. Finder A reports Item 2
+    const formData = new FormData();
+    formData.append('type', 'found');
+    formData.append('description', 'Stainless steel blue water bottle found in sports complex gym');
+    formData.append('category', 'Accessories');
+    formData.append('location', 'Sports Complex');
+    formData.append('date', '2026-10-14');
+
+    const itemRes = await fetch(`${BASE_URL}/api/items`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${tokenA}` },
+      body: formData,
+    });
+    const itemData = await itemRes.json();
+    item2 = itemData.item;
+
+    // 2. Owner D requests chat on Item 2
+    const convRes = await fetch(`${BASE_URL}/api/conversations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenD}`,
+      },
+      body: JSON.stringify({ foundItemId: item2.id }),
+    });
+    conv2 = await convRes.json();
+    assert(convRes.status === 201, `Owner D started chat on Item 2 (status 201)`);
+
+    // 3. Finder A confirms match
+    const matchRes = await fetch(`${BASE_URL}/api/conversations/${conv2.id}/match`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenA}`,
+      },
+      body: JSON.stringify({ decision: 'matched' }),
+    });
+    assert(matchRes.status === 200, `Finder A matched Item 2 (status 200)`);
+  } catch (err) {
+    assert(false, `Match confirmation setup failed: ${err.message}`);
+  }
+
+  console.log('\n[24/28] Phase 4: CONTACT REVEAL RULE: Owner D now SEES A\'s WhatsApp & campus...');
+  try {
+    // 1. Owner D fetches conversation
+    const getRes = await fetch(`${BASE_URL}/api/conversations/${conv2.id}`, {
+      headers: { Authorization: `Bearer ${tokenD}` },
+    });
+    const dView = await getRes.json();
+    assert(dView.status === 'matched', `Conversation status is 'matched'`);
+    assert(dView.otherParty && dView.otherParty.whatsapp === userA.whatsapp, `Owner D now sees Finder A's WhatsApp (${dView.otherParty.whatsapp})`);
+    assert(dView.otherParty && dView.otherParty.campus === userA.campus, `Owner D now sees Finder A's Campus (${dView.otherParty.campus})`);
+    assert(dView.canDecideReturn === true, `canDecideReturn is now true for Owner D`);
+
+    // 2. Third user C still gets 403
+    const cRes = await fetch(`${BASE_URL}/api/conversations/${conv2.id}`, {
+      headers: { Authorization: `Bearer ${tokenC}` },
+    });
+    assert(cRes.status === 403, `Third user C is strictly forbidden (status 403)`);
+
+    // 3. Finder A viewing does NOT see Owner D's contact info
+    const aRes = await fetch(`${BASE_URL}/api/conversations/${conv2.id}`, {
+      headers: { Authorization: `Bearer ${tokenA}` },
+    });
+    const aView = await aRes.json();
+    assert(aView.otherParty.whatsapp === undefined, `Finder A still cannot see Owner D's WhatsApp (contact privacy)`);
+  } catch (err) {
+    assert(false, `Contact reveal check failed: ${err.message}`);
+  }
+
+  console.log('\n[25/28] Phase 4: Owner D says not_returned (explanation required & item restored)...');
+  try {
+    // 1. Without explanation -> 400
+    const noExpRes = await fetch(`${BASE_URL}/api/conversations/${conv2.id}/return`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenD}`,
+      },
+      body: JSON.stringify({ decision: 'not_returned' }),
+    });
+    assert(noExpRes.status === 400, `not_returned without explanation rejected with 400`);
+
+    // 2. With explanation -> 200
+    const expText = 'We met at the cafeteria but the water bottle was a different brand.';
+    const validRes = await fetch(`${BASE_URL}/api/conversations/${conv2.id}/return`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenD}`,
+      },
+      body: JSON.stringify({ decision: 'not_returned', explanation: expText }),
+    });
+    const returnedConv = await validRes.json();
+    assert(validRes.status === 200, `not_returned with explanation returned status 200`);
+    assert(returnedConv.status === 'not_returned', `Conversation status updated to 'not_returned'`);
+
+    // 3. Item is browsable again in search
+    const searchRes = await fetch(`${BASE_URL}/api/items/search?q=bottle`);
+    const searchData = await searchRes.json();
+    const itemFound = searchData.some(i => i.id === item2.id);
+    assert(itemFound, `Found item status went back to 'reported' and is browsable again`);
+
+    // 4. Feedback row exists
+    const { default: db } = await import('../src/db.js');
+    const fb = db.prepare('SELECT * FROM feedback WHERE conversation_id = ? AND stage = ?').get(conv2.id, 'return');
+    assert(Boolean(fb) && fb.outcome === 'not_returned', `Feedback row recorded with outcome 'not_returned'`);
+  } catch (err) {
+    assert(false, `Owner not_returned check failed: ${err.message}`);
+  }
+
+  console.log('\n[26/28] Phase 4: Fresh chat where Owner confirms return (+50 points to finder)...');
+  try {
+    // 1. Finder A reports Item 3
+    const formData = new FormData();
+    formData.append('type', 'found');
+    formData.append('description', 'Sony WH-1000XM5 wireless noise cancelling headphones black');
+    formData.append('category', 'Electronics');
+    formData.append('location', 'Auditorium Hall B');
+    formData.append('date', '2026-10-14');
+
+    const item3Res = await fetch(`${BASE_URL}/api/items`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${tokenA}` },
+      body: formData,
+    });
+    const item3 = (await item3Res.json()).item;
+
+    // 2. Owner D requests chat on Item 3
+    const conv3Res = await fetch(`${BASE_URL}/api/conversations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenD}`,
+      },
+      body: JSON.stringify({ foundItemId: item3.id }),
+    });
+    const conv3 = await conv3Res.json();
+
+    // 3. Finder A confirms match
+    await fetch(`${BASE_URL}/api/conversations/${conv3.id}/match`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenA}`,
+      },
+      body: JSON.stringify({ decision: 'matched' }),
+    });
+
+    // Record Finder A points before return
+    const aBefore = await (await fetch(`${BASE_URL}/api/me`, { headers: { Authorization: `Bearer ${tokenA}` } })).json();
+
+    // 4. Owner D confirms returned
+    const returnRes = await fetch(`${BASE_URL}/api/conversations/${conv3.id}/return`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${tokenD}`,
+      },
+      body: JSON.stringify({ decision: 'returned' }),
+    });
+    const finalConv = await returnRes.json();
+    assert(returnRes.status === 200, `Owner return confirmation returned status 200`);
+    assert(finalConv.status === 'returned', `Conversation status is 'returned'`);
+
+    console.log('\n[27/28] Verifying item disappears from search but stays in /mine...');
+    // Item missing from search
+    const searchRes = await fetch(`${BASE_URL}/api/items/search?q=headphones`);
+    const searchData = await searchRes.json();
+    const inSearch = searchData.some(i => i.id === item3.id);
+    assert(!inSearch, `Returned item is absent from search results`);
+
+    // Item still in /api/items/mine
+    const mineRes = await fetch(`${BASE_URL}/api/items/mine`, {
+      headers: { Authorization: `Bearer ${tokenA}` },
+    });
+    const mineData = await mineRes.json();
+    const inMine = mineData.find(i => i.id === item3.id);
+    assert(Boolean(inMine), `Item still appears in reporter's /api/items/mine`);
+    assert(inMine && inMine.status === 'returned', `Item status in /api/items/mine is 'returned'`);
+
+    console.log('\n[28/28] Verifying Finder A received +50 points...');
+    const aAfter = await (await fetch(`${BASE_URL}/api/me`, { headers: { Authorization: `Bearer ${tokenA}` } })).json();
+    assert(aAfter.points === aBefore.points + 50, `Finder A points increased by 50 (${aBefore.points} -> ${aAfter.points})`);
+
+    // Feedback row saved
+    const { default: db } = await import('../src/db.js');
+    const fb = db.prepare('SELECT * FROM feedback WHERE conversation_id = ? AND stage = ?').get(conv3.id, 'return');
+    assert(Boolean(fb) && fb.outcome === 'returned', `Feedback row recorded with outcome 'returned'`);
+  } catch (err) {
+    assert(false, `Owner return confirmation check failed: ${err.message}`);
+  }
+}
 async function main() {
   console.log(`Starting FindBack backend smoke test against ${BASE_URL}...`);
 
@@ -379,13 +812,24 @@ async function main() {
     campus: 'South Campus',
   };
 
+  const userC = {
+    name: 'Charlie Outsider',
+    email: `charlie_${uniqueId}@campus.edu`,
+    whatsapp: '+919876543212',
+    campus: 'West Campus',
+  };
+
   // Run Phase 1 checks
   await checkHealth();
   const tokenA = await checkLogin(userA);
 
+  let userA_id = null;
   if (tokenA) {
     await checkGetMe(tokenA, userA.email);
     await checkPatchMe(tokenA);
+    const meRes = await fetch(`${BASE_URL}/api/me`, { headers: { Authorization: `Bearer ${tokenA}` } });
+    const meData = await meRes.json();
+    userA_id = meData.id;
   }
 
   await checkUnauthorized();
@@ -393,8 +837,9 @@ async function main() {
   // Run Phase 2 checks
   const tokenB = await checkLogin(userB);
 
+  let foundItem = null;
   if (tokenA && tokenB) {
-    const foundItem = await checkReportFoundItemWithImage(tokenA);
+    foundItem = await checkReportFoundItemWithImage(tokenA);
     if (foundItem) {
       await checkSearchFoundItem(tokenB, foundItem.id);
       await checkReportLostItemWithPossibleMatches(tokenB, foundItem.id);
@@ -405,6 +850,36 @@ async function main() {
     await checkReturnedItemsExcluded(tokenA, tokenB);
   } else {
     console.error('Skipping Phase 2 tests because user login failed.');
+  }
+
+  // Run Phase 3 checks
+  const tokenC = await checkLogin(userC);
+
+  let conv = null;
+  if (tokenA && tokenB && tokenC && foundItem) {
+    await checkCannotChatOnOwnItem(tokenA, foundItem.id);
+    conv = await checkCreateConversation(tokenB, tokenA, foundItem.id, userA_id);
+    if (conv) {
+      await checkThirdPartyAccessForbidden(tokenC, conv.id);
+      await checkMessageExchangeAndAfterFilter(tokenA, tokenB, conv.id);
+    }
+  } else {
+    console.error('Skipping Phase 3 tests because prerequisites were not met.');
+  }
+
+  // Run Phase 4 checks
+  const userD = {
+    name: 'Devin Student',
+    email: `devin_${uniqueId}@campus.edu`,
+    whatsapp: '+919876543213',
+    campus: 'East Campus',
+  };
+  const tokenD = await checkLogin(userD);
+
+  if (tokenA && tokenB && tokenC && tokenD && conv) {
+    await checkPhase4Decisions(tokenA, tokenB, tokenC, tokenD, userA, userD, conv);
+  } else {
+    console.error('Skipping Phase 4 tests because prerequisites were not met.');
   }
 
   console.log('\n----------------------------------------');
