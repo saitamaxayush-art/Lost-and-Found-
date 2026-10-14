@@ -794,6 +794,88 @@ async function checkPhase4Decisions(tokenA, tokenB, tokenC, tokenD, userA, userD
     assert(false, `Owner return confirmation check failed: ${err.message}`);
   }
 }
+
+// -------------------------------------------------------------
+// Phase 5 Checks: Stats, Leaderboard & Notifications
+// -------------------------------------------------------------
+
+async function checkStatsAndAnalytics() {
+  console.log('\n[29/32] Phase 5: Checking GET /api/stats...');
+  try {
+    const res = await fetch(`${BASE_URL}/api/stats`);
+    const data = await res.json();
+
+    assert(res.status === 200, `GET /api/stats returned status 200`);
+    assert(data.totals && data.totals.reported >= 1, `Totals reported items is >= 1 (${data.totals.reported})`);
+    assert(data.totals && data.totals.returned >= 1, `Totals returned items reflects returned items (${data.totals.returned})`);
+    assert(typeof data.totals.successRate === 'number', `Totals successRate calculated (${data.totals.successRate}%)`);
+    assert(typeof data.totals.avgDaysToReturn === 'number', `Totals avgDaysToReturn calculated (${data.totals.avgDaysToReturn} days)`);
+
+    assert(Array.isArray(data.monthly) && data.monthly.length === 8, `Monthly array covers exactly 8 calendar months`);
+
+    // Current month is the last element
+    const currentMonthData = data.monthly[7];
+    assert(currentMonthData && (currentMonthData.reported > 0 || currentMonthData.returned > 0), `Current month (${currentMonthData.m}) is non-zero`);
+  } catch (err) {
+    assert(false, `Stats check failed: ${err.message}`);
+  }
+}
+
+async function checkLeaderboard(finderName) {
+  console.log('\n[30/32] Phase 5: Checking GET /api/leaderboard...');
+  try {
+    const res = await fetch(`${BASE_URL}/api/leaderboard`);
+    const data = await res.json();
+
+    assert(res.status === 200, `GET /api/leaderboard returned status 200`);
+    assert(Array.isArray(data) && data.length > 0, `Leaderboard returned entries (got ${data.length})`);
+
+    const finderEntry = data.find(u => u.name === finderName);
+    assert(Boolean(finderEntry), `Leaderboard lists finder (${finderName})`);
+    if (finderEntry) {
+      assert(finderEntry.points >= 50, `Finder has at least 50 points (got ${finderEntry.points})`);
+      assert(typeof finderEntry.campus === 'string', `Leaderboard entry includes campus (${finderEntry.campus})`);
+    }
+  } catch (err) {
+    assert(false, `Leaderboard check failed: ${err.message}`);
+  }
+}
+
+async function checkNotifications(tokenA) {
+  console.log('\n[31/32] Phase 5: Checking GET /api/notifications...');
+  try {
+    const res = await fetch(`${BASE_URL}/api/notifications`, {
+      headers: { Authorization: `Bearer ${tokenA}` },
+    });
+    const data = await res.json();
+
+    assert(res.status === 200, `GET /api/notifications returned status 200`);
+    assert(Array.isArray(data) && data.length > 0, `Notifications list returned for User A (got ${data.length})`);
+    const firstNotif = data[0];
+    assert(firstNotif && typeof firstNotif.title === 'string', `Notification contains title: "${firstNotif.title}"`);
+    assert(firstNotif && typeof firstNotif.link === 'string', `Notification contains link: "${firstNotif.link}"`);
+
+    console.log('\n[32/32] Phase 5: Marking all notifications as read via POST /api/notifications/read-all...');
+    const readAllRes = await fetch(`${BASE_URL}/api/notifications/read-all`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${tokenA}` },
+    });
+    const readAllData = await readAllRes.json();
+    assert(readAllRes.status === 200, `POST /api/notifications/read-all returned status 200`);
+    assert(readAllData.ok === true, `Response returned ok: true`);
+
+    // Verify all notifications are now read
+    const verifyRes = await fetch(`${BASE_URL}/api/notifications`, {
+      headers: { Authorization: `Bearer ${tokenA}` },
+    });
+    const verifyData = await verifyRes.json();
+    const allRead = verifyData.every(n => n.read === true);
+    assert(allRead, `All notifications for User A are now marked read: true`);
+  } catch (err) {
+    assert(false, `Notifications check failed: ${err.message}`);
+  }
+}
+
 async function main() {
   console.log(`Starting FindBack backend smoke test against ${BASE_URL}...`);
 
@@ -878,8 +960,12 @@ async function main() {
 
   if (tokenA && tokenB && tokenC && tokenD && conv) {
     await checkPhase4Decisions(tokenA, tokenB, tokenC, tokenD, userA, userD, conv);
+    // Run Phase 5 checks
+    await checkStatsAndAnalytics();
+    await checkLeaderboard(userA.name);
+    await checkNotifications(tokenA);
   } else {
-    console.error('Skipping Phase 4 tests because prerequisites were not met.');
+    console.error('Skipping Phase 4 and 5 tests because prerequisites were not met.');
   }
 
   console.log('\n----------------------------------------');
