@@ -5,11 +5,12 @@ import People from "./pages/People";
 import EditProfile from "./pages/EditProfile";
 import TermsAndPolicy from "./pages/TermsAndPolicy";
 import CustomCursor from "./components/landing/CustomCursor";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 import "./styles/cursor.css";
 
 export default function App() {
   return (
-    <>
+    <ErrorBoundary>
       <CustomCursor />
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -23,6 +24,6 @@ export default function App() {
         <Route path="/policy" element={<TermsAndPolicy initialTab="policy" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </>
+    </ErrorBoundary>
   );
 }

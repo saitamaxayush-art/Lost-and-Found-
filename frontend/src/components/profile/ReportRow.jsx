@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import CategoryTile from "../common/CategoryTile";
 import ReportDrawer from "./ReportDrawer";
 import { useSpotlight } from "../../hooks/useSpotlight";
@@ -14,25 +15,35 @@ export default function ReportRow({
   onOwnerMarkReturned,
 }) {
   const rowRef = useSpotlight();
+  const navigate = useNavigate();
 
   const isLost = item.type === "lost";
   const isReturned = item.status === "Returned" || item.isReturned;
   const isMatched = item.status === "Matched" || item.hasMatch || (item.matchedUsers?.length > 0 && item.matchedUsers?.some(u => u.verified));
 
   // Stage 1 (Reported), Stage 2 (Matched), Stage 3 (Returned)
-  const stepStage = isReturned ? 3 : isMatched ? 2 : 1;
+  const stepStage = item.stepStage !== undefined ? item.stepStage : (isReturned ? 3 : isMatched ? 2 : 1);
 
   // Status label
-  const statusLabel = isReturned ? "Returned" : isMatched ? "Matched" : "Reported";
-  const statusTheme = isReturned ? "is-returned" : isMatched ? "is-matched" : "is-reported";
+  const statusLabel = item.statusLabel || (isReturned ? "Returned" : isMatched ? "Matched" : "Reported");
+  const statusTheme = item.statusTheme || (isReturned ? "is-returned" : isMatched ? "is-matched" : "is-reported");
 
   // Meta line text: e.g. "Lost · Electronics · Central Library"
   const metaParts = [
     isLost ? "Lost" : "Found",
     item.category || "General",
     item.date || item.reportingDate || item.foundDate || "Recent",
-    item.locationLost || item.locationFound || null,
+    item.locationLost || item.locationFound || item.location || null,
   ].filter(Boolean);
+
+  const handleBarClick = (e) => {
+    if (item.conversationId) {
+      e?.preventDefault?.();
+      navigate(`/people?chat=${item.conversationId}`);
+      return;
+    }
+    onToggleExpand(item.id);
+  };
 
   return (
     <article
@@ -45,15 +56,15 @@ export default function ReportRow({
       {/* Interactive summary row */}
       <div
         className="pf-report-summary-bar"
-        onClick={() => onToggleExpand(item.id)}
+        onClick={handleBarClick}
         role="button"
         tabIndex={0}
-        aria-expanded={isExpanded}
-        aria-controls={`pf-drawer-${item.id}`}
+        aria-expanded={item.conversationId ? false : isExpanded}
+        aria-controls={item.conversationId ? undefined : `pf-drawer-${item.id}`}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            onToggleExpand(item.id);
+            handleBarClick(e);
           }
         }}
       >
@@ -116,22 +127,24 @@ export default function ReportRow({
       </div>
 
       {/* Expand inline with grid-template-rows: 0fr -> 1fr */}
-      <div
-        id={`pf-drawer-${item.id}`}
-        className={`pf-drawer-expandable ${isExpanded ? "is-open" : ""}`}
-      >
-        <div className="pf-drawer-inner">
-          {isExpanded && (
-            <ReportDrawer
-              item={item}
-              onInspectPhoto={onInspectPhoto}
-              onRequestMatch={onRequestMatch}
-              onMarkMatched={onMarkMatched}
-              onOwnerMarkReturned={onOwnerMarkReturned}
-            />
-          )}
+      {!item.conversationId && (
+        <div
+          id={`pf-drawer-${item.id}`}
+          className={`pf-drawer-expandable ${isExpanded ? "is-open" : ""}`}
+        >
+          <div className="pf-drawer-inner">
+            {isExpanded && (
+              <ReportDrawer
+                item={item}
+                onInspectPhoto={onInspectPhoto}
+                onRequestMatch={onRequestMatch}
+                onMarkMatched={onMarkMatched}
+                onOwnerMarkReturned={onOwnerMarkReturned}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </article>
   );
 }

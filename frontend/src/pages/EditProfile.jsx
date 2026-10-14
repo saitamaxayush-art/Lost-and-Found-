@@ -57,6 +57,7 @@ export default function EditProfile() {
 
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   // Form Fields
   const [name, setName] = useState(user?.name || "");
@@ -142,6 +143,7 @@ export default function EditProfile() {
       bio: bio.trim(),
     };
 
+    setSaveError("");
     try {
       await updateUser(updatedProfile);
       sound.playKeyTurn?.();
@@ -152,6 +154,7 @@ export default function EditProfile() {
       }, 700);
     } catch (err) {
       console.error("Failed to update profile:", err);
+      setSaveError(err.message || "Failed to update profile. Please try again.");
     }
   };
 
@@ -597,6 +600,16 @@ export default function EditProfile() {
 
           {/* DARK THEMED SAVE CHANGES BUTTON */}
           <div className="ep-save-btn-row">
+            {saveError && (
+              <div className="lf-otp-error" role="alert" style={{ marginBottom: "12px", width: "100%", justifyContent: "center" }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span>{saveError}</span>
+              </div>
+            )}
             <button
               type="submit"
               className={`ep-btn-save-dark ${saveSuccess ? "is-success" : ""}`}

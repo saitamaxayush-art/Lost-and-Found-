@@ -14,6 +14,7 @@ export default function ItemContextPanel({
   const [showFloater, setShowFloater] = useState(false);
   const [copied, setCopied] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   // Explanation pop-up state
   const [explanationModal, setExplanationModal] = useState(null); // "not_matched" | "not_returned" | null
@@ -42,6 +43,7 @@ export default function ItemContextPanel({
 
   const handlePositiveDecision = async (decision) => {
     setActionLoading(true);
+    setActionError("");
     try {
       if (decision === "matched") {
         await onMatchDecision?.("matched");
@@ -51,7 +53,8 @@ export default function ItemContextPanel({
         setTimeout(() => setShowFloater(false), 2400);
       }
     } catch (err) {
-      alert(err.message || "Action failed");
+      setActionError(err.message || "Action failed. Please try again.");
+      setTimeout(() => setActionError(""), 5000);
     } finally {
       setActionLoading(false);
     }
@@ -252,6 +255,16 @@ export default function ItemContextPanel({
 
         {/* Primary Action Buttons (Driven strictly by server flags) */}
         <div className="pp-context-action-wrap">
+          {actionError && (
+            <div className="lf-otp-error" role="alert" style={{ marginBottom: "10px", width: "100%" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>{actionError}</span>
+            </div>
+          )}
           {canDecideMatch ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <button

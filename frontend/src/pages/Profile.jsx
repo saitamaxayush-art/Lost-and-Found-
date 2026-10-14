@@ -30,6 +30,7 @@ export default function Profile() {
     leaderboard,
     loadMyItems,
     loadLeaderboard,
+    loadConversations,
   } = useApp();
 
   const navigate = useNavigate();
@@ -57,6 +58,7 @@ export default function Profile() {
     window.scrollTo({ top: 0, behavior: "instant" });
     if (user) {
       loadMyItems();
+      loadConversations();
     }
     loadLeaderboard();
   }, [user]);
@@ -144,6 +146,11 @@ export default function Profile() {
   }, [fullLeaderboard]);
 
   const toggleExpand = (id) => {
+    const it = displayedItems.find((i) => i.id === id);
+    if (it?.conversationId) {
+      navigate(`/people?chat=${it.conversationId}`);
+      return;
+    }
     setExpandedId((prev) => (prev === id ? null : id));
   };
 

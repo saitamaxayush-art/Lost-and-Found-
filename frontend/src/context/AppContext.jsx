@@ -132,6 +132,91 @@ export function adaptMyItem(apiItem) {
   };
 }
 
+export function adaptConversationToLostCard(conv) {
+  if (!conv) return null;
+  const item = conv.item || {};
+
+  const statusMap = {
+    chatting: {
+      label: "Chat in progress",
+      theme: "is-matched", // amber accent
+      stage: 1,
+      isReturned: false,
+      isMatched: false,
+    },
+    matched: {
+      label: "Match confirmed, awaiting return",
+      theme: "is-matched", // amber accent
+      stage: 2,
+      isReturned: false,
+      isMatched: true,
+    },
+    not_matched: {
+      label: "Not matched",
+      theme: "is-reported", // neutral grey
+      stage: 1,
+      isReturned: false,
+      isMatched: false,
+    },
+    returned: {
+      label: "Returned",
+      theme: "is-returned", // green success
+      stage: 3,
+      isReturned: true,
+      isMatched: true,
+    },
+    not_returned: {
+      label: "Not returned",
+      theme: "is-reported", // neutral grey
+      stage: 1,
+      isReturned: false,
+      isMatched: false,
+    },
+  };
+
+  const mapped = statusMap[conv.status] || {
+    label: conv.status || "Reported",
+    theme: "is-reported",
+    stage: 1,
+    isReturned: conv.status === "returned",
+    isMatched: conv.status === "matched",
+  };
+
+  const targetDate =
+    item.date ||
+    (conv.createdAt
+      ? new Date(conv.createdAt).toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10));
+
+  return {
+    id: conv.lostItemId || conv.lost_item_id || `conv-${conv.id}`,
+    conversationId: conv.id,
+    isConversationCard: true,
+    type: "lost",
+    description: item.description || "Lost Item Claim",
+    category: item.category || "General",
+    location: item.location || "Campus premises",
+    locationLost: item.location || "Campus premises",
+    locationFound: undefined,
+    date: targetDate,
+    reportingDate: targetDate,
+    image: item.image || null,
+    status: conv.status === "returned" ? "Returned" : conv.status === "matched" ? "Matched" : "Reported",
+    statusLabel: mapped.label,
+    statusTheme: mapped.theme,
+    stepStage: mapped.stage,
+    isReturned: mapped.isReturned,
+    hasMatch: mapped.isMatched,
+    lostItemId: conv.lostItemId || conv.lost_item_id || null,
+    foundItemId: item.id || null,
+    isUserItem: true,
+    reportingState: mapped.label,
+    returnedDate: conv.status === "returned" ? targetDate : null,
+    createdAt: conv.createdAt,
+    updatedAt: conv.updatedAt,
+  };
+}
+
 export function adaptLeaderboard(apiLeaderboard, currentUser) {
   if (!Array.isArray(apiLeaderboard)) return [];
   let foundCurrentUser = false;
@@ -245,13 +330,89 @@ export function AppProvider({ children }) {
     }
   };
 
+  const conversationsRef = useRef(conversations);
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+  // Load conversations from backend
+  const loadConversations = async () => {
+    if (!localStorage.getItem("lf_token")) return;
+    try {
+      const data = await api.get("/conversations");
+      if (!Array.isArray(data)) return;
+      setConversations((prev) => {
+        const msgMap = new Map();
+        prev.forEach((c) => {
+          if (c.messages && c.messages.length > 0 && !c.messages[0].id?.startsWith("last-")) {
+            msgMap.set(c.id, c.messages);
+          }
+        });
+        return data.map((apiConv) => adaptConversation(apiConv, msgMap.get(apiConv.id)));
+      });
+      if (!activeChatId && data.length > 0) {
+        setActiveChatId(data[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to load conversations:", err);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadMyItems();
+      loadConversations();
     } else {
       setMyItems([]);
+      setConversations([]);
     }
   }, [user]);
+
+  // Merge items for Profile page:
+  // a) User's own reports with type 'lost' from GET /api/items/mine
+  // b) Every conversation from GET /api/conversations where myRole is 'owner' (turned into a Lost card)
+  // c) Deduplicate if lost report and conversation point to the same lost_item_id
+  // d) User's own reports with type 'found' from GET /api/items/mine (unchanged for finders)
+  const mergedItems = useMemo(() => {
+    const ownLostReports = myItems.filter((i) => i.type === "lost");
+    const ownFoundReports = myItems.filter((i) => i.type === "found");
+
+    const ownerConvs = (conversations || []).filter((c) => c.myRole === "owner");
+
+    const matchedLostItemIds = new Set();
+    const convLostCards = [];
+
+    ownerConvs.forEach((conv) => {
+      const lostCard = adaptConversationToLostCard(conv);
+      if (!lostCard) return;
+
+      const targetLostId = conv.lostItemId || conv.lost_item_id;
+      if (targetLostId) {
+        matchedLostItemIds.add(String(targetLostId));
+      }
+
+      ownLostReports.forEach((r) => {
+        if (
+          (targetLostId && String(r.id) === String(targetLostId)) ||
+          (conv.item?.id && String(r.id) === String(conv.item.id))
+        ) {
+          matchedLostItemIds.add(String(r.id));
+          lostCard.id = r.id;
+          if (r.image && !lostCard.image) {
+            lostCard.image = r.image;
+          }
+        }
+      });
+
+      convLostCards.push(lostCard);
+    });
+
+    const remainingLostReports = ownLostReports.filter(
+      (r) => !matchedLostItemIds.has(String(r.id))
+    );
+
+    return [...convLostCards, ...remainingLostReports, ...ownFoundReports];
+  }, [myItems, conversations]);
 
   // Load campus leaderboard from /api/leaderboard
   const loadLeaderboard = async () => {
@@ -310,7 +471,7 @@ export function AppProvider({ children }) {
 
   // Points ledger derived from returned items
   const pointsLedger = useMemo(() => {
-    const returnedItems = myItems.filter((i) => i.status === "Returned" || i.isReturned);
+    const returnedItems = mergedItems.filter((i) => i.status === "Returned" || i.isReturned);
     return returnedItems.map((item) => ({
       id: `tx-${item.id}`,
       itemTitle: item.description,
@@ -319,7 +480,7 @@ export function AppProvider({ children }) {
       date: item.returnedDate || item.date || "Recently",
       points: 50,
     }));
-  }, [myItems]);
+  }, [mergedItems]);
 
   async function addItem(newItemData) {
     let res;
@@ -354,34 +515,6 @@ export function AppProvider({ children }) {
   }
 
   const [isPeopleActive, setIsPeopleActive] = useState(false);
-
-  const conversationsRef = useRef(conversations);
-  useEffect(() => {
-    conversationsRef.current = conversations;
-  }, [conversations]);
-
-  // Load conversations from backend
-  const loadConversations = async () => {
-    if (!localStorage.getItem("lf_token")) return;
-    try {
-      const data = await api.get("/conversations");
-      if (!Array.isArray(data)) return;
-      setConversations((prev) => {
-        const msgMap = new Map();
-        prev.forEach((c) => {
-          if (c.messages && c.messages.length > 0 && !c.messages[0].id?.startsWith("last-")) {
-            msgMap.set(c.id, c.messages);
-          }
-        });
-        return data.map((apiConv) => adaptConversation(apiConv, msgMap.get(apiConv.id)));
-      });
-      if (!activeChatId && data.length > 0) {
-        setActiveChatId(data[0].id);
-      }
-    } catch (err) {
-      console.error("Failed to load conversations:", err);
-    }
-  };
 
   // Poll conversations every 8 seconds while People page is open
   useEffect(() => {
@@ -589,8 +722,9 @@ export function AppProvider({ children }) {
 
   const value = useMemo(
     () => ({
-      items: myItems,
+      items: mergedItems,
       myItems,
+      mergedItems,
       loadMyItems,
       addItem,
       updateItemStatus,
@@ -623,6 +757,7 @@ export function AppProvider({ children }) {
       bumpStatsVersion: () => setStatsVersion((v) => v + 1),
     }),
     [
+      mergedItems,
       myItems,
       user,
       notifications,
