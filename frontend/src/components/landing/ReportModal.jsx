@@ -1,43 +1,71 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CATEGORIES } from "../../data/mockItems";
 import { useApp } from "../../context/AppContext";
+import api from "../../api/client";
 import Modal from "./Modal";
 import ThemeDropdown, { CATEGORY_ICONS } from "./ThemeDropdown";
 
-export default function ReportModal({ type, onClose, onViewItem, onViewReport }) {
-  const { addItem } = useApp();
+export default function ReportModal({ type, onClose, onViewItem, onViewReport, requireLogin }) {
+  const { user } = useApp();
   const verb = type === "lost" ? "lost" : "found";
 
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [location, setLocation] = useState("");
-  const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   function onImage(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setImage(reader.result);
-    reader.readAsDataURL(file);
+    setImageFile(file);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(file));
+  }
+
+  async function performSubmit() {
+    if (!description.trim() || !date) return;
+    setLoading(true);
+    setError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("type", type);
+      formData.append("description", description.trim());
+      formData.append("category", category);
+      formData.append("location", location.trim());
+      formData.append("date", date);
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      const res = await api.upload("/items", formData);
+      const match = res.possibleMatches?.[0] || null;
+      setResult({ item: res.item, match });
+    } catch (err) {
+      setError(err.message || "Failed to submit report. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function submit(e) {
     e.preventDefault();
-    if (!description.trim() || !date) return;
-    setResult(
-      addItem({
-        type,
-        description: description.trim(),
-        category,
-        date,
-        location: location.trim(),
-        locationLost: type === "lost" ? location.trim() : undefined,
-        locationFound: type === "found" ? location.trim() : undefined,
-        image,
-      })
-    );
+    if (!user && requireLogin) {
+      requireLogin(performSubmit);
+      return;
+    }
+    performSubmit();
   }
 
   if (result) {
@@ -156,13 +184,26 @@ export default function ReportModal({ type, onClose, onViewItem, onViewReport })
         <div className="lf-row">
           <label htmlFor="rp-img">Photo (optional)</label>
           <label className="lf-drop" htmlFor="rp-img">
-            {image ? "Photo selected — click to change" : "Click to upload a photo of the item"}
+            {imageFile ? "Photo selected — click to change" : "Click to upload a photo of the item"}
           </label>
           <input id="rp-img" type="file" accept="image/*" onChange={onImage} style={{ display: "none" }} />
-          {image && <img className="lf-preview" src={image} alt="Preview" />}
+          {previewUrl && <img className="lf-preview" src={previewUrl} alt="Preview" />}
         </div>
 
-        <button className="lf-submit" type="submit">Submit {verb} report</button>
+        {error && (
+          <div className="lf-otp-error" role="alert" style={{ marginBottom: "1rem" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{error}</span>
+          </div>
+        )}
+
+        <button className="lf-submit" type="submit" disabled={loading}>
+          {loading ? "Submitting report…" : `Submit ${verb} report`}
+        </button>
       </form>
     </Modal>
   );

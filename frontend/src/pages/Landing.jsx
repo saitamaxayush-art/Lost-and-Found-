@@ -326,6 +326,7 @@ export default function Landing() {
           onClose={closeReport}
           onViewItem={viewItem}
           onViewReport={handleViewReport}
+          requireLogin={requireLogin}
         />
       )}
       {itemId && <ItemModal itemId={itemId} onClose={closeItem} requireLogin={requireLogin} />}

@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useApp } from "../../context/AppContext";
+import { useState } from "react";
+import api from "../../api/client";
 import { CATEGORIES, STATUSES } from "../../data/mockItems";
 import SearchDissolveLoader from "./SearchDissolveLoader";
 import ThemeDropdown, { CATEGORY_ICONS, STATUS_ICONS } from "./ThemeDropdown";
@@ -35,6 +35,20 @@ function highlightText(text, tokens) {
 }
 
 export function ItemCard({ item, onOpen, tokens = [] }) {
+  // Use matchedWords from backend item if available, otherwise tokens
+  const highlightTokens = item.matchedWords && item.matchedWords.length > 0
+    ? item.matchedWords
+    : tokens;
+
+  // Calculate total query words from matchedWords and matchPercent
+  let matchInfo = null;
+  if (item.matchedWords && item.matchedWords.length > 0 && typeof item.matchPercent === "number") {
+    const totalWords = item.matchPercent > 0
+      ? Math.max(item.matchedWords.length, Math.round((item.matchedWords.length * 100) / item.matchPercent))
+      : item.matchedWords.length;
+    matchInfo = `Matches ${item.matchedWords.length} of ${totalWords} words`;
+  }
+
   return (
     <button
       type="button"
@@ -50,11 +64,16 @@ export function ItemCard({ item, onOpen, tokens = [] }) {
       <div className="sr-card-body">
         <div className="sr-card-top">
           <span className={`sr-tag sr-${item.type}`}>{item.type === "lost" ? "Lost" : "Found"}</span>
-          <span className={`sr-status sr-st-${item.status.toLowerCase()}`}>{item.status}</span>
+          <span className={`sr-status sr-st-${(item.status || "").toLowerCase()}`}>{item.status}</span>
         </div>
-        <h3>{highlightText(item.description, tokens)}</h3>
+        <h3>{highlightText(item.description, highlightTokens)}</h3>
+        {matchInfo && (
+          <div className="sr-match-line" style={{ fontSize: "12px", fontWeight: 600, color: "var(--peach-accent-dark, #b86214)" }}>
+            {matchInfo}
+          </div>
+        )}
         <div className="sr-meta">
-          <span>{highlightText(item.category, tokens)}</span>
+          <span>{highlightText(item.category, highlightTokens)}</span>
           <span>{item.date}</span>
           {(item.location || item.locationLost || item.locationFound) && (
             <span className="sr-loc-badge" title={item.location || item.locationLost || item.locationFound}>
@@ -68,80 +87,78 @@ export function ItemCard({ item, onOpen, tokens = [] }) {
 }
 
 export default function SearchSection({ onOpenItem, onReport, onMouseEnter, onMouseLeave, isHovered }) {
-  const { items } = useApp();
   const [query, setQuery] = useState("");
-  const [type, setType] = useState("all");
+  const [type, setType] = useState("found");
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState("all");
   const [showAll, setShowAll] = useState(false);
 
   // Managed search execution state (triggered only on search button click or Enter)
   const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [activeQuery, setActiveQuery] = useState("");
-  const [activeTokens, setActiveTokens] = useState([]);
+  const [results, setResults] = useState([]);
 
-  const handleSearchSubmit = (e) => {
+  const activeTokens = activeQuery ? activeQuery.toLowerCase().split(/\s+/).filter(Boolean) : [];
+
+  const handleSearchSubmit = async (e) => {
     if (e) e.preventDefault();
     sound.playUiClick();
     const trimmed = query.trim();
 
-    if (!trimmed) {
-      setActiveQuery("");
-      setActiveTokens([]);
-      setIsSearching(false);
-      return;
-    }
-
     setIsSearching(true);
     setShowAll(false);
 
-    // Let the smooth floating oval bubble animation play for a satisfying duration
-    const SEARCH_DURATION = 1100;
-    setTimeout(() => {
+    const params = new URLSearchParams();
+    if (trimmed) params.set("q", trimmed);
+    if (type && type !== "all") params.set("type", type);
+    if (category && category !== "all") params.set("category", category);
+    if (status && status !== "all") params.set("status", status.toLowerCase());
+
+    // Keep the existing 1100 ms SearchDissolveLoader animation: start the request immediately
+    // and remove the loader only when BOTH the timer and the request have finished.
+    const timerPromise = new Promise((resolve) => setTimeout(resolve, 1100));
+    const fetchPromise = api.get(`/items/search?${params.toString()}`);
+
+    try {
+      const [, data] = await Promise.all([timerPromise, fetchPromise]);
+      setResults(Array.isArray(data) ? data : []);
       setActiveQuery(trimmed);
-      setActiveTokens(trimmed.toLowerCase().split(/\s+/).filter(Boolean));
+      setHasSearched(true);
+    } catch (err) {
+      console.error("Search request failed:", err);
+      setResults([]);
+      setActiveQuery(trimmed);
+      setHasSearched(true);
+    } finally {
       setIsSearching(false);
-    }, SEARCH_DURATION);
+    }
   };
 
   const handleClear = () => {
     setQuery("");
     setActiveQuery("");
-    setActiveTokens([]);
+    setResults([]);
     setIsSearching(false);
     setShowAll(false);
+    setHasSearched(false);
   };
 
   const resetAllFilters = () => {
     sound.playUiClick();
     setQuery("");
     setActiveQuery("");
-    setActiveTokens([]);
-    setIsSearching(false);
-    setType("all");
+    setType("found");
     setCategory("all");
     setStatus("all");
+    setResults([]);
+    setIsSearching(false);
     setShowAll(false);
+    setHasSearched(false);
   };
 
-  // Only display search results when an explicit search has occurred
-  const hasSearched = activeQuery.length > 0 || isSearching;
-
-  const results = useMemo(() => {
-    if (!activeTokens.length) return [];
-    return items
-      .filter((i) => (type === "all" ? true : i.type === type))
-      .filter((i) => (category === "all" ? true : i.category === category))
-      .filter((i) => (status === "all" ? true : i.status === status))
-      .filter((i) => {
-        const haystack = `${i.description} ${i.category} ${i.type} ${i.status}`.toLowerCase();
-        return activeTokens.every((t) => haystack.includes(t));
-      })
-      .sort((a, b) => b.createdAt - a.createdAt);
-  }, [items, activeTokens, type, category, status]);
-
   const visible = showAll ? results : results.slice(0, PAGE);
-  const filtersOn = query.trim() !== "" || type !== "all" || category !== "all" || status !== "all";
+  const filtersOn = query.trim() !== "" || type !== "found" || category !== "all" || status !== "all";
 
   return (
     <section
@@ -300,7 +317,7 @@ export default function SearchSection({ onOpenItem, onReport, onMouseEnter, onMo
         ) : hasSearched ? (
           <div className="sr-results-container">
             <p className="sr-count" aria-live="polite">
-              {results.length} {results.length === 1 ? "item" : "items"} found for "{activeQuery}"
+              {results.length} {results.length === 1 ? "item" : "items"} found{activeQuery ? ` for "${activeQuery}"` : ""}
             </p>
 
             {results.length === 0 ? (
@@ -313,7 +330,11 @@ export default function SearchSection({ onOpenItem, onReport, onMouseEnter, onMo
                 </div>
                 <h3>No matching items found</h3>
                 <p>
-                  We couldn't find any reports matching "<strong>{activeQuery}</strong>". Try using broader keywords or report it below so our campus community can keep a lookout.
+                  {activeQuery ? (
+                    <>We couldn't find any reports matching "<strong>{activeQuery}</strong>". Try using broader keywords or report it below so our campus community can keep a lookout.</>
+                  ) : (
+                    <>We couldn't find any reports matching your filters. Try selecting different options or report it below so our campus community can keep a lookout.</>
+                  )}
                 </p>
                 <div className="sr-empty-actions">
                   <button

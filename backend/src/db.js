@@ -27,6 +27,8 @@ const db = new Database(dbPath);
 
 // Enable foreign key constraints
 db.pragma('foreign_keys = ON');
+db.pragma('busy_timeout = 5000');
+db.pragma('journal_mode = WAL');
 
 // Create all tables and indexes defined in BACKEND_SPEC.md
 db.exec(`

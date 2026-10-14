@@ -1,36 +1,101 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../../context/AppContext";
-import { STATUSES } from "../../data/mockItems";
+import api from "../../api/client";
 import Modal from "./Modal";
 
-// Public board: never show a full phone number.
-const mask = (v = "") => (/^\+?\d{10,14}$/.test(v) ? `${v.slice(0, v.length - 10)} ••••• ${v.slice(-5)}`.trim() : v);
+const STATUSES = ["Reported", "Matched", "Returned"];
 
 export default function ItemModal({ itemId, onClose, requireLogin }) {
-  const { user, items, markItemMatched, requestMarkAsMatched, markItemReturned } = useApp();
-  const item = items.find((i) => i.id === itemId);
-  if (!item) return null;
+  const { user } = useApp();
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [requestingChat, setRequestingChat] = useState(false);
+  const [chatError, setChatError] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!itemId) return;
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
+
+    api
+      .get(`/items/${itemId}`)
+      .then((data) => {
+        if (isMounted) {
+          setItem(data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setError(err.message || "Failed to load item");
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [itemId, user?.id]);
+
+  const handleRequestChat = () => {
+    const doRequest = async () => {
+      setRequestingChat(true);
+      setChatError("");
+      try {
+        const conv = await api.post("/conversations", { foundItemId: item.id });
+        onClose?.();
+        navigate(`/people?chat=${conv.id}`);
+      } catch (err) {
+        setChatError(err.message || "Failed to start conversation");
+      } finally {
+        setRequestingChat(false);
+      }
+    };
+
+    if (requireLogin) {
+      requireLogin(doRequest);
+    } else {
+      doRequest();
+    }
+  };
+
+  if (loading) {
+    return (
+      <Modal onClose={onClose} labelledBy="im-title" size="lg">
+        <div style={{ padding: "40px", textAlign: "center", color: "var(--peach-ink-soft)" }}>
+          Loading item details…
+        </div>
+      </Modal>
+    );
+  }
+
+  if (error || !item) {
+    return (
+      <Modal onClose={onClose} labelledBy="im-title" size="lg">
+        <div style={{ padding: "40px", textAlign: "center", color: "var(--peach-ink-soft)" }}>
+          {error || "Item not found."}
+        </div>
+      </Modal>
+    );
+  }
 
   const isLost = item.type === "lost";
-  const isReturned = item.status === "Returned" || item.isReturned;
-  const isMatched = item.status === "Matched" || item.hasMatch;
-  const userEmail = (user?.email || "").toLowerCase().trim();
-  const isReporter =
-    item.isUserItem ||
-    (userEmail && (item.reporter || "").toLowerCase() === userEmail) ||
-    (user?.name && (item.reporterName || "").toLowerCase() === user.name.toLowerCase());
-
-  // Role resolution:
-  // If lost item: reporter is owner.
-  // If found item: reporter is finder.
-  const isOwner = isLost ? isReporter : !isReporter;
-
-  const idx = STATUSES.indexOf(item.status);
+  const currentStatusLower = (item.status || "reported").toLowerCase();
+  const idx = STATUSES.map((s) => s.toLowerCase()).indexOf(currentStatusLower);
 
   return (
     <Modal onClose={onClose} labelledBy="im-title" size="lg">
       <div className="im-layout">
         <div className="im-media">
-          {item.image ? <img src={item.image} alt={item.description} /> : <span>No photo was added for this report</span>}
+          {item.image ? (
+            <img src={item.image} alt={item.description} />
+          ) : (
+            <span>No photo was added for this report</span>
+          )}
         </div>
 
         <div className="im-body">
@@ -42,14 +107,12 @@ export default function ItemModal({ itemId, onClose, requireLogin }) {
             <dd>{item.category}</dd>
             <dt>Date {item.type}</dt>
             <dd>{item.date}</dd>
-            {(item.location || item.locationLost || item.locationFound) && (
+            {item.location && (
               <>
                 <dt>{isLost ? "Estimated Location" : "Location Found"}</dt>
-                <dd>{item.location || (isLost ? item.locationLost : item.locationFound)}</dd>
+                <dd>{item.location}</dd>
               </>
             )}
-            <dt>Reported by</dt>
-            <dd>{mask(item.reporter)}</dd>
           </dl>
 
           <div className="im-track" aria-label={`Status: ${item.status}`}>
@@ -62,94 +125,32 @@ export default function ItemModal({ itemId, onClose, requireLogin }) {
           </div>
 
           {/* Action & Status depending on roles */}
-          {isReturned ? (
+          {currentStatusLower === "returned" ? (
             <p className="im-done">This item has been returned to its owner.</p>
-          ) : isMatched ? (
-            /* Item is Matched: ONLY the user who lost the item can mark as returned! Finder waits for owner. */
-            isOwner ? (
+          ) : item.isMine ? (
+            <p className="im-pending-text">This is your report.</p>
+          ) : item.type === "found" ? (
+            <>
               <button
                 type="button"
                 className="lf-submit"
-                onClick={() =>
-                  requireLogin(() => {
-                    markItemReturned(item.id, item.reporterName || "Campus Finder");
-                    onClose?.();
-                  })
-                }
+                onClick={handleRequestChat}
+                disabled={requestingChat}
               >
-                Mark as Returned (+50 pts)
+                {requestingChat ? "Connecting…" : "Request to chat with the finder"}
               </button>
-            ) : (
-              <div className="im-waiting-box">
-                <strong>Waiting for the user who has lost the item to mark as returned</strong>
-                <p>The owner must confirm handover receipt to mark as returned and close the report.</p>
-              </div>
-            )
-          ) : (
-            /* Item is Reported: Finder can mark as matched, owner can request mark as matched */
-            isLost ? (
-              isReporter ? (
-                /* Lost item owner CANNOT mark as matched; can request mark as matched from finder */
-                item.matchRequested ? (
-                  <p className="im-pending-text">Match requested from finder — waiting for finder to mark as matched.</p>
-                ) : (
-                  <button
-                    type="button"
-                    className="lf-submit"
-                    onClick={() =>
-                      requireLogin(() => {
-                        requestMarkAsMatched(item.id);
-                      })
-                    }
-                  >
-                    Request Mark as Matched
-                  </button>
-                )
-              ) : (
-                /* Non-owner who found this lost item can mark as matched! */
-                <button
-                  type="button"
-                  className="lf-submit"
-                  onClick={() =>
-                    requireLogin(() => {
-                      markItemMatched(item.id, user?.name || "Campus Student");
-                    })
-                  }
-                >
-                  I Found This (Mark as Matched)
-                </button>
-              )
-            ) : (
-              /* Found item: Finder has access to mark as matched; claimant/lost owner can request match */
-              isReporter ? (
-                <button
-                  type="button"
-                  className="lf-submit"
-                  onClick={() =>
-                    requireLogin(() => {
-                      markItemMatched(item.id, "Verified Student");
-                    })
-                  }
-                >
-                  Mark as Matched
-                </button>
-              ) : item.matchRequested ? (
-                <p className="im-pending-text">Match requested from finder — waiting for finder to mark as matched.</p>
-              ) : (
-                <button
-                  type="button"
-                  className="lf-submit"
-                  onClick={() =>
-                    requireLogin(() => {
-                      requestMarkAsMatched(item.id, item.reporterName);
-                    })
-                  }
-                >
-                  Request Mark as Matched
-                </button>
-              )
-            )
-          )}
+              {chatError && (
+                <div className="lf-otp-error" role="alert" style={{ marginTop: "12px" }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span>{chatError}</span>
+                </div>
+              )}
+            </>
+          ) : null}
         </div>
       </div>
     </Modal>

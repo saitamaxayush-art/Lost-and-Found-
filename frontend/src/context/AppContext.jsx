@@ -4,26 +4,6 @@ import { sound } from "../utils/sound";
 
 const AppContext = createContext(null);
 
-// Very simple "matching engine": two opposite-type items are a likely match
-// if they share a category and at least one meaningful word in their
-// descriptions overlaps.
-function findLikelyMatch(newItem, allItems) {
-  const oppositeType = newItem.type === "lost" ? "found" : "lost";
-  const newWords = new Set(
-    newItem.description
-      .toLowerCase()
-      .split(/[^a-z0-9]+/)
-      .filter((w) => w.length > 3)
-  );
-
-  return allItems.find((item) => {
-    if (item.type !== oppositeType) return false;
-    if (item.category !== newItem.category) return false;
-    const itemWords = item.description.toLowerCase().split(/[^a-z0-9]+/);
-    return itemWords.some((w) => w.length > 3 && newWords.has(w));
-  });
-}
-
 export function AppProvider({ children }) {
   const [items, setItems] = useState([]);
   const [user, setUser] = useState(null);
@@ -52,87 +32,17 @@ export function AppProvider({ children }) {
       });
   }, []);
 
-  function addItem(newItemData) {
-    const dateStr = newItemData.date || new Date().toISOString().slice(0, 10);
-    const match = findLikelyMatch({ ...newItemData, type: newItemData.type }, items);
-
-    const isLost = newItemData.type === "lost";
-    const loc =
-      newItemData.location ||
-      (isLost ? newItemData.locationLost : newItemData.locationFound) ||
-      "Campus premises";
-
-    const newItem = {
-      id: `item-${Date.now()}`,
-      status: match ? "Matched" : "Reported",
-      createdAt: Date.now(),
-      reporter: user?.email || user?.whatsapp || user?.name || "demo@student.edu",
-      reporterName: user?.name || "Campus Student",
-      isUserItem: true,
-      location: loc,
-      locationLost: isLost ? loc : undefined,
-      locationFound: !isLost ? loc : undefined,
-      ...newItemData,
-
-      // Stage tracking properties
-      // For Lost:
-      reportingDate: dateStr,
-      reportingState: "Active in Campus Registry",
-      hasMatch: !!match,
-      matchedProduct: match
-        ? {
-            id: match.id,
-            title: match.description,
-            category: match.category,
-            foundDate: match.date || dateStr,
-            locationFound: match.locationFound || "Campus premises",
-            finderName: match.reporterName || "Campus Finder",
-            finderCampus: "Campus Network",
-            finderMaskedContact: match.reporter || "+91 ••••• •••••",
-            similarityScore: "94% description match",
-            notes: "Matched with report registered on campus board.",
-          }
-        : null,
-
-      // For Found:
-      foundDate: dateStr,
-      foundTime: "Just now",
-      foundState: "Reported & Safely secured",
-      matchedUsersCount: match ? 1 : 0,
-      matchedUsers: match
-        ? [
-            {
-              id: `claimant-${Date.now()}`,
-              name: match.reporterName || "Matching Student",
-              department: "Registered Campus Member",
-              campus: "Main Campus",
-              maskedContact: match.reporter || "+91 98••• •••••",
-              matchDate: dateStr,
-              claimDetails: match.description,
-              verified: false,
-            },
-          ]
-        : [],
-
-      // Common stage 3:
-      isReturned: false,
-      returnedDate: null,
-      returnedTo: null,
-      returnNotes: null,
-    };
-
-    setItems((prev) => [newItem, ...prev]);
-
-    if (match) {
-      const note = {
-        id: `notif-${Date.now()}`,
-        message: `Match alert! Your ${newItem.type} report ("${newItem.category}") matched with another report on campus.`,
-        createdAt: Date.now(),
-      };
-      setNotifications((prev) => [note, ...prev]);
+  async function addItem(newItemData) {
+    if (newItemData instanceof FormData) {
+      return api.upload("/items", newItemData);
     }
-
-    return { item: newItem, match };
+    const formData = new FormData();
+    Object.entries(newItemData).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) {
+        formData.append(k, v);
+      }
+    });
+    return api.upload("/items", formData);
   }
 
   function updateItemStatus(id, status) {
