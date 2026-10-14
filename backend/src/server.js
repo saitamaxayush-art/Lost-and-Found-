@@ -18,6 +18,7 @@ import db from './db.js';
 
 // Route modules
 import authRoutes from './routes/auth.js';
+import itemsRoutes from './routes/items.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +52,7 @@ app.get('/api/health', (req, res) => {
 
 // Mount API routes under /api
 app.use('/api', authRoutes);
+app.use('/api/items', itemsRoutes);
 
 // 404 handler for unknown routes
 app.use((req, res) => {
