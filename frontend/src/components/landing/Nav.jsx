@@ -242,6 +242,11 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
     playBellChime();
   };
 
+  const unreadCount = useMemo(
+    () => (notifications || []).filter((n) => !n.read).length,
+    [notifications]
+  );
+
   return (
     <header className={`lp-nav ${hoveredSection ? "has-hovered-section" : ""}`} ref={rootRef}>
       <div className="lp-nav-container">
@@ -270,7 +275,7 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
               <button
                 type="button"
                 className={`lp-icon-btn lp-bell-btn ${isRinging ? "is-ringing" : ""}`}
-                aria-label={`Notifications${notifications.length ? ` (${notifications.length})` : ""}`}
+                aria-label={`Notifications${unreadCount ? ` (${unreadCount})` : ""}`}
                 aria-expanded={notifOpen}
                 onMouseEnter={triggerBellRing}
                 onClick={() => {
@@ -283,7 +288,7 @@ export default function Nav({ goTo, onLogin, hoveredSection }) {
                   <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
                   <path d="M13.7 21a2 2 0 0 1-3.4 0" />
                 </svg>
-                {notifications.length > 0 && <em>{notifications.length}</em>}
+                {unreadCount > 0 && <em>{unreadCount}</em>}
               </button>
               {notifOpen && (
                 <div className="lp-notif-panel" role="region" aria-label="Activity and match alerts">

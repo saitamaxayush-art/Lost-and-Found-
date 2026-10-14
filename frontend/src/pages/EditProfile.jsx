@@ -125,7 +125,7 @@ export default function EditProfile() {
     reader.readAsDataURL(file);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
 
     const updatedProfile = {
@@ -142,13 +142,17 @@ export default function EditProfile() {
       bio: bio.trim(),
     };
 
-    updateUser(updatedProfile);
-    sound.playKeyTurn?.();
+    try {
+      await updateUser(updatedProfile);
+      sound.playKeyTurn?.();
 
-    setSaveSuccess(true);
-    setTimeout(() => {
-      navigate("/profile");
-    }, 700);
+      setSaveSuccess(true);
+      setTimeout(() => {
+        navigate("/profile");
+      }, 700);
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+    }
   };
 
   // Logged-out gate

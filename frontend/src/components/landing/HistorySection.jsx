@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MONTHLY, REVIEWS } from "../../data/successData";
+import api from "../../api/client";
+import { useApp } from "../../context/AppContext";
 
-const STAT_ROWS = [
+const DEFAULT_STAT_ROWS = [
   {
     value: 11375,
     suffix: "",
@@ -84,8 +86,28 @@ function HistoryLineChart({ data = MONTHLY, active = false, reducedMotion = fals
   const chartH = vbH - padTop - padBottom;
   const baselineY = padTop + chartH;
 
-  const yMax = 2200;
-  const yTicks = [500, 1000, 1500, 2000];
+  const { yMax, yTicks } = useMemo(() => {
+    const maxVal = Math.max(
+      ...(data || []).map((d) => Math.max(Number(d.reported) || 0, Number(d.reunited) || 0)),
+      10
+    );
+    let top = 2200;
+    if (maxVal <= 60) top = 60;
+    else if (maxVal <= 100) top = 100;
+    else if (maxVal <= 200) top = 200;
+    else if (maxVal <= 500) top = 500;
+    else if (maxVal <= 1000) top = 1000;
+    else if (maxVal <= 2200) top = 2200;
+    else top = Math.ceil(maxVal / 500) * 500;
+
+    const ticks = [
+      Math.round(top * 0.25),
+      Math.round(top * 0.5),
+      Math.round(top * 0.75),
+      top,
+    ];
+    return { yMax: top, yTicks: ticks };
+  }, [data]);
 
   // Calculate points
   const { reportedPoints, reunitedPoints } = useMemo(() => {
@@ -386,6 +408,54 @@ export default function HistorySection({ onMouseEnter, onMouseLeave, isHovered }
   const [sectionInView, setSectionInView] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
+  const { statsVersion } = useApp();
+  const [statRows, setStatRows] = useState(DEFAULT_STAT_ROWS);
+  const [chartData, setChartData] = useState(MONTHLY);
+
+  const fetchStats = async () => {
+    try {
+      const data = await api.get("/stats");
+      if (data && data.totals && Array.isArray(data.monthly)) {
+        setStatRows([
+          {
+            value: data.totals.reported ?? 11375,
+            suffix: "",
+            caption: "Items reported across all campuses",
+          },
+          {
+            value: data.totals.returned ?? 9412,
+            suffix: "",
+            caption: "Reunited with rightful owners",
+          },
+          {
+            value: data.totals.successRate ?? 89,
+            suffix: "%",
+            caption: "Successful resolution rate",
+          },
+        ]);
+        setChartData(
+          data.monthly.map((d) => ({
+            m: d.m,
+            reported: Number(d.reported) || 0,
+            reunited: Number(d.returned) || 0,
+          }))
+        );
+      }
+    } catch (err) {
+      console.warn("Failed to fetch stats, using fallback:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, [statsVersion]);
+
+  useEffect(() => {
+    if (sectionInView) {
+      fetchStats();
+    }
+  }, [sectionInView]);
+
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
@@ -433,7 +503,7 @@ export default function HistorySection({ onMouseEnter, onMouseLeave, isHovered }
             </p>
 
             <div className="hs-stat-stack">
-              {STAT_ROWS.map((stat, i) => (
+              {statRows.map((stat, i) => (
                 <div className="hs-stat-row" key={stat.caption} style={{ "--row-i": i }}>
                   <div className="hs-stat-divider" />
                   <div className="hs-stat-content">
@@ -473,7 +543,7 @@ export default function HistorySection({ onMouseEnter, onMouseLeave, isHovered }
             </div>
 
             <HistoryLineChart
-              data={MONTHLY}
+              data={chartData}
               active={sectionInView}
               reducedMotion={reducedMotion}
             />

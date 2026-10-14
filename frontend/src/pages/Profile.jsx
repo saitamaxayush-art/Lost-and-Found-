@@ -5,7 +5,6 @@ import Nav from "../components/landing/Nav";
 import ReportModal from "../components/landing/ReportModal";
 import ItemModal from "../components/landing/ItemModal";
 import LoginModal from "../components/landing/LoginModal";
-import { FAKE_LEADERBOARD } from "../data/profileData";
 import { useSlidingIndicator } from "../hooks/useSlidingIndicator";
 
 import IdentityHero from "../components/profile/IdentityHero";
@@ -28,6 +27,9 @@ export default function Profile() {
     markItemReturned,
     notifications,
     dismissNotifications,
+    leaderboard,
+    loadMyItems,
+    loadLeaderboard,
   } = useApp();
 
   const navigate = useNavigate();
@@ -53,7 +55,11 @@ export default function Profile() {
   useEffect(() => {
     document.title = "My Profile — FindBack";
     window.scrollTo({ top: 0, behavior: "instant" });
-  }, []);
+    if (user) {
+      loadMyItems();
+    }
+    loadLeaderboard();
+  }, [user]);
 
   // Keyboard shortcut: '/' focuses search input when reports tab is active
   useEffect(() => {
@@ -100,23 +106,10 @@ export default function Profile() {
     }
   }, [location.state]);
 
-  // Filter items belonging to the current user
+  // Items belonging to the current user
   const userItems = useMemo(() => {
     if (!user) return [];
-
-    const userEmail = (user.email || "").toLowerCase().trim();
-    const userPhone = (user.whatsapp || "").replace(/[\s()-]/g, "");
-    const userName = (user.name || "").toLowerCase().trim();
-
-    return items.filter((item) => {
-      if (item.isUserItem) return true;
-      if (item.id && String(item.id).startsWith("seed-")) return false;
-      const rep = (item.reporter || "").toLowerCase();
-      if (userEmail && rep === userEmail) return true;
-      if (userPhone && rep.includes(userPhone)) return true;
-      if (userName && (item.reporterName || "").toLowerCase().includes(userName)) return true;
-      return false;
-    });
+    return items || [];
   }, [items, user]);
 
   const displayedItems = useMemo(() => {
@@ -140,26 +133,10 @@ export default function Profile() {
     [userItems]
   );
 
-  // Dynamic Leaderboard: Insert current user with real points and rank
+  // Real campus leaderboard from /api/leaderboard adapted with current user
   const fullLeaderboard = useMemo(() => {
-    const currentUserEntry = {
-      rank: 0,
-      name: user?.name || "You",
-      department: user?.campus || user?.department || "Main Campus",
-      itemsReturned: returnedCount,
-      points: userPoints,
-      isCurrentUser: true,
-      badge: userPoints >= 300 ? "Campus Guardian" : userPoints >= 150 ? "Gold Helper" : "Active Member",
-    };
-
-    const combined = [...FAKE_LEADERBOARD, currentUserEntry];
-    combined.sort((a, b) => b.points - a.points);
-
-    return combined.map((entry, index) => ({
-      ...entry,
-      rank: index + 1,
-    }));
-  }, [user, userPoints, returnedCount]);
+    return leaderboard || [];
+  }, [leaderboard]);
 
   const userRank = useMemo(() => {
     const entry = fullLeaderboard.find((e) => e.isCurrentUser);

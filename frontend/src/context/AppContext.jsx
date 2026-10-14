@@ -4,6 +4,20 @@ import { sound } from "../utils/sound";
 
 const AppContext = createContext(null);
 
+export const CATEGORIES = [
+  "Electronics",
+  "Wallets & Cards",
+  "Keys",
+  "Bags & Backpacks",
+  "Documents & IDs",
+  "Clothing & Accessories",
+  "Books & Stationery",
+  "Bottles & Containers",
+  "Other",
+];
+
+export const STATUSES = ["Reported", "Matched", "Returned"];
+
 export function adaptMessage(msg, myRole, otherPartyName = "Student") {
   const isSystem = msg.kind === "system" || !msg.senderId;
   const isMine = Boolean(msg.isMine);
@@ -85,14 +99,116 @@ export function adaptConversation(apiConv, existingMessages = []) {
   };
 }
 
+export function adaptMyItem(apiItem) {
+  if (!apiItem) return null;
+  const statusCap =
+    apiItem.status === "returned"
+      ? "Returned"
+      : apiItem.status === "matched"
+      ? "Matched"
+      : "Reported";
+  const isReturned = apiItem.status === "returned";
+  const isMatched = apiItem.status === "matched" || isReturned;
+
+  return {
+    ...apiItem,
+    status: statusCap,
+    isReturned,
+    hasMatch: isMatched,
+    locationLost: apiItem.type === "lost" ? apiItem.location : undefined,
+    locationFound: apiItem.type === "found" ? apiItem.location : undefined,
+    reportingDate: apiItem.date,
+    reportingState: isReturned
+      ? "Returned & Closed"
+      : isMatched
+      ? "Match Confirmed"
+      : "Active in Campus Registry",
+    returnedDate: apiItem.returnedAt
+      ? new Date(apiItem.returnedAt).toISOString().slice(0, 10)
+      : isReturned
+      ? apiItem.date
+      : null,
+    isUserItem: true,
+  };
+}
+
+export function adaptLeaderboard(apiLeaderboard, currentUser) {
+  if (!Array.isArray(apiLeaderboard)) return [];
+  let foundCurrentUser = false;
+
+  const list = apiLeaderboard.map((u, idx) => {
+    const isCurrentUser = Boolean(
+      currentUser &&
+        (u.name?.toLowerCase() === currentUser.name?.toLowerCase() ||
+          (u.email && currentUser.email && u.email.toLowerCase() === currentUser.email.toLowerCase()))
+    );
+    if (isCurrentUser) foundCurrentUser = true;
+    return {
+      rank: idx + 1,
+      name: isCurrentUser ? currentUser.name || u.name : u.name,
+      department: u.campus || "Main Campus",
+      campus: u.campus || "Main Campus",
+      points: isCurrentUser ? (currentUser.points ?? u.points) : u.points,
+      isCurrentUser,
+      avatarImage: null,
+      badge:
+        u.points >= 300
+          ? "Campus Guardian"
+          : u.points >= 150
+          ? "Gold Helper"
+          : "Active Member",
+    };
+  });
+
+  if (currentUser && !foundCurrentUser) {
+    const pts = currentUser.points || 0;
+    list.push({
+      name: currentUser.name || "You",
+      department: currentUser.campus || "Main Campus",
+      campus: currentUser.campus || "Main Campus",
+      points: pts,
+      isCurrentUser: true,
+      avatarImage: null,
+      badge:
+        pts >= 300
+          ? "Campus Guardian"
+          : pts >= 150
+          ? "Gold Helper"
+          : "Active Member",
+    });
+    list.sort((a, b) => b.points - a.points);
+    return list.map((e, idx) => ({ ...e, rank: idx + 1 }));
+  }
+
+  return list;
+}
+
+export function adaptNotification(n) {
+  let chatId = null;
+  if (n.link && n.link.includes("chat=")) {
+    chatId = n.link.split("chat=")[1];
+  }
+  return {
+    id: n.id,
+    type: n.type,
+    title: n.title,
+    message: n.message,
+    link: n.link,
+    chatId,
+    read: Boolean(n.read),
+    createdAt: n.created_at || n.createdAt || Date.now(),
+  };
+}
+
 export function AppProvider({ children }) {
-  const [items, setItems] = useState([]);
   const [user, setUser] = useState(null);
   const [userPoints, setUserPoints] = useState(0);
+  const [myItems, setMyItems] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  const [pointsLedger, setPointsLedger] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
+  const [statsVersion, setStatsVersion] = useState(0);
 
   // Restore authenticated session on startup if token exists
   useEffect(() => {
@@ -113,21 +229,117 @@ export function AppProvider({ children }) {
       });
   }, []);
 
-  async function addItem(newItemData) {
-    if (newItemData instanceof FormData) {
-      return api.upload("/items", newItemData);
+  // Load user's own items from /api/items/mine
+  const loadMyItems = async () => {
+    if (!localStorage.getItem("lf_token")) {
+      setMyItems([]);
+      return;
     }
-    const formData = new FormData();
-    Object.entries(newItemData).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) {
-        formData.append(k, v);
+    try {
+      const data = await api.get("/items/mine");
+      if (Array.isArray(data)) {
+        setMyItems(data.map(adaptMyItem));
       }
-    });
-    return api.upload("/items", formData);
+    } catch (err) {
+      console.error("Failed to load user items:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      loadMyItems();
+    } else {
+      setMyItems([]);
+    }
+  }, [user]);
+
+  // Load campus leaderboard from /api/leaderboard
+  const loadLeaderboard = async () => {
+    try {
+      const data = await api.get("/leaderboard");
+      if (Array.isArray(data)) {
+        setLeaderboard(data);
+      }
+    } catch (err) {
+      console.error("Failed to load leaderboard:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadLeaderboard();
+  }, [user]);
+
+  const adaptedLeaderboard = useMemo(() => {
+    return adaptLeaderboard(leaderboard, user);
+  }, [leaderboard, user]);
+
+  // Load notifications from /api/notifications and poll every 15s
+  const loadNotifications = async () => {
+    if (!localStorage.getItem("lf_token")) {
+      setNotifications([]);
+      return;
+    }
+    try {
+      const data = await api.get("/notifications");
+      if (Array.isArray(data)) {
+        setNotifications(data.map(adaptNotification));
+      }
+    } catch (err) {
+      console.error("Failed to load notifications:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      return;
+    }
+    loadNotifications();
+    const timer = setInterval(loadNotifications, 15000);
+    return () => clearInterval(timer);
+  }, [user]);
+
+  async function dismissNotifications() {
+    try {
+      await api.post("/notifications/read-all");
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (err) {
+      console.error("Failed to clear notifications:", err);
+    }
+  }
+
+  // Points ledger derived from returned items
+  const pointsLedger = useMemo(() => {
+    const returnedItems = myItems.filter((i) => i.status === "Returned" || i.isReturned);
+    return returnedItems.map((item) => ({
+      id: `tx-${item.id}`,
+      itemTitle: item.description,
+      role: item.type === "found" ? "Finder" : "Owner",
+      recipient: "Campus Member",
+      date: item.returnedDate || item.date || "Recently",
+      points: 50,
+    }));
+  }, [myItems]);
+
+  async function addItem(newItemData) {
+    let res;
+    if (newItemData instanceof FormData) {
+      res = await api.upload("/items", newItemData);
+    } else {
+      const formData = new FormData();
+      Object.entries(newItemData).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) {
+          formData.append(k, v);
+        }
+      });
+      res = await api.upload("/items", formData);
+    }
+    loadMyItems();
+    return res;
   }
 
   function updateItemStatus(id, status) {
-    setItems((prev) =>
+    setMyItems((prev) =>
       prev.map((it) => {
         if (it.id !== id) return it;
         const isRet = status === "Returned";
@@ -262,6 +474,7 @@ export function AppProvider({ children }) {
       );
     } catch {}
     loadConversations();
+    loadMyItems();
     return res;
   }
 
@@ -272,6 +485,11 @@ export function AppProvider({ children }) {
     const res = await api.post(`/conversations/${chatId}/return`, body);
     sound.playSuccess();
 
+    // Bump statsVersion so HistorySection refetches without page reload
+    if (decision === "returned") {
+      setStatsVersion((v) => v + 1);
+    }
+
     try {
       const updatedConv = await api.get(`/conversations/${chatId}`);
       setConversations((prev) =>
@@ -279,6 +497,9 @@ export function AppProvider({ children }) {
       );
     } catch {}
     loadConversations();
+    loadMyItems();
+    loadLeaderboard();
+    loadNotifications();
 
     api
       .get("/me")
@@ -321,28 +542,56 @@ export function AppProvider({ children }) {
     return data.user;
   }
 
-  function updateUser(updates) {
+  async function updateUser(updates) {
+    const patchPayload = {};
+    if (updates.name !== undefined) patchPayload.name = updates.name;
+    if (updates.whatsapp !== undefined) patchPayload.whatsapp = updates.whatsapp;
+    if (updates.campus !== undefined) patchPayload.campus = updates.campus;
+
+    let serverUser = null;
+    if (Object.keys(patchPayload).length > 0 && localStorage.getItem("lf_token")) {
+      serverUser = await api.patch("/me", patchPayload);
+    }
+
+    // Refresh user from /me
+    try {
+      if (localStorage.getItem("lf_token")) {
+        const freshUser = await api.get("/me");
+        if (freshUser) {
+          serverUser = freshUser;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to refresh user:", e);
+    }
+
     setUser((prev) => {
-      const base = prev || { name: "Student", email: "student@campus.edu" };
-      const updated =
-        typeof updates === "function" ? updates(base) : { ...base, ...updates };
-      return updated;
+      const merged = { ...prev, ...updates, ...(serverUser || {}) };
+      return merged;
     });
+
+    if (serverUser?.points !== undefined) {
+      setUserPoints(serverUser.points);
+    }
+
+    loadLeaderboard();
+    return serverUser;
   }
 
   function logout() {
     localStorage.removeItem("lf_token");
     setUser(null);
     setUserPoints(0);
-  }
-
-  function dismissNotifications() {
+    setMyItems([]);
     setNotifications([]);
+    setConversations([]);
   }
 
   const value = useMemo(
     () => ({
-      items,
+      items: myItems,
+      myItems,
+      loadMyItems,
       addItem,
       updateItemStatus,
       markItemMatched,
@@ -359,8 +608,10 @@ export function AppProvider({ children }) {
       login,
       updateUser,
       logout,
-      userPoints,
+      userPoints: user?.points ?? userPoints ?? 0,
       pointsLedger,
+      leaderboard: adaptedLeaderboard,
+      loadLeaderboard,
       notifications,
       dismissNotifications,
       conversations,
@@ -368,16 +619,20 @@ export function AppProvider({ children }) {
       activeChatId,
       setActiveChatId,
       sendMessage,
+      statsVersion,
+      bumpStatsVersion: () => setStatsVersion((v) => v + 1),
     }),
     [
-      items,
+      myItems,
       user,
       notifications,
       userPoints,
       pointsLedger,
+      adaptedLeaderboard,
       conversations,
       activeChatId,
       isPeopleActive,
+      statsVersion,
     ]
   );
 
