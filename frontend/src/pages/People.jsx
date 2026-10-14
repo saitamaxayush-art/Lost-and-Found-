@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useApp } from "../context/AppContext";
+import { useApp, adaptConversation } from "../context/AppContext";
+import api from "../api/client";
 import Nav from "../components/landing/Nav";
 import LoginModal from "../components/landing/LoginModal";
 
@@ -15,12 +16,13 @@ import "../styles/people.css";
 export default function People() {
   const {
     conversations,
+    setConversations,
     activeChatId,
     setActiveChatId,
     sendMessage,
-    markItemMatched,
-    requestMarkAsMatched,
-    markItemReturned,
+    makeMatchDecision,
+    makeReturnDecision,
+    setIsPeopleActive,
     items,
     user,
   } = useApp();
@@ -28,9 +30,6 @@ export default function People() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-
-  // Perspective simulation mode: allow testing both roles
-  const [perspectiveRole, setPerspectiveRole] = useState("auto"); // "auto" | "finder" | "owner"
 
   // Mobile / Tablet pane views
   // On mobile (< 768px): "list" | "thread"
@@ -42,32 +41,54 @@ export default function People() {
     document.title = "People & Messaging — FindBack";
   }, []);
 
-  // Read URL query parameter if present: e.g. /people?chat=chat-wallet-1
+  // Mark People page as active for background polling
+  useEffect(() => {
+    setIsPeopleActive(true);
+    return () => setIsPeopleActive(false);
+  }, [setIsPeopleActive]);
+
+  // Read URL query parameter if present: e.g. /people?chat=3f92016c-...
   useEffect(() => {
     const chatParam = searchParams.get("chat");
-    if (chatParam) {
-      if (conversations.some((c) => c.id === chatParam)) {
-        setActiveChatId(chatParam);
-        setMobilePane("thread");
-      }
+    if (!chatParam) return;
+
+    if (conversations.some((c) => c.id === chatParam)) {
+      setActiveChatId(chatParam);
+      setMobilePane("thread");
+    } else if (localStorage.getItem("lf_token")) {
+      // If not yet in conversations list, load directly
+      api
+        .get(`/conversations/${chatParam}`)
+        .then((data) => {
+          if (data) {
+            const adapted = adaptConversation(data);
+            setConversations((prev) => {
+              if (prev.some((c) => c.id === data.id)) return prev;
+              return [adapted, ...prev];
+            });
+            setActiveChatId(data.id);
+            setMobilePane("thread");
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load conversation from param:", err);
+        });
     }
-  }, [searchParams, conversations, setActiveChatId]);
+  }, [searchParams, conversations, setActiveChatId, setConversations]);
 
   // Selected active chat
   const activeChat = useMemo(() => {
     return conversations.find((c) => c.id === activeChatId) || conversations[0] || null;
   }, [conversations, activeChatId]);
 
-  // Real-time lookup of the linked item in items registry
+  // Real-time lookup of the linked item in items registry (fallback to activeChat.item)
   const linkedItem = useMemo(() => {
     if (!activeChat) return null;
-    return items.find((it) => it.id === activeChat.itemId) || null;
+    return items.find((it) => it.id === activeChat.itemId) || activeChat.item || null;
   }, [items, activeChat]);
 
-  const effectiveRole =
-    perspectiveRole === "auto"
-      ? activeChat?.userRoleInTransaction || "finder"
-      : perspectiveRole;
+  // The role comes strictly from conversation.myRole
+  const effectiveRole = activeChat?.myRole || "finder";
 
   const handleSelectChat = (id) => {
     setActiveChatId(id);
@@ -75,24 +96,19 @@ export default function People() {
     setIsSlideContextOpen(false);
   };
 
-  const handleSendMessage = (text) => {
+  const handleSendMessage = async (text) => {
     if (!text || !activeChat) return;
-    sendMessage(activeChat.id, text, user?.name || "You", effectiveRole);
+    return sendMessage(activeChat.id, text);
   };
 
-  const handleApproveMatch = () => {
+  const handleMatch = async (decision, explanation) => {
     if (!activeChat) return;
-    markItemMatched(activeChat.itemId, activeChat.participantName);
+    return makeMatchDecision(activeChat.id, decision, explanation);
   };
 
-  const handleTriggerRequestMatch = () => {
+  const handleReturn = async (decision, explanation) => {
     if (!activeChat) return;
-    requestMarkAsMatched(activeChat.itemId, activeChat.participantName);
-  };
-
-  const handleConfirmReturned = () => {
-    if (!activeChat) return;
-    markItemReturned(activeChat.itemId, activeChat.participantName);
+    return makeReturnDecision(activeChat.id, decision, explanation);
   };
 
   return (
@@ -131,18 +147,15 @@ export default function People() {
 
         {/* Pane 3: Item Context Panel (320px / Slide-over) */}
         {activeChat && (
-          <div className={isSlideContextOpen ? "pp-pane-context is-slide-open" : "pp-pane-context"}>
-            <ItemContextPanel
-              activeChat={activeChat}
-              linkedItem={linkedItem}
-              effectiveRole={effectiveRole}
-              onRoleChange={(role) => setPerspectiveRole(role)}
-              onApproveMatch={handleApproveMatch}
-              onRequestMatch={handleTriggerRequestMatch}
-              onConfirmReturned={handleConfirmReturned}
-              onCloseMobile={() => setIsSlideContextOpen(false)}
-            />
-          </div>
+          <ItemContextPanel
+            activeChat={activeChat}
+            linkedItem={linkedItem}
+            effectiveRole={effectiveRole}
+            onMatchDecision={handleMatch}
+            onReturnDecision={handleReturn}
+            onCloseMobile={() => setIsSlideContextOpen(false)}
+            isSlideOpen={isSlideContextOpen}
+          />
         )}
       </div>
 

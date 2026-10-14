@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 
 export default function Composer({
   onSend,
+  status,
   participantName = "Student",
   showSuggestions = false,
   suggestionChips = [
@@ -11,9 +12,13 @@ export default function Composer({
   ],
 }) {
   const [text, setText] = useState("");
+  const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
   const textareaRef = useRef(null);
 
-  const canSend = Boolean(text.trim());
+  const isClosed = status === "not_matched" || status === "not_returned" || status === "returned";
+
+  const canSend = Boolean(text.trim()) && !sending;
 
   // Auto-grow textarea
   useEffect(() => {
@@ -24,13 +29,44 @@ export default function Composer({
     el.style.height = `${Math.max(38, nextHeight)}px`;
   }, [text]);
 
-  const handleSubmit = (e) => {
+  if (isClosed) {
+    return (
+      <div className="pp-composer-container">
+        <div
+          className="pp-composer-closed-note"
+          style={{
+            padding: "14px 20px",
+            textAlign: "center",
+            color: "var(--ink-soft)",
+            fontSize: "13px",
+            fontWeight: 500,
+            background: "var(--paper-2)",
+            borderRadius: "12px",
+            margin: "4px 0",
+          }}
+        >
+          This conversation is closed.
+        </div>
+      </div>
+    );
+  }
+
+  const handleSubmit = async (e) => {
     e?.preventDefault();
     if (!canSend) return;
-    onSend(text.trim());
-    setText("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "38px";
+    const msg = text.trim();
+    setError("");
+    setSending(true);
+    try {
+      await onSend(msg);
+      setText("");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "38px";
+      }
+    } catch (err) {
+      setError(err.message || "Failed to send message");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -41,8 +77,13 @@ export default function Composer({
     }
   };
 
-  const handleChipClick = (chip) => {
-    onSend(chip);
+  const handleChipClick = async (chip) => {
+    setError("");
+    try {
+      await onSend(chip);
+    } catch (err) {
+      setError(err.message || "Failed to send message");
+    }
   };
 
   return (
@@ -83,7 +124,10 @@ export default function Composer({
           ref={textareaRef}
           rows={1}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (error) setError("");
+          }}
           onKeyDown={handleKeyDown}
           placeholder={`Message ${participantName}... (Enter to send)`}
           className="pp-composer-textarea"
@@ -114,6 +158,12 @@ export default function Composer({
           </svg>
         </button>
       </form>
+
+      {error && (
+        <div style={{ color: "var(--danger, #e53e3e)", fontSize: "12px", textAlign: "center", marginTop: "4px" }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 }

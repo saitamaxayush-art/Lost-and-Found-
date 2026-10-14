@@ -1,8 +1,89 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import api from "../api/client";
 import { sound } from "../utils/sound";
 
 const AppContext = createContext(null);
+
+export function adaptMessage(msg, myRole, otherPartyName = "Student") {
+  const isSystem = msg.kind === "system" || !msg.senderId;
+  const isMine = Boolean(msg.isMine);
+  const time = msg.createdAt
+    ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : "Just now";
+
+  return {
+    id: msg.id,
+    conversationId: msg.conversationId,
+    senderId: msg.senderId,
+    kind: msg.kind || "text",
+    text: msg.text,
+    createdAt: msg.createdAt,
+    timestamp: msg.createdAt,
+    time,
+    isMine,
+    sender: isSystem ? "System" : isMine ? "You" : otherPartyName,
+    senderRole: isSystem ? "system" : isMine ? myRole : (myRole === "owner" ? "finder" : "owner"),
+  };
+}
+
+export function adaptConversation(apiConv, existingMessages = []) {
+  if (!apiConv) return null;
+  const otherParty = apiConv.otherParty || {};
+  const item = apiConv.item || {};
+  const lastMsg = apiConv.lastMessage;
+  const isOwner = apiConv.myRole === "owner";
+
+  const messages = (existingMessages || []).map((m) =>
+    adaptMessage(m, apiConv.myRole, otherParty.name)
+  );
+
+  const displayMessages =
+    messages.length > 0
+      ? messages
+      : lastMsg
+      ? [
+          {
+            id: `last-${apiConv.id}`,
+            text: lastMsg.text,
+            time: new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            timestamp: lastMsg.createdAt,
+            createdAt: lastMsg.createdAt,
+            sender: "User",
+            senderRole: "user",
+            kind: "text",
+          },
+        ]
+      : [];
+
+  return {
+    id: apiConv.id,
+    status: apiConv.status,
+    myRole: apiConv.myRole,
+    canDecideMatch: Boolean(apiConv.canDecideMatch),
+    canDecideReturn: Boolean(apiConv.canDecideReturn),
+    otherParty: apiConv.otherParty,
+    item: apiConv.item,
+    createdAt: apiConv.createdAt,
+    updatedAt: apiConv.updatedAt,
+    participantName: otherParty.name || "Student",
+    participantDepartment: otherParty.campus || "Campus Network",
+    participantAvatar: otherParty.initials || "?",
+    participantAvatarImage: null,
+    participantMaskedContact: otherParty.whatsapp || "+91 ••••• •••••",
+    itemId: item.id || null,
+    itemTitle: item.description || "Reported Item",
+    itemCategory: item.category || "General",
+    itemLocation: item.location || "Campus premises",
+    itemDate: item.date || "Recently",
+    itemImage: item.image || null,
+    itemType: item.type || "found",
+    itemStatus: apiConv.status === "matched" ? "Matched" : apiConv.status === "returned" ? "Returned" : "Reported",
+    userRoleInTransaction: apiConv.myRole || (isOwner ? "owner" : "finder"),
+    lastActivity: apiConv.updatedAt || apiConv.createdAt || Date.now(),
+    unreadCount: 0,
+    messages: displayMessages,
+  };
+}
 
 export function AppProvider({ children }) {
   const [items, setItems] = useState([]);
@@ -60,271 +141,162 @@ export function AppProvider({ children }) {
     );
   }
 
-  // Send message in People chat
-  function sendMessage(chatId, text, senderName = "You", senderRole = "owner") {
-    if (!text || !text.trim()) return;
-    const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    const newMsg = {
-      id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      sender: senderName,
-      senderRole,
-      text: text.trim(),
-      time: nowTime,
-      timestamp: Date.now(),
+  const [isPeopleActive, setIsPeopleActive] = useState(false);
+
+  const conversationsRef = useRef(conversations);
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+  // Load conversations from backend
+  const loadConversations = async () => {
+    if (!localStorage.getItem("lf_token")) return;
+    try {
+      const data = await api.get("/conversations");
+      if (!Array.isArray(data)) return;
+      setConversations((prev) => {
+        const msgMap = new Map();
+        prev.forEach((c) => {
+          if (c.messages && c.messages.length > 0 && !c.messages[0].id?.startsWith("last-")) {
+            msgMap.set(c.id, c.messages);
+          }
+        });
+        return data.map((apiConv) => adaptConversation(apiConv, msgMap.get(apiConv.id)));
+      });
+      if (!activeChatId && data.length > 0) {
+        setActiveChatId(data[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to load conversations:", err);
+    }
+  };
+
+  // Poll conversations every 8 seconds while People page is open
+  useEffect(() => {
+    if (!isPeopleActive || !user) return;
+    loadConversations();
+    const timer = setInterval(loadConversations, 8000);
+    return () => clearInterval(timer);
+  }, [isPeopleActive, user]);
+
+  // Poll messages for active chat every 3 seconds (?after=<last message createdAt>)
+  useEffect(() => {
+    if (!activeChatId || !isPeopleActive || !user) return;
+
+    let isMounted = true;
+
+    const fetchMessages = async () => {
+      const conv = conversationsRef.current.find((c) => c.id === activeChatId);
+      const existingMsgs = conv?.messages?.filter((m) => !m.id?.startsWith("last-")) || [];
+      const lastCreatedAt = existingMsgs.length > 0 ? existingMsgs[existingMsgs.length - 1].createdAt : null;
+
+      const url = lastCreatedAt
+        ? `/conversations/${activeChatId}/messages?after=${encodeURIComponent(lastCreatedAt)}`
+        : `/conversations/${activeChatId}/messages`;
+
+      try {
+        const newMsgs = await api.get(url);
+        if (!isMounted || !Array.isArray(newMsgs) || newMsgs.length === 0) return;
+        setConversations((prev) =>
+          prev.map((c) => {
+            if (c.id !== activeChatId) return c;
+            const currentList = c.messages?.filter((m) => !m.id?.startsWith("last-")) || [];
+            const existingIds = new Set(currentList.map((m) => m.id));
+            const toAdd = newMsgs
+              .filter((m) => !existingIds.has(m.id))
+              .map((m) => adaptMessage(m, c.myRole, c.participantName));
+            if (toAdd.length === 0) return c;
+            return {
+              ...c,
+              lastActivity: toAdd[toAdd.length - 1]?.createdAt || Date.now(),
+              messages: [...currentList, ...toAdd],
+            };
+          })
+        );
+      } catch (err) {
+        console.error("Failed to poll messages:", err);
+      }
     };
+
+    fetchMessages();
+    const timer = setInterval(fetchMessages, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
+  }, [activeChatId, isPeopleActive, user]);
+
+  // Send message in People chat
+  async function sendMessage(chatId, text) {
+    if (!text || !text.trim()) return;
+    const res = await api.post(`/conversations/${chatId}/messages`, { text: text.trim() });
+    sound.playUiClick();
 
     setConversations((prev) =>
       prev.map((c) => {
         if (c.id !== chatId) return c;
+        const currentList = c.messages?.filter((m) => !m.id?.startsWith("last-")) || [];
+        const adapted = adaptMessage(res, c.myRole, c.participantName);
         return {
           ...c,
-          lastActivity: Date.now(),
-          messages: [...(c.messages || []), newMsg],
+          lastActivity: res.createdAt || Date.now(),
+          messages: [...currentList, adapted],
         };
       })
     );
+    return res;
   }
 
-  // 1. Mark as Matched: User who found the item has access to mark as matched (and not as returned)
-  function markItemMatched(id, claimantName = "Verified Student") {
-    let targetItem = null;
-    const today = new Date().toISOString().slice(0, 10);
+  // Decision: Match
+  async function makeMatchDecision(chatId, decision, explanation) {
+    const body = { decision };
+    if (explanation) body.explanation = explanation;
+    const res = await api.post(`/conversations/${chatId}/match`, body);
+    sound.playSuccess();
 
-    setItems((prev) =>
-      prev.map((it) => {
-        if (it.id !== id) return it;
-        targetItem = it;
-        const updatedUsers = (it.matchedUsers || []).map((u) =>
-          u.name === claimantName || !claimantName ? { ...u, verified: true } : u
-        );
-
-        return {
-          ...it,
-          status: "Matched",
-          hasMatch: true,
-          matchConfirmedDate: today,
-          matchedUsersCount: Math.max(1, updatedUsers.length),
-          matchedUsers:
-            updatedUsers.length > 0
-              ? updatedUsers
-              : [
-                  {
-                    id: `claimant-${Date.now()}`,
-                    name: claimantName,
-                    department: "Registered Student",
-                    campus: "Main Campus",
-                    maskedContact: "+91 98••• •••••",
-                    matchDate: today,
-                    claimDetails: "Match confirmed by finder.",
-                    verified: true,
-                  },
-                ],
-        };
-      })
-    );
-
-    const itemTitle = targetItem?.description?.slice(0, 42) || "Found Item";
-
-    // Update associated conversation in People
-    setConversations((prev) =>
-      prev.map((c) => {
-        if (c.itemId !== id) return c;
-        const sysMsg = {
-          id: `sys-${Date.now()}-match`,
-          sender: "System",
-          senderRole: "system",
-          text: `Match approved by finder! Both parties have verified the description. Owner can now coordinate handover and mark as returned.`,
-          time: "Just now",
-          timestamp: Date.now(),
-        };
-        return {
-          ...c,
-          itemStatus: "Matched",
-          lastActivity: Date.now(),
-          messages: [...(c.messages || []), sysMsg],
-        };
-      })
-    );
-
-    const note = {
-      id: `notif-${Date.now()}`,
-      type: "matched",
-      title: "Match Approved",
-      message: `Item Matched: "${itemTitle}" marked as matched with ${claimantName}. Waiting for the user who has lost the item to mark as returned.`,
-      createdAt: Date.now(),
-      itemId: id,
-    };
-    setNotifications((prev) => [note, ...prev]);
+    try {
+      const updatedConv = await api.get(`/conversations/${chatId}`);
+      setConversations((prev) =>
+        prev.map((c) => (c.id === chatId ? adaptConversation(updatedConv, c.messages) : c))
+      );
+    } catch {}
+    loadConversations();
+    return res;
   }
 
-  // 2. Request Mark as Matched: The user who lost the item can request for mark as matched to the user who reported it
-  function requestMarkAsMatched(id, finderName) {
-    let targetItem = null;
-    const today = new Date().toISOString().slice(0, 10);
+  // Decision: Return
+  async function makeReturnDecision(chatId, decision, explanation) {
+    const body = { decision };
+    if (explanation) body.explanation = explanation;
+    const res = await api.post(`/conversations/${chatId}/return`, body);
+    sound.playSuccess();
 
-    setItems((prev) =>
-      prev.map((it) => {
-        if (it.id !== id) return it;
-        targetItem = it;
-        return {
-          ...it,
-          matchRequested: true,
-          matchRequestedDate: today,
-          matchRequestedTo: finderName || it.matchedProduct?.finderName || "Campus Finder",
-        };
+    try {
+      const updatedConv = await api.get(`/conversations/${chatId}`);
+      setConversations((prev) =>
+        prev.map((c) => (c.id === chatId ? adaptConversation(updatedConv, c.messages) : c))
+      );
+    } catch {}
+    loadConversations();
+
+    api
+      .get("/me")
+      .then((userData) => {
+        setUser(userData);
+        setUserPoints(userData.points || 0);
       })
-    );
+      .catch(() => {});
 
-    const itemTitle = targetItem?.description?.slice(0, 42) || "Lost Item";
-    const targetFinder = finderName || targetItem?.matchedProduct?.finderName || "Campus Finder";
-    const requesterName = user?.name || "Lost Item Owner";
-    let matchedChatId = `chat-${id}`;
-
-    // Update or create conversation in People
-    setConversations((prev) => {
-      const existing = prev.find((c) => c.itemId === id);
-      const sysMsg = {
-        id: `sys-${Date.now()}-req`,
-        sender: "System",
-        senderRole: "system",
-        text: `Match request submitted by owner (${requesterName}). Description is ready for verification.`,
-        time: "Just now",
-        timestamp: Date.now(),
-      };
-
-      if (existing) {
-        matchedChatId = existing.id;
-        return prev.map((c) =>
-          c.id === existing.id
-            ? {
-                ...c,
-                itemStatus: "Match Requested",
-                lastActivity: Date.now(),
-                messages: [...(c.messages || []), sysMsg],
-              }
-            : c
-        );
-      }
-
-      // Create new chat with finder
-      const newChat = {
-        id: matchedChatId,
-        participantName: targetFinder,
-        participantDepartment: "Campus Finder / Helpdesk",
-        participantAvatar: targetFinder.slice(0, 2).toUpperCase(),
-        participantMaskedContact: targetItem?.matchedProduct?.finderMaskedContact || "+91 ••••• •••••",
-        itemId: id,
-        itemTitle: targetItem?.description || itemTitle,
-        itemType: targetItem?.type || "lost",
-        itemCategory: targetItem?.category || "General",
-        itemStatus: "Match Requested",
-        userRoleInTransaction: "owner",
-        lastActivity: Date.now(),
-        unreadCount: 0,
-        messages: [
-          sysMsg,
-          {
-            id: `msg-${Date.now()}-userreq`,
-            sender: "You",
-            senderRole: "owner",
-            text: `Hi ${targetFinder}! I submitted a match request for my lost "${itemTitle}". Does the description match the found report?`,
-            time: "Just now",
-            timestamp: Date.now(),
-          },
-        ],
-      };
-      return [newChat, ...prev];
-    });
-
-    const note = {
-      id: `notif-${Date.now()}`,
-      type: "match_requested",
-      title: `Match Request from ${requesterName}`,
-      message: `Match Request from ${requesterName}: Requested to match with your found report "${itemTitle}". Open People to view description, chat, and approve.`,
-      requesterName,
-      chatId: matchedChatId,
-      createdAt: Date.now(),
-      itemId: id,
-    };
-    setNotifications((prev) => [note, ...prev]);
-  }
-
-  // 3. Mark as Returned: The user who has lost the item is the one who has access to mark as returned
-  function markItemReturned(id, recipientName = "Verified Owner", options = {}) {
-    const today = new Date().toISOString().slice(0, 10);
-    let targetItem = null;
-
-    setItems((prev) =>
-      prev.map((it) => {
-        if (it.id !== id) return it;
-        targetItem = it;
-        return {
-          ...it,
-          status: "Returned",
-          isReturned: true,
-          returnedDate: today,
-          returnedTo: recipientName || it.matchedProduct?.finderName || "Campus Finder",
-          returnNotes: "Confirmed returned by owner. Case closed successfully.",
-          pointsAwarded: 50,
-        };
-      })
-    );
-
-    const itemTitle = targetItem?.description?.slice(0, 42) || "Reported Item";
-    const finder = recipientName || targetItem?.matchedProduct?.finderName || "Campus Finder";
-
-    // Award 50 points to finder
-    const tx = {
-      id: `tx-${Date.now()}`,
-      date: today,
-      itemId: id,
-      itemTitle,
-      role: targetItem?.type === "found" ? "Finder (Reported Found)" : "Reporter (Reported Lost)",
-      recipient: finder,
-      points: 50,
-      status: "Credited",
-      note: "Item returned & confirmed by owner (+50 pts awarded)",
-    };
-
-    setPointsLedger((prev) => [tx, ...prev]);
-
-    // Update conversation in People
-    setConversations((prev) =>
-      prev.map((c) => {
-        if (c.itemId !== id) return c;
-        const sysMsg = {
-          id: `sys-${Date.now()}-ret`,
-          sender: "System",
-          senderRole: "system",
-          text: `Item successfully marked as returned by owner! Case closed. +50 karma points credited to finder.`,
-          time: "Just now",
-          timestamp: Date.now(),
-        };
-        return {
-          ...c,
-          itemStatus: "Returned",
-          lastActivity: Date.now(),
-          messages: [...(c.messages || []), sysMsg],
-        };
-      })
-    );
-
-    const note = {
-      id: `notif-${Date.now()}`,
-      type: "returned",
-      title: "Item Returned",
-      message: `Item Returned: "${itemTitle}" confirmed returned by owner. +50 points awarded to finder!`,
-      createdAt: Date.now(),
-      itemId: id,
-    };
-    setNotifications((prev) => [note, ...prev]);
-
-    return tx;
+    return res;
   }
 
   // Backwards compatibility wrappers
-  const confirmLostItemReturned = markItemReturned;
-  const returnItem = markItemReturned;
+  const markItemMatched = makeMatchDecision;
+  const requestMarkAsMatched = () => {};
+  const markItemReturned = makeReturnDecision;
+  const confirmLostItemReturned = makeReturnDecision;
+  const returnItem = makeReturnDecision;
 
   async function login(nameOrProfile, email) {
     const payload =
@@ -378,6 +350,11 @@ export function AppProvider({ children }) {
       markItemReturned,
       returnItem,
       confirmLostItemReturned,
+      makeMatchDecision,
+      makeReturnDecision,
+      loadConversations,
+      isPeopleActive,
+      setIsPeopleActive,
       user,
       login,
       updateUser,
@@ -392,7 +369,16 @@ export function AppProvider({ children }) {
       setActiveChatId,
       sendMessage,
     }),
-    [items, user, notifications, userPoints, pointsLedger, conversations, activeChatId]
+    [
+      items,
+      user,
+      notifications,
+      userPoints,
+      pointsLedger,
+      conversations,
+      activeChatId,
+      isPeopleActive,
+    ]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

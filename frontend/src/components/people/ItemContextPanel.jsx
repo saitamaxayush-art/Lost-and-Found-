@@ -1,47 +1,94 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import CategoryTile from "../common/CategoryTile";
+import Modal from "../landing/Modal";
 
 export default function ItemContextPanel({
   activeChat,
   linkedItem,
-  effectiveRole = "finder",
-  onRoleChange,
-  onApproveMatch,
-  onRequestMatch,
-  onConfirmReturned,
+  onMatchDecision,
+  onReturnDecision,
   onCloseMobile,
+  isSlideOpen = false,
 }) {
   const [photoParallax, setPhotoParallax] = useState({ x: 0, y: 0 });
   const [showFloater, setShowFloater] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Explanation pop-up state
+  const [explanationModal, setExplanationModal] = useState(null); // "not_matched" | "not_returned" | null
+  const [explanationText, setExplanationText] = useState("");
+  const [explanationError, setExplanationError] = useState("");
+  const [submittingExplanation, setSubmittingExplanation] = useState(false);
+
   const photoRef = useRef(null);
 
-  const currentItemStatus = linkedItem
-    ? linkedItem.status
-    : activeChat?.itemStatus || "Reported";
+  const status = (activeChat?.status || linkedItem?.status || "chatting").toLowerCase();
+  const isMatched = status === "matched";
+  const isReturned = status === "returned";
 
-  const isMatched = currentItemStatus === "Matched" || linkedItem?.hasMatch;
-  const isReturned = currentItemStatus === "Returned" || linkedItem?.isReturned;
-
-  // Handle Return confirmation action with floating +50 chip animation
-  const handleReturnClick = () => {
-    onConfirmReturned?.();
-    setShowFloater(true);
-    setTimeout(() => setShowFloater(false), 2400);
-  };
+  const canDecideMatch = Boolean(activeChat?.canDecideMatch);
+  const canDecideReturn = Boolean(activeChat?.canDecideReturn);
 
   const itemTitle = linkedItem?.description || activeChat?.itemTitle || "Reported Item";
   const itemCategory = linkedItem?.category || activeChat?.itemCategory || "General";
-  const itemLocation = linkedItem?.locationFound || linkedItem?.locationLost || "Campus premises";
-  const itemDate = linkedItem?.date || linkedItem?.reportingDate || linkedItem?.foundDate || "Recently";
-  const itemImage = linkedItem?.image || null;
+  const itemLocation = linkedItem?.locationFound || linkedItem?.locationLost || activeChat?.itemLocation || "Campus premises";
+  const itemDate = linkedItem?.date || linkedItem?.reportingDate || linkedItem?.foundDate || activeChat?.itemDate || "Recently";
+  const itemImage = linkedItem?.image || activeChat?.itemImage || null;
 
-  // Masked vs revealed contact
-  // Masked number: "+91 98••• •••••"
-  // When matched: reveals unmasked or clear number
-  const maskedContact = activeChat?.participantMaskedContact || "+91 98••• •••••";
-  const revealedContact = activeChat?.participantMaskedContact
-    ? activeChat.participantMaskedContact.replace(/•/g, "4")
-    : "+91 98412 88712";
+  const whatsapp = activeChat?.otherParty?.whatsapp;
+  const hasWhatsapp = Boolean(whatsapp);
+  const cleanDigits = whatsapp ? whatsapp.replace(/\D/g, "") : "";
+
+  const handlePositiveDecision = async (decision) => {
+    setActionLoading(true);
+    try {
+      if (decision === "matched") {
+        await onMatchDecision?.("matched");
+      } else if (decision === "returned") {
+        await onReturnDecision?.("returned");
+        setShowFloater(true);
+        setTimeout(() => setShowFloater(false), 2400);
+      }
+    } catch (err) {
+      alert(err.message || "Action failed");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openExplanationModal = (decision) => {
+    setExplanationModal(decision);
+    setExplanationText("");
+    setExplanationError("");
+  };
+
+  const handleExplanationSubmit = async (e) => {
+    e.preventDefault();
+    if (explanationText.trim().length < 15) return;
+    setSubmittingExplanation(true);
+    setExplanationError("");
+
+    try {
+      if (explanationModal === "not_matched") {
+        await onMatchDecision?.("not_matched", explanationText.trim());
+      } else if (explanationModal === "not_returned") {
+        await onReturnDecision?.("not_returned", explanationText.trim());
+      }
+      setExplanationModal(null);
+    } catch (err) {
+      setExplanationError(err.message || "Failed to submit explanation");
+    } finally {
+      setSubmittingExplanation(false);
+    }
+  };
+
+  const handleCopyContact = (number) => {
+    if (!number) return;
+    navigator.clipboard.writeText(number);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Stepper state
   const stepStage = isReturned ? 3 : isMatched ? 2 : 1;
@@ -61,7 +108,7 @@ export default function ItemContextPanel({
   };
 
   return (
-    <aside className="pp-pane-context" aria-label="Item details and action panel">
+    <aside className={`pp-pane-context ${isSlideOpen ? "is-slide-open" : ""}`} aria-label="Item details and action panel">
       {/* Mobile close button */}
       {onCloseMobile && (
         <button
@@ -203,56 +250,92 @@ export default function ItemContextPanel({
 
         <div className="pp-context-hairline" aria-hidden="true" />
 
-        {/* Primary Action Button (Only ONE at a time) */}
+        {/* Primary Action Buttons (Driven strictly by server flags) */}
         <div className="pp-context-action-wrap">
-          {!isMatched && !isReturned ? (
-            effectiveRole === "finder" ? (
+          {canDecideMatch ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <button
                 type="button"
                 className="pp-btn-context-primary"
-                onClick={onApproveMatch}
+                disabled={actionLoading}
+                onClick={() => handlePositiveDecision("matched")}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <span>Mark as matched</span>
+                <span>Matched</span>
               </button>
-            ) : (
               <button
                 type="button"
                 className="pp-btn-context-primary"
-                onClick={onRequestMatch}
+                style={{
+                  background: "var(--paper-2)",
+                  color: "var(--ink-soft)",
+                  boxShadow: "none",
+                  border: "1px solid var(--line)",
+                }}
+                disabled={actionLoading}
+                onClick={() => openExplanationModal("not_matched")}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
-                <span>Request to match</span>
+                <span>Not matched</span>
               </button>
-            )
-          ) : isMatched && !isReturned ? (
-            effectiveRole === "owner" ? (
+            </div>
+          ) : canDecideReturn ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <button
                 type="button"
                 className="pp-btn-context-primary is-return"
-                onClick={handleReturnClick}
+                disabled={actionLoading}
+                onClick={() => handlePositiveDecision("returned")}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <span>Mark as returned (+50 pts)</span>
+                <span>Item returned (+50 pts)</span>
               </button>
-            ) : (
-              <div className="pp-context-waiting-pill">
-                <span className="pp-pulse-dot" aria-hidden="true" />
-                <span>Waiting for owner to mark returned</span>
-              </div>
-            )
-          ) : (
+              <button
+                type="button"
+                className="pp-btn-context-primary"
+                style={{
+                  background: "var(--paper-2)",
+                  color: "var(--ink-soft)",
+                  boxShadow: "none",
+                  border: "1px solid var(--line)",
+                }}
+                disabled={actionLoading}
+                onClick={() => openExplanationModal("not_returned")}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+                <span>Not returned</span>
+              </button>
+            </div>
+          ) : status === "chatting" ? (
+            <div className="pp-context-waiting-pill">
+              <span className="pp-pulse-dot" aria-hidden="true" />
+              <span>Waiting for the finder to confirm the match</span>
+            </div>
+          ) : status === "matched" ? (
+            <div className="pp-context-waiting-pill">
+              <span className="pp-pulse-dot" aria-hidden="true" />
+              <span>Waiting for owner to confirm return</span>
+            </div>
+          ) : status === "returned" ? (
             <div className="pp-context-completed-pill">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               <span>Returned &amp; Case Closed</span>
+            </div>
+          ) : (
+            <div className="pp-context-waiting-pill">
+              <span>Chat closed</span>
             </div>
           )}
         </div>
@@ -260,8 +343,8 @@ export default function ItemContextPanel({
         {/* Contact Block: Masked vs Unmasked with Lock Animation */}
         <div className="pp-context-contact-card">
           <div className="pp-contact-card-top">
-            <div className={`pp-lock-icon-wrap ${isMatched ? "is-unlocked" : "is-locked"}`}>
-              {isMatched ? (
+            <div className={`pp-lock-icon-wrap ${hasWhatsapp ? "is-unlocked" : "is-locked"}`}>
+              {hasWhatsapp ? (
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 9.9-1" />
@@ -276,51 +359,147 @@ export default function ItemContextPanel({
             <div className="pp-contact-card-label-col">
               <span className="pp-contact-card-title">Direct Contact</span>
               <span className="pp-contact-card-note">
-                {isMatched
+                {hasWhatsapp
                   ? "Match confirmed — contact verified for handover."
                   : "Shared after the finder confirms a match."}
               </span>
             </div>
           </div>
 
-          <div className="pp-contact-display-row">
+          <div className="pp-contact-display-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
             <span
               className={`pp-contact-number-val ${
-                isMatched ? "is-revealed" : "is-masked"
+                hasWhatsapp ? "is-revealed" : "is-masked"
               }`}
             >
-              {isMatched ? revealedContact : maskedContact}
+              {hasWhatsapp ? whatsapp : "+91 ••••• •••••"}
             </span>
+            {hasWhatsapp && (
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <button
+                  type="button"
+                  onClick={() => handleCopyContact(whatsapp)}
+                  title="Copy contact"
+                  style={{
+                    background: "none",
+                    border: "1px solid var(--line)",
+                    borderRadius: "8px",
+                    padding: "4px 8px",
+                    fontSize: "12px",
+                    color: "var(--ink-soft)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  {copied ? (
+                    <>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                      </svg>
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+                <a
+                  href={`https://wa.me/${cleanDigits}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    background: "var(--success)",
+                    color: "#fff",
+                    borderRadius: "8px",
+                    padding: "4px 10px",
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    textDecoration: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  WhatsApp
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Footer: Demo View Segmented Control */}
-      <footer className="pp-context-footer">
-        <div className="pp-demo-view-wrap">
-          <span className="pp-demo-view-label">Demo view</span>
-          <div className="pp-demo-segmented-control" role="radiogroup" aria-label="Demo role switcher">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={effectiveRole === "finder"}
-              className={`pp-demo-seg-btn ${effectiveRole === "finder" ? "is-active" : ""}`}
-              onClick={() => onRoleChange("finder")}
-            >
-              Finder
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={effectiveRole === "owner"}
-              className={`pp-demo-seg-btn ${effectiveRole === "owner" ? "is-active" : ""}`}
-              onClick={() => onRoleChange("owner")}
-            >
-              Owner
-            </button>
-          </div>
-        </div>
-      </footer>
+      {/* Explanation Modal for negative decisions */}
+      {explanationModal && (
+        <Modal onClose={() => setExplanationModal(null)} labelledBy="exp-modal-title" size="md">
+          <h2 id="exp-modal-title" style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px", color: "var(--espresso)" }}>
+            {explanationModal === "not_matched" ? "Mark as not matched" : "Mark as not returned"}
+          </h2>
+          <p className="lm-sub" style={{ marginBottom: "16px", color: "var(--ink-soft)", fontSize: "14px" }}>
+            Please explain what happened so both parties and campus moderators understand the reason.
+          </p>
+
+          <form onSubmit={handleExplanationSubmit}>
+            <div className="lf-row">
+              <label htmlFor="exp-textarea" style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                <span>Please explain what happened</span>
+                <span style={{ fontSize: "12px", color: explanationText.trim().length >= 15 ? "var(--success)" : "var(--ink-soft)" }}>
+                  {explanationText.trim().length} / 15 min chars
+                </span>
+              </label>
+              <textarea
+                id="exp-textarea"
+                rows={4}
+                value={explanationText}
+                onChange={(e) => setExplanationText(e.target.value)}
+                placeholder="Please explain what happened (minimum 15 characters)..."
+                required
+                autoFocus
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  border: "1px solid var(--line)",
+                  background: "var(--surface)",
+                  color: "var(--espresso)",
+                  fontFamily: "inherit",
+                  fontSize: "14px",
+                }}
+              />
+            </div>
+
+            {explanationError && (
+              <p style={{ color: "var(--danger, #e53e3e)", fontSize: "13px", marginTop: "8px" }}>
+                {explanationError}
+              </p>
+            )}
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "20px", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="lf-ghost"
+                onClick={() => setExplanationModal(null)}
+                disabled={submittingExplanation}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="lf-submit"
+                disabled={explanationText.trim().length < 15 || submittingExplanation}
+              >
+                {submittingExplanation ? "Submitting..." : "Submit explanation"}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </aside>
   );
 }

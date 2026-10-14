@@ -192,6 +192,7 @@ export default function Thread({
       {/* Thread Composer */}
       <Composer
         onSend={handleSend}
+        status={activeChat?.status}
         participantName={participantName}
         showSuggestions={showSuggestions}
       />
