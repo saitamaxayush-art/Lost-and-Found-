@@ -69,11 +69,13 @@ FindBack uses password-free, OTP-authenticated sign-in. On the login modal, ente
 
 | Persona | Name | Email | WhatsApp | Campus | Initial Karma |
 |---|---|---|---|---|---|
-| **Finder / Helper** | Aditi Sharma | `aditi@demo.findback.test` | `+919876543001` | North Campus | 150 pts |
-| **Owner / Claimant** | Rohan Verma | `rohan@demo.findback.test` | `+919876543002` | South Campus | 100 pts |
-| **Student** | Priya Nair | `priya@demo.findback.test` | `+919876543003` | East Campus | 50 pts |
-| **Student** | Kabir Mehta | `kabir@demo.findback.test` | `+919876543004` | West Campus | 50 pts |
-| **New Member** | Ananya Sen | `ananya@demo.findback.test` | `+919876543005` | Central Campus | 0 pts |
+| **Demo Owner** | owner | `ownertest@gmail.com` | `1234567890` | VIT Pune | 80 pts |
+| **Demo Founder** | founder | `foundertest@gmail.com` | `9876543210` | VIT Pune | 120 pts |
+| **Finder / Helper** | Aditi Sharma | `aditi@demo.findback.test` | `+919876543001` | VIT Pune | 150 pts |
+| **Owner / Claimant** | Rohan Verma | `rohan@demo.findback.test` | `+919876543002` | VIT Pune | 100 pts |
+| **Student** | Priya Nair | `priya@demo.findback.test` | `+919876543003` | VIT Pune | 50 pts |
+| **Student** | Kabir Mehta | `kabir@demo.findback.test` | `+919876543004` | VIT Pune | 50 pts |
+| **New Member** | Ananya Sen | `ananya@demo.findback.test` | `+919876543005` | VIT Pune | 0 pts |
 
 ---
 
