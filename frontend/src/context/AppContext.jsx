@@ -1,29 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { seedItems } from "../data/mockItems";
-import {
-  INITIAL_USER_ITEMS,
-  INITIAL_POINTS_LEDGER,
-  DEFAULT_NOTIFICATIONS,
-  DEFAULT_CONVERSATIONS,
-} from "../data/profileData";
+import api from "../api/client";
 import { sound } from "../utils/sound";
 
 const AppContext = createContext(null);
-
-const ITEMS_KEY = "lf_items_v4";
-const USER_KEY = "lf_user";
-const NOTIF_KEY = "lf_notifications_v3";
-const POINTS_KEY = "lf_points_ledger_v1";
-const CONV_KEY = "lf_conversations_v3";
-
-function loadFromStorage(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 // Very simple "matching engine": two opposite-type items are a likely match
 // if they share a category and at least one meaningful word in their
@@ -46,73 +25,32 @@ function findLikelyMatch(newItem, allItems) {
 }
 
 export function AppProvider({ children }) {
-  const [items, setItems] = useState(() => {
-    const stored = loadFromStorage(ITEMS_KEY, null);
-    if (stored && Array.isArray(stored) && stored.length > 0) {
-      return stored.map((item) => {
-        if (item.id === "user-lost-1" || (item.description && item.description.includes("AirPods"))) {
-          return { ...item, image: "/hero/airpods.png" };
-        }
-        if (item.id === "user-lost-2" || (item.description && item.description.includes("HP 65W"))) {
-          return { ...item, image: "/hero/hp_charger.jpg" };
-        }
-        if (item.id === "user-lost-3" || (item.description && item.description.includes("Student ID Card"))) {
-          return { ...item, image: "/hero/student_id.jpg" };
-        }
-        if (item.id === "user-found-1" || item.id === "seed-5" || (item.description && item.description.includes("Casio"))) {
-          return { ...item, image: "/hero/casio_watch.jpg" };
-        }
-        if (item.id === "user-found-2" || (item.description && item.description.includes("Calculator"))) {
-          return { ...item, image: "/hero/calculator.jpg" };
-        }
-        if (item.id === "user-found-3" || (item.description && item.description.includes("Titan Leather"))) {
-          return { ...item, image: "/hero/wallet.jpg" };
-        }
-        return item;
+  const [items, setItems] = useState([]);
+  const [user, setUser] = useState(null);
+  const [userPoints, setUserPoints] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [pointsLedger, setPointsLedger] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [activeChatId, setActiveChatId] = useState(null);
+
+  // Restore authenticated session on startup if token exists
+  useEffect(() => {
+    const token = localStorage.getItem("lf_token");
+    if (!token) return;
+
+    api
+      .get("/me")
+      .then((userData) => {
+        setUser(userData);
+        setUserPoints(userData.points || 0);
+      })
+      .catch((err) => {
+        console.error("Failed to restore user session:", err);
+        localStorage.removeItem("lf_token");
+        setUser(null);
+        setUserPoints(0);
       });
-    }
-    // Combine seed items and user items
-    return [...INITIAL_USER_ITEMS, ...seedItems];
-  });
-
-  const [user, setUser] = useState(() => loadFromStorage(USER_KEY, null));
-  const [notifications, setNotifications] = useState(() =>
-    loadFromStorage(NOTIF_KEY, DEFAULT_NOTIFICATIONS)
-  );
-  const [pointsLedger, setPointsLedger] = useState(() =>
-    loadFromStorage(POINTS_KEY, INITIAL_POINTS_LEDGER)
-  );
-  const [conversations, setConversations] = useState(() =>
-    loadFromStorage(CONV_KEY, DEFAULT_CONVERSATIONS)
-  );
-  const [activeChatId, setActiveChatId] = useState(() => {
-    return DEFAULT_CONVERSATIONS?.[0]?.id || "chat-wallet-1";
-  });
-
-  useEffect(() => {
-    localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
-  }, [items]);
-
-  useEffect(() => {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-  }, [user]);
-
-  useEffect(() => {
-    localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications));
-  }, [notifications]);
-
-  useEffect(() => {
-    localStorage.setItem(POINTS_KEY, JSON.stringify(pointsLedger));
-  }, [pointsLedger]);
-
-  useEffect(() => {
-    localStorage.setItem(CONV_KEY, JSON.stringify(conversations));
-  }, [conversations]);
-
-  // Compute user points dynamically: 50 points per completed return transaction
-  const userPoints = useMemo(() => {
-    return pointsLedger.reduce((sum, tx) => sum + (Number(tx.points) || 0), 0);
-  }, [pointsLedger]);
+  }, []);
 
   function addItem(newItemData) {
     const dateStr = newItemData.date || new Date().toISOString().slice(0, 10);
@@ -478,12 +416,27 @@ export function AppProvider({ children }) {
   const confirmLostItemReturned = markItemReturned;
   const returnItem = markItemReturned;
 
-  function login(nameOrProfile, email) {
-    setUser(
+  async function login(nameOrProfile, email) {
+    const payload =
       typeof nameOrProfile === "object" && nameOrProfile !== null
-        ? nameOrProfile
-        : { name: nameOrProfile, email }
-    );
+        ? {
+            name: nameOrProfile.name,
+            email: nameOrProfile.email,
+            whatsapp: nameOrProfile.whatsapp,
+            campus: nameOrProfile.campus,
+          }
+        : {
+            name: nameOrProfile,
+            email,
+          };
+
+    const data = await api.post("/auth/login", payload);
+    if (data.token) {
+      localStorage.setItem("lf_token", data.token);
+    }
+    setUser(data.user);
+    setUserPoints(data.user?.points || 0);
+    return data.user;
   }
 
   function updateUser(updates) {
@@ -496,7 +449,9 @@ export function AppProvider({ children }) {
   }
 
   function logout() {
+    localStorage.removeItem("lf_token");
     setUser(null);
+    setUserPoints(0);
   }
 
   function dismissNotifications() {

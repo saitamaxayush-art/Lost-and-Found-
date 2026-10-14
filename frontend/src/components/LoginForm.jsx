@@ -217,19 +217,24 @@ export default function LoginForm({ onSuccess, onDone, autoFocus = false }) {
     }
 
     setStatus("verifying");
-    timerRef.current = setTimeout(() => {
-      sound.playSuccess();
-      const profile = {
-        name: values.name.trim(),
-        email: values.email.trim().toLowerCase(),
-        whatsapp: cleanPhone(values.whatsapp),
-        campus: values.campus.trim(),
-      };
-      login(profile);
-      setStatus("done");
-      setStep("done");
-      onDone?.();
-      timerRef.current = setTimeout(() => onSuccess?.(profile), 1500);
+    timerRef.current = setTimeout(async () => {
+      try {
+        const profile = {
+          name: values.name.trim(),
+          email: values.email.trim().toLowerCase(),
+          whatsapp: cleanPhone(values.whatsapp),
+          campus: values.campus.trim(),
+        };
+        await login(profile);
+        sound.playSuccess();
+        setStatus("done");
+        setStep("done");
+        onDone?.();
+        timerRef.current = setTimeout(() => onSuccess?.(profile), 1500);
+      } catch (err) {
+        setStatus("idle");
+        setOtpError(err.message || "Failed to sign in. Please try again.");
+      }
     }, 600);
   }
 
